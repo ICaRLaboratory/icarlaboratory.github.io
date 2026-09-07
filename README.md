@@ -94,3 +94,15 @@ are relative.
   (Google Fonts) for the small uppercase labels. Offline, the site falls back
   to system fonts and still reads correctly.
 - Images in `assets/img/` came from the old Google Sites page.
+
+## Day-to-day updates
+
+Edit the file in `data/`, check it locally by opening `index.html`, then:
+
+```sh
+./publish.sh "Add 2027 Automatica paper"
+```
+
+That commits everything and pushes. GitHub Pages redeploys on its own, usually
+within a minute or two. If a page comes up blank after an edit, open the browser
+console (F12) — a missing comma in a data file will say so there.
