@@ -294,9 +294,12 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  /* a faint measuring grid, nothing more */
-  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 58px 58px;
+  /* a faint measuring grid over a soft pool of light behind the figure --
+     the edges stay near-black so the hand-off to the white page below is clean */
+  background-image:
+    radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    radial-gradient(1000px 680px at 70% 44%, #1a1a20 0%, #0a0a0a 62%);
+  background-size: 58px 58px, cover;
 }
 
 .hero__inner {
