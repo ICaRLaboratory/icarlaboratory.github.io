@@ -39,6 +39,7 @@ function fillFields(root = document) {
     office: SITE.contact.office,
     address: SITE.contact.address,
     addressKo: SITE.contact.addressKo,
+    mapUrl: SITE.contact.mapUrl,
   };
   $$("[data-site]", root).forEach((el) => {
     const v = map[el.dataset.site];
@@ -54,6 +55,7 @@ const NAV_ITEMS = [
   { href: "members.html",      label: "Members" },
   { href: "publications.html", label: "Publications" },
   { href: "lecture.html",      label: "Lecture" },
+  { href: "contact.html",      label: "Contact" },
 ];
 
 const ICON = {
@@ -268,8 +270,11 @@ function renderPublications() {
 
   const counts = $("#pubcounts");
   if (counts) {
-    counts.textContent =
-      `${JOURNAL_PAPERS.length} journal articles · ${CONFERENCE_PAPERS.length} conference papers`;
+    const scholar = ADVISOR.scholar
+      ? ` &middot; <a class="pub__doi" href="${esc(ADVISOR.scholar)}" target="_blank" rel="noopener">Google Scholar${ICON.ext}</a>`
+      : "";
+    counts.innerHTML =
+      `${JOURNAL_PAPERS.length} journal articles &middot; ${CONFERENCE_PAPERS.length} conference papers${scholar}`;
   }
 
   draw("journal");
@@ -359,6 +364,11 @@ function personCard(p, i, opts = {}) {
     ? esc(p.email)
     : "";
 
+  const profiles = [
+    p.scholar && ["Google Scholar", p.scholar],
+    p.orcid && ["ORCID", `https://orcid.org/${p.orcid}`],
+  ].filter(Boolean);
+
   return `
     <div class="person" data-reveal style="--d:${i * 60}ms">
       <div class="avatar">${avatar}</div>
@@ -368,6 +378,9 @@ function personCard(p, i, opts = {}) {
         <div class="person__role">${esc(p.degree)}</div>
         <div class="person__meta">${(p.interests || []).map(esc).join(" &middot; ")}</div>
         ${line2 ? `<div class="person__meta faint">${line2}</div>` : ""}
+        ${profiles.length ? `<div class="person__links">${profiles
+          .map(([n, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${n}${ICON.ext}</a>`)
+          .join("")}</div>` : ""}
       </div>
     </div>`;
 }
@@ -395,6 +408,7 @@ function renderMembers() {
           <div class="contact-row"><dt>Email</dt><dd><a href="mailto:${esc(a.email)}">${esc(a.email)}</a></dd></div>
           <div class="contact-row"><dt>Office</dt><dd>${esc(a.office)}</dd></div>
           <div class="contact-row"><dt>ORCID</dt><dd><a href="https://orcid.org/${esc(a.orcid)}" target="_blank" rel="noopener">${esc(a.orcid)}</a></dd></div>
+          ${a.scholar ? `<div class="contact-row"><dt>Scholar</dt><dd><a href="${esc(a.scholar)}" target="_blank" rel="noopener">Google Scholar${ICON.ext}</a></dd></div>` : ""}
         </dl>
       </div>
       <div data-reveal style="--d:120ms">
@@ -453,6 +467,24 @@ function renderCourses() {
   }
 }
 
+/* ---------- contact ---------- */
+
+function renderContact() {
+  const host = $("#map");
+  if (!host) return;
+  const c = SITE.contact;
+  host.innerHTML = `
+    <iframe src="${esc(c.mapEmbed)}" title="Map to the ICaR Laboratory"
+            loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
+
+  const links = $("#contactlinks");
+  if (links) {
+    links.innerHTML = `
+      <a class="btn btn--primary" href="mailto:${esc(c.email)}">${esc(c.email)}</a>
+      <a class="btn" href="${esc(c.mapUrl)}" target="_blank" rel="noopener">Open in Google Maps</a>`;
+  }
+}
+
 /* ---------- boot ---------- */
 
 function boot(page) {
@@ -463,6 +495,7 @@ function boot(page) {
   renderMembers();
   renderPublications();
   renderCourses();
+  renderContact();
   renderFooter();
   initReveal();
 }

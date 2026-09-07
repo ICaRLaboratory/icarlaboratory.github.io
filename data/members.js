@@ -4,6 +4,7 @@
    `photo` is optional -- leave it out and the card shows a
    generated monogram instead. Drop files in assets/img/.
    `nameKo` is shown as the small grey name beside the English one.
+   `scholar` and `orcid` are optional; each prints as a link on the card.
    Emails use " at " instead of "@" to slow down scrapers.
    --------------------------------------------------------------- */
 
@@ -39,7 +40,7 @@ const GRAD_STUDENTS = [
     interests: [TOPIC.robotics, TOPIC.control],
   },
   {
-    nameEn: "Soon Jin Park",
+    nameEn: "Sun Gene Park",
     nameKo: "박순진",
     photo: "assets/img/soonjin-park.jpg",
     degree: DEG.ms,
@@ -59,6 +60,7 @@ const ALUMNI = [
   {
     nameEn: "Dong Hee Seo",
     nameKo: "서동희",
+    scholar: "https://scholar.google.com/citations?user=sm2n5yoAAAAJ",
     degree: DEG.msDone,
     graduated: "2025.02",
     interests: [TOPIC.robotics, TOPIC.control],
@@ -67,6 +69,7 @@ const ALUMNI = [
   {
     nameEn: "Hyuk Mo An",
     nameKo: "안혁모",
+    scholar: "https://scholar.google.com/citations?user=glYKbbUAAAAJ",
     degree: DEG.msDone,
     graduated: "2025.02",
     interests: [TOPIC.robotics, TOPIC.control],

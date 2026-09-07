@@ -1,4 +1,31 @@
 /* ===============================================================
+   Self-hosted type. Both faces are subsets of the originals,
+   cut to the characters this site actually uses plus Latin
+   Extended-A, and both keep their variable weight axis.
+
+   Adding Korean text with a syllable outside the subset is safe:
+   the browser falls through to the system Korean face for that
+   character rather than showing a blank box. To fold new
+   characters in properly, re-run tools/build-fonts.sh.
+   =============================================================== */
+
+@font-face {
+  font-family: "Pretendard Variable";
+  src: url("fonts/pretendard-subset.woff2") format("woff2");
+  font-weight: 45 930;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("fonts/jetbrains-mono-subset.woff2") format("woff2");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ===============================================================
    ICaR Lab — design system
    Dark ink by default, warm paper in light mode.
    Everything is driven by the custom properties in :root.
@@ -482,6 +509,20 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
 }
 .person__meta { font-size: 0.82rem; color: var(--dim); margin-top: 0.5rem; word-break: break-word; }
 
+.person__links { display: flex; flex-wrap: wrap; gap: 0.85rem; margin-top: 0.55rem; }
+.person__links a {
+  font-family: var(--mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dim);
+  border-bottom: 1px solid var(--line-soft);
+  padding-bottom: 1px;
+  transition: color 0.2s, border-color 0.2s;
+}
+.person__links a:hover { color: var(--text); border-color: var(--text); }
+.person__links .ext { width: 9px; height: 9px; margin-left: 0.3em; opacity: 0.5; }
+
 .badge {
   display: inline-block;
   font-family: var(--mono);
@@ -805,3 +846,29 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
 
 /* the hero headline is the lab's name now, not a short slogan */
 .hero__title { font-size: clamp(1.95rem, 3.3vw, 2.9rem); max-width: 17ch; }
+
+/* ---------- contact page ---------- */
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: start;
+}
+@media (max-width: 860px) { .contact-grid { grid-template-columns: 1fr; } }
+
+.map { margin: 0; }
+.map iframe {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  display: block;
+  /* the embed is full colour; damp it to match the rest of the page */
+  filter: grayscale(1) contrast(1.05);
+  transition: filter 0.4s;
+}
+.map iframe:hover { filter: none; }
+@media (max-width: 860px) { .map iframe { aspect-ratio: 3 / 2; } }
+
+.contact-page .contact-row dt { width: 74px; }

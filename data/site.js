@@ -18,9 +18,12 @@ const SITE = {
   contact: {
     office: "Room 515, Daeyang AI Center",
     address: "209 Neungdong-ro, Gwangjin-gu, Seoul 05006, Republic of Korea",
-    addressKo: "(05006) 서울시 광진구 능동로 209 세종대학교 대양AI센터 515호",
+    addressKo: "05006 서울특별시 광진구 능동로 209 (군자동) 세종대학교 대양 AI센터 515호",
     email: "lsy@sejong.ac.kr",
-    mapUrl: "https://maps.google.com/?q=Sejong+University+Daeyang+AI+Center",
+    /* the pin the old site used */
+    coords: "37.551049,127.075719",
+    mapUrl: "https://www.google.com/maps?q=37.551049,127.075719&z=17",
+    mapEmbed: "https://www.google.com/maps?q=37.551049,127.075719&z=17&output=embed",
   },
 
   /* Three areas, matching the three blocks of the hero figure. */
@@ -83,6 +86,7 @@ const ADVISOR = {
   office: "Room 515, Daeyang AI Center",
   photo: "assets/img/advisor.jpg",
   orcid: "0000-0002-9071-4837",
+  scholar: "https://scholar.google.com/citations?user=ME5-sE0AAAAJ",
 
   interests: [
     "Control theory",
