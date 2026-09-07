@@ -25,57 +25,20 @@ const initials = (name) =>
     .join("")
     .toUpperCase();
 
-/* ---------- language ---------- */
-
-const LANG_KEY = "icar-lang";
-let LANG = "en";
-try {
-  /* ?lang=ko wins, so a link can point at one language */
-  const forced = new URLSearchParams(location.search).get("lang");
-  const saved = localStorage.getItem(LANG_KEY);
-  if (LANGS.includes(forced)) LANG = forced;
-  else if (LANGS.includes(saved)) LANG = saved;
-  else if ((navigator.language || "").toLowerCase().startsWith("ko")) LANG = "ko";
-} catch (e) { /* private mode */ }
-
-/* a bilingual value is { en, ko }; a plain string is used as-is */
-const t = (v) =>
-  v && typeof v === "object" && !Array.isArray(v) ? v[LANG] ?? v.en ?? v.ko ?? "" : v ?? "";
-
-const tl = (arr) => (arr || []).map(t).filter(Boolean);
-
-const copy = (key) => t(COPY[key]) ?? "";
-
-let CURRENT_PAGE = "index.html";
-
-function setLang(next) {
-  if (next === LANG || !LANGS.includes(next)) return;
-  LANG = next;
-  try { localStorage.setItem(LANG_KEY, next); } catch (e) { /* ignore */ }
-  document.documentElement.lang = next;
-  renderNav(CURRENT_PAGE);
-  boot(CURRENT_PAGE);
-}
-
-/* text bound through data-t="copy.key"; the values may contain markup */
-function fillCopy(root = document) {
-  $$("[data-t]", root).forEach((el) => { el.innerHTML = copy(el.dataset.t); });
-}
-
 /* text bound through data-site="field" */
 function fillFields(root = document) {
   const map = {
-    tagline: t(SITE.tagline),
-    intro: t(SITE.intro),
-    labName: t(SITE.labName),
+    tagline: SITE.tagline,
+    intro: SITE.intro,
+    labName: SITE.labName,
     labShort: SITE.labShort,
-    department: t(SITE.department),
-    university: t(SITE.university),
+    department: SITE.department,
+    university: SITE.university,
     since: String(SITE.since),
     email: SITE.contact.email,
-    office: t(SITE.contact.office),
-    address: t(SITE.contact.address),
-    addressAlt: t(SITE.contact.addressAlt),
+    office: SITE.contact.office,
+    address: SITE.contact.address,
+    addressKo: SITE.contact.addressKo,
   };
   $$("[data-site]", root).forEach((el) => {
     const v = map[el.dataset.site];
@@ -86,16 +49,15 @@ function fillFields(root = document) {
 /* ---------- nav + footer ---------- */
 
 const NAV_ITEMS = [
-  { href: "index.html",        key: "nav.home" },
-  { href: "research.html",     key: "nav.research" },
-  { href: "members.html",      key: "nav.members" },
-  { href: "publications.html", key: "nav.publications" },
-  { href: "lecture.html",      key: "nav.lecture" },
+  { href: "index.html",        label: "Home" },
+  { href: "research.html",     label: "Research" },
+  { href: "members.html",      label: "Members" },
+  { href: "publications.html", label: "Publications" },
+  { href: "lecture.html",      label: "Lecture" },
 ];
 
 const ICON = {
   menu:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
-  arrow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
   ext:   '<svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>',
 };
 
@@ -103,11 +65,11 @@ let navScrollBound = false;
 
 function renderNav(current) {
   const host = $("#nav");
-  if (!host) return;
-  CURRENT_PAGE = current;
+  if (!host || host.dataset.done) return;
+  host.dataset.done = "1";
 
   const links = NAV_ITEMS.map(
-    (i) => `<a href="${i.href}"${i.href === current ? ' aria-current="page"' : ""}>${copy(i.key)}</a>`
+    (i) => `<a href="${i.href}"${i.href === current ? ' aria-current="page"' : ""}>${i.label}</a>`
   ).join("");
 
   host.innerHTML = `
@@ -117,25 +79,14 @@ function renderNav(current) {
           <span class="brand__mark"><img src="assets/img/logo.png" alt=""></span>
           <span class="brand__text">
             <span class="brand__name">${esc(SITE.labShort)} Lab</span>
-            <span class="brand__sub">${esc(t(SITE.university))}</span>
+            <span class="brand__sub">${esc(SITE.university)}</span>
           </span>
         </a>
         <div class="nav__links" id="navlinks">${links}</div>
-        <div class="lang" role="group" aria-label="Language">
-          ${LANGS.map((l) =>
-            `<button type="button" data-lang="${l}" class="${l === LANG ? "on" : ""}"
-                     aria-pressed="${l === LANG}">${l === "ko" ? "한국어" : "EN"}</button>`
-          ).join("")}
-        </div>
         <button class="icon-btn nav__toggle" id="menuBtn" type="button"
                 aria-label="Menu" aria-expanded="false">${ICON.menu}</button>
       </div>
     </nav>`;
-
-  $(".lang", host).addEventListener("click", (e) => {
-    const b = e.target.closest("button[data-lang]");
-    if (b) setLang(b.dataset.lang);
-  });
 
   const menuBtn = $("#menuBtn");
   const navlinks = $("#navlinks");
@@ -155,8 +106,6 @@ function renderNav(current) {
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
-  } else {
-    $("#navbar").classList.toggle("is-stuck", window.scrollY > 8);
   }
 }
 
@@ -173,28 +122,29 @@ function renderFooter() {
             <span class="brand__mark"><img src="assets/img/logo.png" alt=""></span>
             <span class="brand__text">
               <span class="brand__name">${esc(SITE.labShort)} Lab</span>
-              <span class="brand__sub">${copy("footer.est")} ${SITE.since}</span>
+              <span class="brand__sub">Est. ${SITE.since}</span>
             </span>
           </div>
-          <p class="muted" style="font-size:.88rem;max-width:34ch;margin:0">${copy("footer.blurb")}</p>
+          <p class="muted" style="font-size:.88rem;max-width:34ch;margin:0">${
+            esc(SITE.labName)}, ${esc(SITE.department)}, ${esc(SITE.university)}.</p>
         </div>
         <div>
-          <h4>${copy("footer.navigate")}</h4>
-          <ul>${NAV_ITEMS.map((i) => `<li><a href="${i.href}">${copy(i.key)}</a></li>`).join("")}</ul>
+          <h4>Navigate</h4>
+          <ul>${NAV_ITEMS.map((i) => `<li><a href="${i.href}">${i.label}</a></li>`).join("")}</ul>
         </div>
         <div>
-          <h4>${copy("footer.find")}</h4>
+          <h4>Find us</h4>
           <ul>
-            <li>${esc(t(c.office))}</li>
-            <li>${esc(t(c.address))}</li>
+            <li>${esc(c.office)}</li>
+            <li>${esc(c.address)}</li>
             <li><a href="mailto:${esc(c.email)}">${esc(c.email)}</a></li>
-            <li><a href="${esc(c.mapUrl)}" target="_blank" rel="noopener">${copy("footer.maps")} &rarr;</a></li>
+            <li><a href="${esc(c.mapUrl)}" target="_blank" rel="noopener">Open in Maps &rarr;</a></li>
           </ul>
         </div>
       </div>
       <div class="wrap footer__bottom">
-        <span>&copy; ${new Date().getFullYear()} ${esc(SITE.labShort)} Lab &middot; ${esc(t(SITE.university))}</span>
-        <span>${esc(t(c.addressAlt))}</span>
+        <span>&copy; ${new Date().getFullYear()} ${esc(SITE.labShort)} Lab &middot; ${esc(SITE.university)}</span>
+        <span>${esc(c.addressKo)}</span>
       </div>
     </footer>`;
 }
@@ -307,8 +257,7 @@ function renderPublications() {
   };
 
   const filters = $("#pubfilters");
-  if (filters && !filters.dataset.bound) {
-    filters.dataset.bound = "1";
+  if (filters) {
     filters.addEventListener("click", (e) => {
       const btn = e.target.closest(".chip");
       if (!btn) return;
@@ -319,13 +268,11 @@ function renderPublications() {
 
   const counts = $("#pubcounts");
   if (counts) {
-    counts.textContent = LANG === "ko"
-      ? `저널 논문 ${JOURNAL_PAPERS.length}편 · 학회 논문 ${CONFERENCE_PAPERS.length}편`
-      : `${JOURNAL_PAPERS.length} journal articles · ${CONFERENCE_PAPERS.length} conference papers`;
+    counts.textContent =
+      `${JOURNAL_PAPERS.length} journal articles · ${CONFERENCE_PAPERS.length} conference papers`;
   }
 
-  const active = filters ? $(".chip.is-active", filters) : null;
-  draw(active ? active.dataset.set : "journal");
+  draw("journal");
 }
 
 /* ---------- home ---------- */
@@ -336,9 +283,9 @@ function areaCard(a, i) {
     <article class="card ${a.image ? "card--media" : ""}" data-reveal style="--d:${i * 90}ms">
       ${a.image ? `<div class="card__media"><img src="${esc(a.image)}" alt="" loading="lazy"></div>` : ""}
       <div class="card__index">0${i + 1} / ${total < 10 ? "0" : ""}${total}</div>
-      <h3 class="card__title">${esc(t(a.label))}</h3>
-      <p>${esc(t(a.blurb))}</p>
-      <div class="tags">${tl(a.keywords).map((k) => `<span class="tag">${esc(k)}</span>`).join("")}</div>
+      <h3 class="card__title">${esc(a.label)}</h3>
+      <p>${esc(a.blurb)}</p>
+      <div class="tags">${a.keywords.map((k) => `<span class="tag">${esc(k)}</span>`).join("")}</div>
     </article>`;
 }
 
@@ -350,15 +297,15 @@ function renderHome() {
   if (statsHost) {
     const people = 1 + GRAD_STUDENTS.length + UNDERGRAD_STUDENTS.length;
     const items = [
-      { n: JOURNAL_PAPERS.length,    key: "stat.journal" },
-      { n: CONFERENCE_PAPERS.length, key: "stat.conference" },
-      { n: PROJECTS.length,          key: "stat.projects" },
-      { n: people,                   key: "stat.members" },
+      { n: JOURNAL_PAPERS.length,    label: "Journal articles" },
+      { n: CONFERENCE_PAPERS.length, label: "Conference papers" },
+      { n: PROJECTS.length,          label: "Funded projects" },
+      { n: people,                   label: "Lab members" },
     ];
     statsHost.innerHTML = items.map((s, i) => `
       <div class="stat" data-reveal data-count="${s.n}" style="--d:${i * 80}ms">
         <div class="stat__num">0</div>
-        <div class="stat__label">${copy(s.key)}</div>
+        <div class="stat__label">${s.label}</div>
       </div>`).join("");
   }
 
@@ -378,40 +325,36 @@ function renderResearch() {
   const row = (p, i) => `
     <div class="project" data-reveal style="--d:${i * 60}ms">
       <div>
-        <div class="project__title">${esc(t(p.title))}</div>
-        <div class="project__ko">${esc(LANG === "ko" ? p.title.en : p.title.ko)}</div>
+        <div class="project__title">${esc(p.titleEn)}</div>
+        <div class="project__ko">${esc(p.titleKo)}</div>
         <div class="project__meta">
-          <span>${esc(t(p.agency))}</span>
-          <span>${esc(t(p.role))}</span>
+          <span>${esc(p.agency)}</span>
+          <span>${esc(p.role)}</span>
           <span>${esc(p.period)}</span>
         </div>
       </div>
-      <span class="pill ${p.status === "ongoing" ? "pill--live" : ""}">${
-        copy(p.status === "ongoing" ? "projects.ongoing" : "projects.completed")}</span>
+      <span class="pill ${p.status === "ongoing" ? "pill--live" : ""}">${p.status}</span>
     </div>`;
 
   const ongoing = PROJECTS.filter((p) => p.status === "ongoing");
   const done = PROJECTS.filter((p) => p.status !== "ongoing");
 
   projectHost.innerHTML = `
-    <h3 class="eyebrow" style="margin-top:0">${copy("projects.ongoing")}</h3>
+    <h3 class="eyebrow" style="margin-top:0">Ongoing</h3>
     ${ongoing.map(row).join("")}
-    <h3 class="eyebrow" style="margin-top:3rem">${copy("projects.completed")}</h3>
+    <h3 class="eyebrow" style="margin-top:3rem">Completed</h3>
     ${done.map(row).join("")}`;
 }
 
 /* ---------- members ---------- */
 
-const nameMain = (p) => (LANG === "ko" && p.nameKo ? p.nameKo : p.nameEn);
-const nameSub  = (p) => (LANG === "ko" ? p.nameEn : p.nameKo || "");
-
 function personCard(p, i, opts = {}) {
   const avatar = p.photo
-    ? `<img src="${esc(p.photo)}" alt="${esc(nameMain(p))}" loading="lazy">`
+    ? `<img src="${esc(p.photo)}" alt="${esc(p.nameEn)}" loading="lazy">`
     : esc(initials(p.nameEn));
 
   const line2 = opts.alumni
-    ? `${copy("members.graduated")} ${esc(p.graduated)}${p.now ? " &middot; " + esc(t(p.now)) : ""}`
+    ? `Graduated ${esc(p.graduated)}${p.now ? " &middot; " + esc(p.now) : ""}`
     : p.email
     ? esc(p.email)
     : "";
@@ -420,10 +363,10 @@ function personCard(p, i, opts = {}) {
     <div class="person" data-reveal style="--d:${i * 60}ms">
       <div class="avatar">${avatar}</div>
       <div>
-        <div class="person__name">${esc(nameMain(p))}<span class="person__ko">${esc(nameSub(p))}</span>${
-          p.role ? `<span class="badge">${esc(t(p.role))}</span>` : ""}</div>
-        <div class="person__role">${esc(t(p.degree))}</div>
-        <div class="person__meta">${tl(p.interests).map(esc).join(" &middot; ")}</div>
+        <div class="person__name">${esc(p.nameEn)}<span class="person__ko">${esc(p.nameKo || "")}</span>${
+          p.role ? `<span class="badge">${esc(p.role)}</span>` : ""}</div>
+        <div class="person__role">${esc(p.degree)}</div>
+        <div class="person__meta">${(p.interests || []).map(esc).join(" &middot; ")}</div>
         ${line2 ? `<div class="person__meta faint">${line2}</div>` : ""}
       </div>
     </div>`;
@@ -433,37 +376,37 @@ function renderMembers() {
   const advHost = $("#advisor");
   if (advHost) {
     const a = ADVISOR;
-    const tl_ = (list, past) => list.map((c, i) => `
-      <div class="tl-item ${past || i > 0 ? "tl-item--past" : ""}">
+    const timeline = (list, allPast) => list.map((c, i) => `
+      <div class="tl-item ${allPast || i > 0 ? "tl-item--past" : ""}">
         <div class="tl-period">${esc(c.period)}</div>
-        <div class="tl-role">${esc(t(c.role || c.degree))}</div>
-        <div class="tl-org">${esc(t(c.org))}</div>
-        ${t(c.note) ? `<div class="tl-note">${esc(t(c.note))}</div>` : ""}
+        <div class="tl-role">${esc(c.role || c.degree)}</div>
+        <div class="tl-org">${esc(c.org)}</div>
+        ${c.note ? `<div class="tl-note">${esc(c.note)}</div>` : ""}
       </div>`).join("");
 
     advHost.innerHTML = `
       <div data-reveal>
         <div class="portrait">
           ${a.photo
-            ? `<img src="${esc(a.photo)}" alt="${esc(nameMain(a))}">`
+            ? `<img src="${esc(a.photo)}" alt="${esc(a.nameEn)}">`
             : `<span class="portrait__initials">${esc(initials(a.nameEn))}</span>`}
         </div>
         <dl class="contact-list">
-          <div class="contact-row"><dt>${copy("label.email")}</dt><dd><a href="mailto:${esc(a.email)}">${esc(a.email)}</a></dd></div>
-          <div class="contact-row"><dt>${copy("label.office")}</dt><dd>${esc(t(a.office))}</dd></div>
+          <div class="contact-row"><dt>Email</dt><dd><a href="mailto:${esc(a.email)}">${esc(a.email)}</a></dd></div>
+          <div class="contact-row"><dt>Office</dt><dd>${esc(a.office)}</dd></div>
           <div class="contact-row"><dt>ORCID</dt><dd><a href="https://orcid.org/${esc(a.orcid)}" target="_blank" rel="noopener">${esc(a.orcid)}</a></dd></div>
         </dl>
       </div>
       <div data-reveal style="--d:120ms">
-        <h2 class="h2">${esc(nameMain(a))} <span class="faint" style="font-size:.5em">${esc(nameSub(a))}</span></h2>
-        <p class="lede" style="margin-top:.75rem">${esc(t(a.title))}, ${esc(t(a.affiliation))}</p>
+        <h2 class="h2">${esc(a.nameEn)} <span class="faint" style="font-size:.5em">${esc(a.nameKo)}</span></h2>
+        <p class="lede" style="margin-top:.75rem">${esc(a.title)}, ${esc(a.affiliation)}</p>
         <div class="tags" style="margin-top:1.5rem">
-          ${tl(a.interests).map((k) => `<span class="tag">${esc(k)}</span>`).join("")}
+          ${a.interests.map((k) => `<span class="tag">${esc(k)}</span>`).join("")}
         </div>
-        <h3 class="eyebrow" style="margin-top:3rem">${copy("members.appointments")}</h3>
-        <div class="timeline">${tl_(a.career, false)}</div>
-        <h3 class="eyebrow" style="margin-top:3rem">${copy("members.education")}</h3>
-        <div class="timeline">${tl_(a.education, true)}</div>
+        <h3 class="eyebrow" style="margin-top:3rem">Appointments</h3>
+        <div class="timeline">${timeline(a.career, false)}</div>
+        <h3 class="eyebrow" style="margin-top:3rem">Education</h3>
+        <div class="timeline">${timeline(a.education, true)}</div>
       </div>`;
   }
 
@@ -492,10 +435,10 @@ function renderCourses() {
   const row = (c) => `
     <div class="course">
       <span>
-        <span class="course__name">${esc(t(c.name))}</span>
-        <span class="course__ko">${esc(LANG === "ko" ? c.name.en : c.name.ko)}</span>
+        <span class="course__name">${esc(c.nameEn)}</span>
+        <span class="course__ko">${esc(c.nameKo)}</span>
       </span>
-      <span class="course__years">${esc(c.years || t(c.level))}</span>
+      <span class="course__years">${esc(c.years || c.level)}</span>
     </div>`;
 
   const fill = (id, list) => { const h = $(id); if (h) h.innerHTML = list.map(row).join(""); };
@@ -505,8 +448,7 @@ function renderCourses() {
   const past = $("#past");
   if (past) {
     past.innerHTML = COURSES.past
-      .map((c) => `<span class="tag">${esc(t(c.name))} <span class="faint">${
-        esc(LANG === "ko" ? c.name.en : c.name.ko)}</span></span>`)
+      .map((c) => `<span class="tag">${esc(c.nameEn)} <span class="faint">${esc(c.nameKo)}</span></span>`)
       .join("");
   }
 }
@@ -514,10 +456,7 @@ function renderCourses() {
 /* ---------- boot ---------- */
 
 function boot(page) {
-  CURRENT_PAGE = page;
-  document.documentElement.lang = LANG;
   if ($("#nav") && !$("#nav").firstElementChild) renderNav(page);
-  fillCopy();
   fillFields();
   renderHome();
   renderResearch();

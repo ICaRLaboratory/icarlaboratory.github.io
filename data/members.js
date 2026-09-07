@@ -3,17 +3,17 @@
 
    `photo` is optional -- leave it out and the card shows a
    generated monogram instead. Drop files in assets/img/.
+   `nameKo` is shown as the small grey name beside the English one.
    Emails use " at " instead of "@" to slow down scrapers.
    --------------------------------------------------------------- */
 
 const DEG = {
-  phd:   { en: "Ph.D. Candidate", ko: "박사과정" },
-  ms:    { en: "M.S. Candidate",  ko: "석사과정" },
-  msDone:{ en: "M.S.",            ko: "석사" },
-  ug:    { en: "Undergraduate Researcher", ko: "학부 연구생" },
+  phd:    "Ph.D. Candidate",
+  ms:     "M.S. Candidate",
+  msDone: "M.S.",
+  ug:     "Undergraduate Researcher",
 };
 
-/* kept in English in both languages -- these read as keywords, not prose */
 const TOPIC = {
   robotics: "Robotics",
   control:  "Control Theory",
@@ -25,7 +25,7 @@ const GRAD_STUDENTS = [
     nameKo: "이진웅",
     photo: "assets/img/jinwoong-lee.jpg",
     degree: DEG.phd,
-    role: { en: "Lab Manager", ko: "연구실장" },
+    role: "Lab Manager",
     email: "jinwoonggg at sju.ac.kr",
     interests: [TOPIC.robotics, TOPIC.control],
   },

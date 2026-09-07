@@ -13,7 +13,6 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
-<script src="data/i18n.js"></script>
 <script src="data/site.js"></script>
 <script src="data/members.js"></script>
 <script src="data/publications.js"></script>
@@ -28,17 +27,17 @@
 
 <header class="pagehead">
   <div class="wrap">
-    <p class="eyebrow" data-t="pubs.eyebrow"></p>
-    <h1 class="h2" data-reveal data-t="pubs.title" style="max-width:22ch"></h1>
+    <p class="eyebrow">Publications</p>
+    <h1 class="h2" data-reveal style="max-width:22ch">Peer-reviewed work,<br>newest first.</h1>
   </div>
 </header>
 
 <section class="band--tight wrap">
   <p class="muted" id="pubcounts" style="font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;margin:0 0 1.5rem"></p>
   <div class="filters" id="pubfilters">
-    <button class="chip is-active" type="button" data-set="journal" data-t="pubs.journal"></button>
-    <button class="chip" type="button" data-set="conference" data-t="pubs.conference"></button>
-    <button class="chip" type="button" data-set="all" data-t="pubs.all"></button>
+    <button class="chip is-active" type="button" data-set="journal">Journal</button>
+    <button class="chip" type="button" data-set="conference">Conference</button>
+    <button class="chip" type="button" data-set="all">All</button>
   </div>
   <div id="publist"></div>
 </section>

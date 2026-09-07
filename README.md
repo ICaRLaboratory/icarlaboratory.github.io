@@ -17,38 +17,18 @@ lecture.html        Courses
 assets/
   style.css         All styling. Colours are the :root block at the top;
                     .invert is the black band used by the nav, hero and footer.
-  site.js           Language switch, nav, footer, and the page renderers.
+  site.js           Nav, footer, and the page renderers.
   hero.js           The live hero figure (see below).
   favicon.png
   img/              Logo, portraits, research-area images.
 
 data/
-  i18n.js           Fixed page text, in both languages
   site.js           Lab identity, contact, advisor CV, research areas
   members.js        Students and alumni
   publications.js   Journal and conference papers, with DOIs
   projects.js       Funded projects
   courses.js        Teaching
 ```
-
-## Two languages
-
-Every visitor-facing string exists in English and Korean, with one deliberate
-exception: the labels drawn inside the hero figure stay English in both, since
-they are block-diagram notation and are not worth maintaining twice. The switch is in the
-header, the choice is remembered, and `?lang=ko` / `?lang=en` forces one — useful
-when you want a link to open in a particular language.
-
-Anywhere a value differs between languages, write it as an object:
-
-```js
-label: { en: "Control Algorithms", ko: "제어 알고리즘" },
-```
-
-A plain string is used unchanged in both — which is what you want for names,
-journal titles and citations. Fixed page text (headings, buttons, section
-labels) lives in `data/i18n.js` under `COPY`; the HTML pulls it in through
-`data-t="key"` attributes.
 
 ## Updating content
 
@@ -60,8 +40,7 @@ doi.org automatically. `S. Y. Lee` in the `authors` string is bolded on its own.
 The counters on the home page and the year groups both update themselves.
 
 **Add a student** — add an entry to `GRAD_STUDENTS` in `data/members.js`. Reuse
-the `DEG` and `TOPIC` constants at the top of that file so the Korean comes for
-free. For a photo, drop the file in `assets/img/` and add
+the `DEG` and `TOPIC` constants at the top of that file. For a photo, drop the file in `assets/img/` and add
 `photo: "assets/img/name.jpg"`; without one the card shows a monogram. The
 "Undergraduate researchers" section hides itself while its list is empty.
 
@@ -107,8 +86,11 @@ are relative.
 
 - The site is black-on-white with black bands for the nav, hero and footer. There
   is no light/dark toggle — one design, matching the lab's own palette.
+- The site is in English. Korean appears only where it identifies something:
+  member names, the official Korean titles of projects and courses, and the
+  address in the footer.
 - Two type families: Pretendard (jsDelivr) for everything from the headlines
-  down, since it covers Hangul and Latin in one design, and JetBrains Mono
+  down — it covers Latin and the Korean that remains — and JetBrains Mono
   (Google Fonts) for the small uppercase labels. Offline, the site falls back
   to system fonts and still reads correctly.
 - Images in `assets/img/` came from the old Google Sites page.

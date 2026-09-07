@@ -2,12 +2,10 @@
    Teaching. `level` is LEVEL.ug or LEVEL.grad.
    --------------------------------------------------------------- */
 
-const LEVEL = {
-  ug:   { en: "Undergraduate", ko: "학부" },
-  grad: { en: "Graduate",      ko: "대학원" },
-};
+const LEVEL = { ug: "Undergraduate", grad: "Graduate" };
 
-const c = (en, ko, level, years) => ({ name: { en, ko }, level, years });
+/* nameKo is the official course title; it prints beside the English one. */
+const c = (nameEn, nameKo, level, years) => ({ nameEn, nameKo, level, years });
 
 const COURSES = {
   spring: [

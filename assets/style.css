@@ -763,35 +763,6 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
 /* the mobile menu drops out of a black bar, so it has to be black too */
 @media (max-width: 920px) { .nav__links { background: #0a0a0a; } }
 
-/* ---------- language switch ---------- */
-
-.lang {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  padding: 2px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--panel);
-  flex: none;
-}
-.lang button {
-  appearance: none;
-  border: 0;
-  background: transparent;
-  color: var(--dim);
-  font-family: var(--mono);
-  font-size: 0.64rem;
-  letter-spacing: 0.1em;
-  padding: 0.34rem 0.66rem;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: color 0.2s, background 0.2s;
-  white-space: nowrap;
-}
-.lang button:hover { color: var(--text); }
-.lang button.on { background: var(--text); color: var(--bg); font-weight: 600; }
-
 /* ---------- DOI links on publications ---------- */
 
 .pub__link {
@@ -825,54 +796,8 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
 }
 .pub__doi:hover { color: var(--text); border-bottom-color: var(--line); }
 
-/* ---------- Korean typography ----------
-   Hangul has no spaces inside a word the way Latin does, so the default
-   break-anywhere behaviour splits words in half. keep-all fixes that.
-   The mono face carries no Hangul, so it falls through to Pretendard --
-   which needs much tighter tracking than JetBrains Mono does. */
-
-html:lang(ko) {
-  --mono: "JetBrains Mono", "Pretendard Variable", Pretendard, ui-monospace, monospace;
-}
-
-html:lang(ko) body {
-  word-break: keep-all;
-  overflow-wrap: break-word;
-}
-
-html:lang(ko) .eyebrow,
-html:lang(ko) .brand__sub,
-html:lang(ko) .stat__label,
-html:lang(ko) .hero__meta,
-html:lang(ko) .hero__art figcaption,
-html:lang(ko) .card__index,
-html:lang(ko) .tag,
-html:lang(ko) .badge,
-html:lang(ko) .pill,
-html:lang(ko) .chip,
-html:lang(ko) .person__role,
-html:lang(ko) .tl-period,
-html:lang(ko) .contact-row dt,
-html:lang(ko) .course__years,
-html:lang(ko) .footer h4,
-html:lang(ko) .footer__bottom,
-html:lang(ko) #pubcounts { letter-spacing: 0.05em; }
-
-/* Pretendard has no true italic, and a slanted Hangul looks broken */
-/* Latin and Hangul share the display family now, so only the metrics differ */
-html:lang(ko) .display { font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1.26; letter-spacing: -0.035em; }
-html:lang(ko) .h2 { line-height: 1.3; letter-spacing: -0.03em; }
-html:lang(ko) .hero__title em,
-html:lang(ko) .display em,
-html:lang(ko) .h2 em {
-  font-style: normal;
-  box-shadow: inset 0 -0.12em 0 var(--accent);
-}
-html:lang(ko) .card__title { letter-spacing: -0.025em; }
-html:lang(ko) .lede { line-height: 1.8; }
-html:lang(ko) .year-label,
-html:lang(ko) .stat__num,
-html:lang(ko) .portrait__initials { font-family: var(--display); }
+/* Korean still appears in names, project titles and the footer address,
+   and Pretendard covers it, so no separate rules are needed. */
 
 /* ---------- research areas ---------- */
 
@@ -880,4 +805,3 @@ html:lang(ko) .portrait__initials { font-family: var(--display); }
 
 /* the hero headline is the lab's name now, not a short slogan */
 .hero__title { font-size: clamp(1.95rem, 3.3vw, 2.9rem); max-width: 17ch; }
-html:lang(ko) .hero__title { font-size: clamp(1.9rem, 3.2vw, 2.8rem); }
