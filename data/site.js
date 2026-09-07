@@ -20,10 +20,9 @@ const SITE = {
     en: "We develop advanced mathematical control theories and apply them to automation systems — networked control systems, multi-agent systems, sampled-data systems, and neural-network-based systems. Our applied work targets industrial robotics, with a strong emphasis on system modeling, robust control, and AI integration.",
     ko: "고도화된 수학적 제어 이론을 개발하고 이를 자동화 시스템 — 네트워크 제어 시스템, 다개체 시스템, 표본데이터 시스템, 신경망 기반 시스템 — 에 적용합니다. 응용 연구는 산업용 로보틱스를 향하며, 시스템 모델링과 강인 제어, AI 융합에 중점을 둡니다.",
   },
-  /* NOTE: check the official Korean department name and fix it here if it differs. */
   department: {
     en: "Department of Artificial Intelligence and Information Technology",
-    ko: "인공지능·정보기술학과",
+    ko: "지능정보융합학과",
   },
   university: { en: "Sejong University", ko: "세종대학교" },
   since: 2019,
@@ -100,7 +99,7 @@ const ADVISOR = {
   title: { en: "Associate Professor", ko: "부교수" },
   affiliation: {
     en: "Department of Artificial Intelligence and Information Technology, Sejong University",
-    ko: "세종대학교 인공지능·정보기술학과",
+    ko: "세종대학교 지능정보융합학과",
   },
   email: "lsy@sejong.ac.kr",
   office: { en: "Room 515, Daeyang AI Center", ko: "대양AI센터 515호" },
@@ -120,13 +119,13 @@ const ADVISOR = {
       period: "2026.09 – present",
       role: { en: "Associate Professor", ko: "부교수" },
       org:  { en: "Sejong University", ko: "세종대학교" },
-      note: { en: "Dept. of Artificial Intelligence and Information Technology", ko: "인공지능·정보기술학과" },
+      note: { en: "Dept. of Artificial Intelligence and Information Technology", ko: "지능정보융합학과" },
     },
     {
       period: "2025.03 – 2026.08",
       role: { en: "Assistant Professor", ko: "조교수" },
       org:  { en: "Sejong University", ko: "세종대학교" },
-      note: { en: "Dept. of Artificial Intelligence and Information Technology", ko: "인공지능·정보기술학과" },
+      note: { en: "Dept. of Artificial Intelligence and Information Technology", ko: "지능정보융합학과" },
     },
     {
       period: "2019.09 – 2025.02",

@@ -26,7 +26,7 @@ const COPY = {
   "footer.est":      { en: "Est.",         ko: "설립" },
   "footer.blurb": {
     en: "Intelligent Control and Robotics Laboratory, Department of Artificial Intelligence and Information Technology, Sejong University.",
-    ko: "세종대학교 인공지능·정보기술학과 지능제어 및 로보틱스 연구실.",
+    ko: "세종대학교 지능정보융합학과 지능제어 및 로보틱스 연구실.",
   },
 
   /* ---- home ---- */

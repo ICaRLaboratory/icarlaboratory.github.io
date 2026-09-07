@@ -225,6 +225,16 @@ function initReveal() {
     );
   }
   targets.forEach((t) => revealObserver.observe(t));
+
+  /* If the observer never fires -- an odd embedding, a stalled frame -- the
+     copy would sit at opacity 0 forever. Reveal everything after a beat. */
+  clearTimeout(initReveal._safety);
+  initReveal._safety = setTimeout(() => {
+    $$("[data-reveal]:not(.is-in)").forEach((el) => {
+      el.classList.add("is-in");
+      if (el.dataset.count) countUp(el);
+    });
+  }, 2500);
 }
 
 function countUp(el) {

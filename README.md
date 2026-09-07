@@ -19,7 +19,6 @@ assets/
                     .invert is the black band used by the nav, hero and footer.
   site.js           Language switch, nav, footer, and the page renderers.
   hero.js           The live hero figure (see below).
-  fontlab.js        TEMPORARY typeface preview — delete once the font is settled.
   favicon.png
   img/              Logo, portraits, research-area images.
 
@@ -106,7 +105,8 @@ are relative.
 
 - The site is black-on-white with black bands for the nav, hero and footer. There
   is no light/dark toggle — one design, matching the lab's own palette.
-- Fonts load from Google Fonts (Newsreader, JetBrains Mono) and jsDelivr
+- Fonts load from Google Fonts (Bodoni Moda for display, JetBrains Mono for
+  labels) and jsDelivr
   (Pretendard, which covers Hangul and Latin in one family). Offline, the site
   falls back to system fonts and still reads correctly.
 - Images in `assets/img/` came from the old Google Sites page.

@@ -28,7 +28,7 @@
   --shadow: 0 24px 60px -32px rgba(0, 0, 0, 0.3);
   --glow:   0 0 0 1px rgba(10, 10, 10, 0.14);
 
-  --serif: "Newsreader", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --serif: "Bodoni Moda", "Didot", "Bodoni MT", "Iowan Old Style", Georgia, serif;
   --sans:  "Pretendard Variable", Pretendard, "Inter", -apple-system, BlinkMacSystemFont,
            "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   --mono:  "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
@@ -108,15 +108,18 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
 
 .display {
   font-family: var(--serif);
-  font-size: clamp(2.5rem, 5vw, 4.3rem);
-  line-height: 1.03;
-  letter-spacing: -0.025em;
+  font-size: clamp(2.4rem, 4.8vw, 4.15rem);
+  font-weight: 600;
+  line-height: 1.06;
+  letter-spacing: -0.018em;
 }
 
 .h2 {
   font-family: var(--serif);
-  font-size: clamp(2rem, 4.4vw, 3.1rem);
-  letter-spacing: -0.02em;
+  font-size: clamp(1.95rem, 4.1vw, 2.95rem);
+  font-weight: 600;
+  line-height: 1.14;
+  letter-spacing: -0.015em;
 }
 
 .h3 {
@@ -201,9 +204,9 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
 
 .nav__links a {
   position: relative;
-  padding: 0.5rem 0.85rem;
+  padding: 0.5rem 0.7rem;
   border-radius: 9px;
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   font-weight: 500;
   color: var(--dim);
   transition: color 0.2s, background 0.2s;
@@ -213,7 +216,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
 .nav__links a[aria-current="page"]::after {
   content: "";
   position: absolute;
-  left: 0.85rem; right: 0.85rem; bottom: 0.15rem;
+  left: 0.7rem; right: 0.7rem; bottom: 0.15rem;
   height: 2px;
   border-radius: 2px;
   background: var(--grad);
@@ -235,7 +238,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
 .nav__toggle { display: none; }
 
 /* mobile nav */
-@media (max-width: 1040px) {
+@media (max-width: 920px) {
   .nav__toggle { display: grid; }
   .nav__links {
     position: fixed;
@@ -363,8 +366,9 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
 .stat__num {
   font-family: var(--serif);
   font-size: clamp(2.1rem, 4vw, 2.9rem);
+  font-weight: 500;
   line-height: 1;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
 }
 .stat__label {
   margin-top: 0.55rem;
@@ -412,8 +416,9 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
 
 .card__title {
   font-family: var(--serif);
-  font-size: 1.6rem;
-  letter-spacing: -0.02em;
+  font-size: 1.55rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
   margin-bottom: 0.7rem;
 }
 
@@ -492,7 +497,12 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
 /* ---------- advisor block ---------- */
 
 .advisor { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: clamp(2rem, 5vw, 4rem); align-items: start; }
-@media (max-width: 820px) { .advisor { grid-template-columns: 1fr; } }
+@media (max-width: 820px) {
+  .advisor { grid-template-columns: 1fr; }
+  /* stacked, the portrait would otherwise stretch to the full page width */
+  .portrait { max-width: 280px; }
+  .contact-list { max-width: 360px; }
+}
 
 .portrait {
   position: relative;
@@ -509,7 +519,8 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
 .portrait__initials {
   font-family: var(--serif);
   font-size: 4.5rem;
-  letter-spacing: -0.04em;
+  font-weight: 500;
+  letter-spacing: -0.03em;
   color: var(--text);
   opacity: 0.9;
 }
@@ -591,8 +602,9 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
 .year-label {
   font-family: var(--serif);
   font-size: 2rem;
+  font-weight: 500;
   line-height: 1;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   color: var(--faint);
   position: sticky;
   top: 96px;
@@ -747,7 +759,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
 .card:hover .card__media img { filter: grayscale(0); transform: scale(1.04); }
 
 /* the mobile menu drops out of a black bar, so it has to be black too */
-@media (max-width: 1040px) { .nav__links { background: #0a0a0a; } }
+@media (max-width: 920px) { .nav__links { background: #0a0a0a; } }
 
 /* ---------- language switch ---------- */
 

@@ -105,7 +105,7 @@
 
   function sym(text, x, y, size = 16, alpha = 0.9, italic = true) {
     ctx.save();
-    ctx.font = `${italic ? "italic " : ""}${size}px "Newsreader", Georgia, serif`;
+    ctx.font = `${italic ? "italic " : ""}${size}px "Bodoni Moda", Didot, Georgia, serif`;
     ctx.fillStyle = INK(alpha);
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
