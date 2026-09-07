@@ -1,31 +1,38 @@
 /* ---------------------------------------------------------------
-   Teaching. `level` is "Undergraduate" or "Graduate".
+   Teaching. `level` is LEVEL.ug or LEVEL.grad.
    --------------------------------------------------------------- */
+
+const LEVEL = {
+  ug:   { en: "Undergraduate", ko: "학부" },
+  grad: { en: "Graduate",      ko: "대학원" },
+};
+
+const c = (en, ko, level, years) => ({ name: { en, ko }, level, years });
 
 const COURSES = {
   spring: [
-    { nameKo: "확률및통계", nameEn: "Probability and Statistics", level: "Undergraduate", years: "2025" },
-    { nameKo: "C프로그래밍및실습", nameEn: "C Programming and Practice", level: "Undergraduate", years: "2025" },
-    { nameKo: "공업수학 2", nameEn: "Engineering Mathematics II", level: "Undergraduate", years: "2026" },
-    { nameKo: "선형시스템", nameEn: "Linear Systems", level: "Graduate", years: "2025 – 2026" },
+    c("Probability and Statistics",  "확률및통계",        LEVEL.ug,   "2025"),
+    c("C Programming and Practice",  "C프로그래밍및실습", LEVEL.ug,   "2025"),
+    c("Engineering Mathematics II",  "공업수학 2",        LEVEL.ug,   "2026"),
+    c("Linear Systems",              "선형시스템",        LEVEL.grad, "2025 – 2026"),
   ],
   fall: [
-    { nameKo: "공업수학 1", nameEn: "Engineering Mathematics I", level: "Undergraduate", years: "2025" },
-    { nameKo: "고급C프로그래밍및실습", nameEn: "Advanced C Programming and Practice", level: "Undergraduate", years: "2025" },
-    { nameKo: "임베디드시스템", nameEn: "Embedded Systems", level: "Undergraduate", years: "2026" },
-    { nameKo: "비선형시스템", nameEn: "Nonlinear Systems", level: "Graduate", years: "2026" },
+    c("Engineering Mathematics I",          "공업수학 1",             LEVEL.ug,   "2025"),
+    c("Advanced C Programming and Practice", "고급C프로그래밍및실습", LEVEL.ug,   "2025"),
+    c("Embedded Systems",                    "임베디드시스템",        LEVEL.ug,   "2026"),
+    c("Nonlinear Systems",                   "비선형시스템",          LEVEL.grad, "2026"),
   ],
-  /* Taught 2019-2024, listed as a compact set. */
+  /* Taught 2019-2024. */
   past: [
-    { nameKo: "수치해석", nameEn: "Numerical Analysis", level: "Undergraduate" },
-    { nameKo: "공학입문설계", nameEn: "Introduction to Engineering Design", level: "Undergraduate" },
-    { nameKo: "신호및시스템", nameEn: "Signals and Systems", level: "Undergraduate" },
-    { nameKo: "제어공학", nameEn: "Control Engineering", level: "Undergraduate" },
-    { nameKo: "임베디드프로그래밍", nameEn: "Embedded Programming", level: "Undergraduate" },
-    { nameKo: "디지털신호처리", nameEn: "Digital Signal Processing", level: "Undergraduate" },
-    { nameKo: "모터제어공학", nameEn: "Motor Control Engineering", level: "Undergraduate" },
-    { nameKo: "선형시스템", nameEn: "Linear Systems", level: "Graduate" },
-    { nameKo: "최적제어", nameEn: "Optimal Control", level: "Graduate" },
-    { nameKo: "비선형시스템", nameEn: "Nonlinear Systems", level: "Graduate" },
+    c("Numerical Analysis",                "수치해석",         LEVEL.ug),
+    c("Introduction to Engineering Design", "공학입문설계",     LEVEL.ug),
+    c("Signals and Systems",               "신호및시스템",     LEVEL.ug),
+    c("Control Engineering",               "제어공학",         LEVEL.ug),
+    c("Embedded Programming",              "임베디드프로그래밍", LEVEL.ug),
+    c("Digital Signal Processing",         "디지털신호처리",   LEVEL.ug),
+    c("Motor Control Engineering",         "모터제어공학",     LEVEL.ug),
+    c("Linear Systems",                    "선형시스템",       LEVEL.grad),
+    c("Optimal Control",                   "최적제어",         LEVEL.grad),
+    c("Nonlinear Systems",                 "비선형시스템",     LEVEL.grad),
   ],
 };

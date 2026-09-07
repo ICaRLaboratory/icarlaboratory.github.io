@@ -1,32 +1,26 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#070b14">
+<meta name="theme-color" content="#0a0a0a">
 <title>Lecture · ICaR Lab</title>
 <meta name="description" content="Undergraduate and graduate courses taught by Prof. Seok Young Lee.">
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Instrument+Serif:ital@0;1&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/style.css">
-<script>
-  /* pick the theme before first paint, so there is no flash */
-  (function () {
-    try {
-      var t = localStorage.getItem("icar-theme");
-      if (!t) t = matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
-      document.documentElement.setAttribute("data-theme", t);
-    } catch (e) {}
-  })();
-</script>
+<script src="data/i18n.js"></script>
 <script src="data/site.js"></script>
 <script src="data/members.js"></script>
 <script src="data/publications.js"></script>
 <script src="data/projects.js"></script>
 <script src="data/courses.js"></script>
 <script src="assets/site.js"></script>
+<script src="assets/fontlab.js"></script><!-- TEMP: ?font=1..10 preview -->
 </head>
 <body>
 
@@ -35,27 +29,26 @@
 
 <header class="pagehead">
   <div class="wrap">
-    <p class="eyebrow">Lecture</p>
-    <h1 class="h2" data-reveal style="max-width:18ch">Courses taught.</h1>
-    
+    <p class="eyebrow" data-t="lecture.eyebrow"></p>
+    <h1 class="h2" data-reveal data-t="lecture.title" style="max-width:18ch"></h1>
   </div>
 </header>
 
 <section class="band--tight wrap">
   <div class="grid grid--2" style="gap:clamp(2rem,5vw,3.5rem)">
     <div data-reveal>
-      <p class="eyebrow">Spring semester</p>
+      <p class="eyebrow" data-t="lecture.spring"></p>
       <div id="spring"></div>
     </div>
     <div data-reveal style="--d:110ms">
-      <p class="eyebrow">Fall semester</p>
+      <p class="eyebrow" data-t="lecture.fall"></p>
       <div id="fall"></div>
     </div>
   </div>
 </section>
 
 <section class="band band--line wrap">
-  <p class="eyebrow">Previously taught &middot; 2019&ndash;2024</p>
+  <p class="eyebrow" data-t="lecture.past"></p>
   <div class="tags" id="past" style="margin-top:.5rem;gap:.5rem"></div>
 </section>
 

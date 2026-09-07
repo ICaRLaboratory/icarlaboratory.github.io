@@ -12,6 +12,7 @@ const JOURNAL_PAPERS = [
     title: "Adaptive Sliding Mode Control with Time-Delay Error Compensation and Admittance-Based Force Tracking",
     venue: "Mathematics",
     detail: "vol. 14, no. 13, p. 2323, Jul. 2026",
+    doi: "10.3390/math14132323",
   },
   {
     year: 2026,
@@ -19,6 +20,7 @@ const JOURNAL_PAPERS = [
     title: "PD dynamic output-feedback admissibilization for descriptor systems with uniform input quantization",
     venue: "Communications in Nonlinear Science and Numerical Simulation",
     detail: "vol. 158, p. 109872, Jul. 2026",
+    doi: "10.1016/j.cnsns.2026.109872",
   },
   {
     year: 2026,
@@ -26,6 +28,7 @@ const JOURNAL_PAPERS = [
     title: "Stability analysis and stabilization synthesis of asynchronously sampled-data systems via integral looped functionals composed of bivariate functions",
     venue: "Mathematics and Computers in Simulation",
     detail: "vol. 243, pp. 221-236, May 2026",
+    doi: "10.1016/j.matcom.2025.11.031",
   },
   {
     year: 2025,
@@ -33,6 +36,7 @@ const JOURNAL_PAPERS = [
     title: "Improved Adaptive Sliding Mode Control Using Quasi-Convex Functions and Neural Network-Assisted Time-Delay Estimation for Robotic Manipulators",
     venue: "Sensors",
     detail: "vol. 25, no. 14, p. 4252, Jul. 2025",
+    doi: "10.3390/s25144252",
   },
   {
     year: 2025,
@@ -40,6 +44,7 @@ const JOURNAL_PAPERS = [
     title: "Movement Direction Classification Using Low-Resolution ToF Sensor and LSTM-Based Neural Network",
     venue: "Journal of Sensor and Actuator Networks",
     detail: "vol. 14, no. 3, p. 61, Jun. 2025",
+    doi: "10.3390/jsan14030061",
   },
   {
     year: 2025,
@@ -47,6 +52,7 @@ const JOURNAL_PAPERS = [
     title: "A novel looped functional for stability analysis of asynchronous sampled-data systems",
     venue: "Asian Journal of Control",
     detail: "vol. 27, no. 1, pp. 41-50, Jan. 2025",
+    doi: "10.1002/asjc.3547",
   },
   {
     year: 2025,
@@ -54,6 +60,7 @@ const JOURNAL_PAPERS = [
     title: "Consecutive time-intervals-dependent looped functionals for stability analysis of linear systems with asynchronous sampling",
     venue: "International Journal of Robust and Nonlinear Control",
     detail: "vol. 35, no. 2, pp. 496-510, Jan. 2025",
+    doi: "10.1002/rnc.7658",
   },
   {
     year: 2025,
@@ -61,6 +68,7 @@ const JOURNAL_PAPERS = [
     title: "Stabilization of Neutral Time-Delay Systems With Actuator Saturation via a Sampled-Data Control Approach",
     venue: "IEEE Access",
     detail: "vol. 13, pp. 178293-178301, 2025",
+    doi: "10.1109/access.2025.3620850",
   },
   {
     year: 2024,
@@ -68,6 +76,7 @@ const JOURNAL_PAPERS = [
     title: "An Adaptive Sliding Mode Control With Novel Sliding Variable-Based Adaptive Law for Disturbed Robot Manipulators",
     venue: "IEEE Access",
     detail: "vol. 12, pp. 165227-165235, 2024",
+    doi: "10.1109/access.2024.3493882",
   },
   {
     year: 2024,
@@ -75,6 +84,7 @@ const JOURNAL_PAPERS = [
     title: "An enhanced looped-functional framework for stability analysis of sampled-data systems",
     venue: "Journal of the Franklin Institute",
     detail: "vol. 361, no. 10, p. 106901, Jul. 2024",
+    doi: "10.1016/j.jfranklin.2024.106901",
   },
   {
     year: 2024,
@@ -82,6 +92,7 @@ const JOURNAL_PAPERS = [
     title: "Sampled-data stabilization for networked control systems under deception attack and the transmission delay",
     venue: "Communications in Nonlinear Science and Numerical Simulation",
     detail: "vol. 131, p. 107817, Apr. 2024",
+    doi: "10.1016/j.cnsns.2024.107817",
   },
   {
     year: 2024,
@@ -89,6 +100,7 @@ const JOURNAL_PAPERS = [
     title: "An Adaptive Sliding Mode Control Using a Novel Adaptive Law Based on Quasi-Convex Functions and Average Sliding Variables for Robot Manipulators",
     venue: "Electronics",
     detail: "vol. 13, no. 19, Art. no. 19, Jan. 2024",
+    doi: "10.3390/electronics13193940",
   },
   {
     year: 2023,
@@ -96,6 +108,7 @@ const JOURNAL_PAPERS = [
     title: "Extended affine Bessel summation inequalities: Applications to stability analysis of linear discrete-time systems with time-varying delays",
     venue: "Applied Mathematics and Computation",
     detail: "vol. 451, p. 128025, Aug. 2023",
+    doi: "10.1016/j.amc.2023.128025",
   },
   {
     year: 2022,
@@ -103,6 +116,7 @@ const JOURNAL_PAPERS = [
     title: "Deep Deterministic Policy Gradient-Based Autonomous Driving for Mobile Robots in Sparse Reward Environments",
     venue: "Sensors",
     detail: "vol. 22, no. 24, Art. no. 24, Jan. 2022",
+    doi: "10.3390/s22249574",
   },
   {
     year: 2021,
@@ -110,6 +124,7 @@ const JOURNAL_PAPERS = [
     title: "An Affine Integral Inequality of an Arbitrary Degree for Stability Analysis of Linear Systems With Time-Varying Delays",
     venue: "IEEE Access",
     detail: "vol. 9, pp. 51958-51969, 2021",
+    doi: "10.1109/access.2021.3070149",
   },
   {
     year: 2020,
@@ -117,6 +132,7 @@ const JOURNAL_PAPERS = [
     title: "Novel Equalities for Stability Analysis of Asynchronous Sampled-Data Systems",
     venue: "IEEE Access",
     detail: "vol. 8, pp. 177195-177205, 2020",
+    doi: "10.1109/access.2020.3026736",
   },
   {
     year: 2020,
@@ -124,6 +140,7 @@ const JOURNAL_PAPERS = [
     title: "Proportional-Derivative State-Feedback Control for Singular Systems With Input Quantization",
     venue: "IEEE Access",
     detail: "vol. 8, pp. 160065-160069, 2020",
+    doi: "10.1109/access.2020.3020069",
   },
   {
     year: 2019,
@@ -131,6 +148,7 @@ const JOURNAL_PAPERS = [
     title: "Bessel summation inequalities for stability analysis of discrete-time systems with time-varying delays",
     venue: "International Journal of Robust and Nonlinear Control",
     detail: "vol. 29, no. 2, pp. 473-491, Jan. 2019",
+    doi: "10.1002/rnc.4398",
   },
   {
     year: 2019,
@@ -138,6 +156,7 @@ const JOURNAL_PAPERS = [
     title: "A Less Conservative Stability Criterion for Discrete-Time Lur'e Systems With Sector and Slope Restrictions",
     venue: "IEEE Transactions on Automatic Control",
     detail: "vol. 64, no. 10, pp. 4391-4395, Oct. 2019",
+    doi: "10.1109/tac.2019.2899079",
   },
   {
     year: 2018,
@@ -145,6 +164,7 @@ const JOURNAL_PAPERS = [
     title: "Orthogonal-polynomials-based integral inequality and its applications to systems with additive time-varying delays",
     venue: "Journal of the Franklin Institute",
     detail: "vol. 355, no. 1, pp. 421-435, Jan. 2018",
+    doi: "10.1016/j.jfranklin.2017.11.011",
   },
   {
     year: 2018,
@@ -152,6 +172,7 @@ const JOURNAL_PAPERS = [
     title: "Affine Bessel-Legendre inequality: Application to stability analysis for systems with time-varying delays",
     venue: "Automatica",
     detail: "vol. 93, pp. 535-539, Jul. 2018",
+    doi: "10.1016/j.automatica.2018.03.073",
   },
   {
     year: 2018,
@@ -159,6 +180,7 @@ const JOURNAL_PAPERS = [
     title: "An improved fragmentation approach to sampled-data synchronization of chaotic Lur'e systems",
     venue: "Nonlinear Analysis: Hybrid Systems",
     detail: "vol. 29, pp. 333-347, Aug. 2018",
+    doi: "10.1016/j.nahs.2018.02.006",
   },
   {
     year: 2018,
@@ -166,6 +188,7 @@ const JOURNAL_PAPERS = [
     title: "An improved stability criteria for neutral-type Lur'e systems with time-varying delays",
     venue: "Journal of the Franklin Institute",
     detail: "vol. 355, no. 12, pp. 5291-5309, Aug. 2018",
+    doi: "10.1016/j.jfranklin.2018.05.014",
   },
   {
     year: 2017,
@@ -173,6 +196,7 @@ const JOURNAL_PAPERS = [
     title: "Improved stability criteria for linear systems with interval time-varying delays: Generalized zero equalities approach",
     venue: "Applied Mathematics and Computation",
     detail: "vol. 292, pp. 336-348, Jan. 2017",
+    doi: "10.1016/j.amc.2016.07.015",
   },
   {
     year: 2017,
@@ -180,6 +204,7 @@ const JOURNAL_PAPERS = [
     title: "Polynomials-based integral inequality for stability analysis of linear systems with time-varying delays",
     venue: "Journal of the Franklin Institute",
     detail: "vol. 354, no. 4, pp. 2053-2067, Mar. 2017",
+    doi: "10.1016/j.jfranklin.2016.12.025",
   },
   {
     year: 2017,
@@ -187,6 +212,7 @@ const JOURNAL_PAPERS = [
     title: "Polynomials-based summation inequalities and their applications to discrete-time systems with time-varying delays",
     venue: "International Journal of Robust and Nonlinear Control",
     detail: "2017",
+    doi: "10.1002/rnc.3755",
   },
   {
     year: 2017,
@@ -194,6 +220,7 @@ const JOURNAL_PAPERS = [
     title: "Stability analysis of discrete-time systems with time-varying delays: Generalized zero equalities approach",
     venue: "International Journal of Robust and Nonlinear Control",
     detail: "vol. 27, no. 6, pp. 981-999, Apr. 2017",
+    doi: "10.1002/rnc.3613",
   },
   {
     year: 2017,
@@ -201,6 +228,7 @@ const JOURNAL_PAPERS = [
     title: "A combined reciprocal convexity approach for stability analysis of static neural networks with interval time-varying delays",
     venue: "Neurocomputing",
     detail: "vol. 221, pp. 168-177, Jan. 2017",
+    doi: "10.1016/j.neucom.2016.09.074",
   },
   {
     year: 2016,
@@ -208,6 +236,7 @@ const JOURNAL_PAPERS = [
     title: "A combined first- and second-order reciprocal convexity approach for stability analysis of systems with interval time-varying delays",
     venue: "Journal of the Franklin Institute",
     detail: "vol. 353, no. 9, pp. 2104-2116, Jun. 2016",
+    doi: "10.1016/j.jfranklin.2016.03.017",
   },
   {
     year: 2016,
@@ -215,6 +244,7 @@ const JOURNAL_PAPERS = [
     title: "New stability analysis for discrete time-delay systems via auxiliary-function-based summation inequalities",
     venue: "Journal of the Franklin Institute",
     detail: "vol. 353, no. 18, pp. 5068-5080, Dec. 2016",
+    doi: "10.1016/j.jfranklin.2016.07.011",
   },
   {
     year: 2016,
@@ -222,6 +252,7 @@ const JOURNAL_PAPERS = [
     title: "Auxiliary function-based integral/summation inequalities: Application to continuous/discrete time-delay systems",
     venue: "International Journal of Control, Automation and Systems",
     detail: "vol. 14, no. 1, pp. 3-11, Feb. 2016",
+    doi: "10.1007/s12555-015-2002-y",
   },
   {
     year: 2015,
@@ -229,6 +260,7 @@ const JOURNAL_PAPERS = [
     title: "Improved stability criteria for recurrent neural networks with interval time-varying delays via new Lyapunov functionals",
     venue: "Neurocomputing",
     detail: "vol. 155, pp. 128-134, May 2015",
+    doi: "10.1016/j.neucom.2014.12.040",
   },
   {
     year: 2015,
@@ -236,6 +268,7 @@ const JOURNAL_PAPERS = [
     title: "Auxiliary function-based integral inequalities for quadratic functions and their applications to time-delay systems",
     venue: "Journal of the Franklin Institute",
     detail: "vol. 352, no. 4, pp. 1378-1396, Apr. 2015",
+    doi: "10.1016/j.jfranklin.2015.01.004",
   },
   {
     year: 2014,
@@ -243,6 +276,7 @@ const JOURNAL_PAPERS = [
     title: "Improved criteria on robust stability and H-infinity performance for linear systems with interval time-varying delays via new triple integral functionals",
     venue: "Applied Mathematics and Computation",
     detail: "vol. 243, pp. 570-577, Sep. 2014",
+    doi: "10.1016/j.amc.2014.05.116",
   },
 ];
 
@@ -253,6 +287,7 @@ const CONFERENCE_PAPERS = [
     title: "Analysis on stability for generalized neural networks with time-varying delays via second-order orthogonal polynomials-based integral inequality",
     venue: "17th International Conference on Control, Automation and Systems (ICCAS)",
     detail: "Jeju, Korea, Oct. 2017",
+    doi: "10.23919/iccas.2017.8204478",
   },
   {
     year: 2016,
@@ -260,6 +295,7 @@ const CONFERENCE_PAPERS = [
     title: "Improved slack-matrix-based summation inequality and applications to discrete-time systems with time-varying delays",
     venue: "IEEE 55th Conference on Decision and Control (CDC)",
     detail: "Las Vegas, NV, USA, Dec. 2016",
+    doi: "10.1109/cdc.2016.7798589",
   },
   {
     year: 2016,
@@ -267,6 +303,7 @@ const CONFERENCE_PAPERS = [
     title: "Combined-slack-matrix-based integral inequality: Application to time-delay systems",
     venue: "55th Annual Conference of the Society of Instrument and Control Engineers of Japan (SICE)",
     detail: "Tsukuba, Japan, Sep. 2016",
+    doi: "10.1109/sice.2016.7749198",
   },
   {
     year: 2015,
@@ -274,6 +311,7 @@ const CONFERENCE_PAPERS = [
     title: "Auxiliary function-based summation inequalities for quadratic functions and their application to discrete-time delay systems",
     venue: "IFAC-PapersOnLine",
     detail: "May 2015",
+    doi: "10.1016/j.ifacol.2015.09.378",
   },
   {
     year: 2015,
@@ -281,5 +319,6 @@ const CONFERENCE_PAPERS = [
     title: "New stability criteria for linear systems with interval time-varying delays via an extended state vector",
     venue: "10th Asian Control Conference (ASCC)",
     detail: "Kota Kinabalu, Malaysia, May 2015",
+    doi: "10.1109/ascc.2015.7244650",
   },
 ];
