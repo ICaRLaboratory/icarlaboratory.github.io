@@ -40,10 +40,6 @@ const COPY = {
   "hero.cta2":    { en: "Meet the lab",         ko: "구성원 보기" },
   "hero.city":    { en: "Seoul, Korea",         ko: "서울" },
 
-  /* drawn inside the hero figure by assets/hero.js */
-  "fig.control":  { en: "CONTROL ALGORITHMS", ko: "제어 알고리즘" },
-  "fig.robotics": { en: "ROBOTICS",           ko: "로보틱스" },
-  "fig.embedded": { en: "EMBEDDED SYSTEMS",   ko: "임베디드 시스템" },
 
   "lab.eyebrow": { en: "The laboratory", ko: "연구실 소개" },
   "lab.title":   { en: "Control algorithms,<br>built to be implemented.",

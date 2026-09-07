@@ -33,7 +33,9 @@ data/
 
 ## Two languages
 
-Every visitor-facing string exists in English and Korean. The switch is in the
+Every visitor-facing string exists in English and Korean, with one deliberate
+exception: the labels drawn inside the hero figure stay English in both, since
+they are block-diagram notation and are not worth maintaining twice. The switch is in the
 header, the choice is remembered, and `?lang=ko` / `?lang=en` forces one — useful
 when you want a link to open in a particular language.
 
@@ -105,8 +107,8 @@ are relative.
 
 - The site is black-on-white with black bands for the nav, hero and footer. There
   is no light/dark toggle — one design, matching the lab's own palette.
-- Fonts load from Google Fonts (Bodoni Moda for display, JetBrains Mono for
-  labels) and jsDelivr
-  (Pretendard, which covers Hangul and Latin in one family). Offline, the site
-  falls back to system fonts and still reads correctly.
+- Two type families: Pretendard (jsDelivr) for everything from the headlines
+  down, since it covers Hangul and Latin in one design, and JetBrains Mono
+  (Google Fonts) for the small uppercase labels. Offline, the site falls back
+  to system fonts and still reads correctly.
 - Images in `assets/img/` came from the old Google Sites page.

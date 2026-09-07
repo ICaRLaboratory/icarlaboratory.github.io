@@ -84,18 +84,13 @@
   /* ---------- drawing helpers ---------- */
   const INK = (a) => `rgba(255,255,255,${a})`;
 
-  /* site.js owns the language; the figure just reads it each frame */
-  const figLabel = (key) =>
-    (typeof copy === "function" ? copy(key) : "") || key;
-
-  const isKo = () => typeof LANG !== "undefined" && LANG === "ko";
+  /* Labels inside the figure stay English in both languages -- they are
+     block-diagram notation, and keeping one version keeps this file simple. */
 
   function label(text, x, y, align = "center", alpha = 0.62, size = 10) {
     ctx.save();
-    ctx.font = isKo()
-      ? `500 ${size + 1.5}px "Pretendard Variable", Pretendard, sans-serif`
-      : `500 ${size}px "JetBrains Mono", ui-monospace, monospace`;
-    if ("letterSpacing" in ctx) ctx.letterSpacing = isKo() ? "0.6px" : "1.7px";
+    ctx.font = `500 ${size}px "JetBrains Mono", ui-monospace, monospace`;
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "1.7px";
     ctx.fillStyle = INK(alpha);
     ctx.textAlign = align;
     ctx.textBaseline = "alphabetic";
@@ -105,7 +100,7 @@
 
   function sym(text, x, y, size = 16, alpha = 0.9, italic = true) {
     ctx.save();
-    ctx.font = `${italic ? "italic " : ""}${size}px "Bodoni Moda", Didot, Georgia, serif`;
+    ctx.font = `${italic ? "italic " : ""}${size}px Georgia, "Times New Roman", serif`;
     ctx.fillStyle = INK(alpha);
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
@@ -387,9 +382,9 @@
     drawSensor();
     drawPulse();
 
-    label(figLabel("fig.control"), CTRL.x + CTRL.w / 2, CTRL.y + CTRL.h + 22);
-    label(figLabel("fig.robotics"), PLANT.x + PLANT.w / 2, PLANT.y + PLANT.h + 22);
-    label(figLabel("fig.embedded"), SENS.x + SENS.w / 2, SENS.y + SENS.h + 22);
+    label("CONTROL ALGORITHMS", CTRL.x + CTRL.w / 2, CTRL.y + CTRL.h + 22);
+    label("ROBOTICS", PLANT.x + PLANT.w / 2, PLANT.y + PLANT.h + 22);
+    label("EMBEDDED SYSTEMS", SENS.x + SENS.w / 2, SENS.y + SENS.h + 22);
   }
 
   function loop() {

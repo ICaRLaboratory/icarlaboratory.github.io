@@ -28,7 +28,9 @@
   --shadow: 0 24px 60px -32px rgba(0, 0, 0, 0.3);
   --glow:   0 0 0 1px rgba(10, 10, 10, 0.14);
 
-  --serif: "Bodoni Moda", "Didot", "Bodoni MT", "Iowan Old Style", Georgia, serif;
+  /* one family for text and headings, Latin and Hangul alike */
+  --display: "Pretendard Variable", Pretendard, "Inter", -apple-system,
+             BlinkMacSystemFont, "Segoe UI", sans-serif;
   --sans:  "Pretendard Variable", Pretendard, "Inter", -apple-system, BlinkMacSystemFont,
            "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   --mono:  "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
@@ -107,19 +109,19 @@ section { position: relative; }
 h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing: -0.015em; }
 
 .display {
-  font-family: var(--serif);
-  font-size: clamp(2.4rem, 4.8vw, 4.15rem);
-  font-weight: 600;
-  line-height: 1.06;
-  letter-spacing: -0.018em;
+  font-family: var(--display);
+  font-size: clamp(2.3rem, 4.5vw, 3.9rem);
+  font-weight: 750;
+  line-height: 1.08;
+  letter-spacing: -0.042em;
 }
 
 .h2 {
-  font-family: var(--serif);
-  font-size: clamp(1.95rem, 4.1vw, 2.95rem);
-  font-weight: 600;
-  line-height: 1.14;
-  letter-spacing: -0.015em;
+  font-family: var(--display);
+  font-size: clamp(1.8rem, 3.7vw, 2.7rem);
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: -0.035em;
 }
 
 .h3 {
@@ -364,11 +366,11 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
 }
 .stat { background: var(--bg); padding: 1.6rem 1.4rem; }
 .stat__num {
-  font-family: var(--serif);
-  font-size: clamp(2.1rem, 4vw, 2.9rem);
-  font-weight: 500;
+  font-family: var(--display);
+  font-size: clamp(2rem, 3.7vw, 2.7rem);
+  font-weight: 700;
   line-height: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.045em;
 }
 .stat__label {
   margin-top: 0.55rem;
@@ -415,10 +417,10 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
 }
 
 .card__title {
-  font-family: var(--serif);
-  font-size: 1.55rem;
-  font-weight: 600;
-  letter-spacing: -0.015em;
+  font-family: var(--display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.028em;
   margin-bottom: 0.7rem;
 }
 
@@ -517,10 +519,10 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
 }
 .portrait img { width: 100%; height: 100%; object-fit: cover; }
 .portrait__initials {
-  font-family: var(--serif);
-  font-size: 4.5rem;
-  font-weight: 500;
-  letter-spacing: -0.03em;
+  font-family: var(--display);
+  font-size: 3.6rem;
+  font-weight: 700;
+  letter-spacing: -0.045em;
   color: var(--text);
   opacity: 0.9;
 }
@@ -600,11 +602,11 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
 @media (max-width: 700px) { .year-group { grid-template-columns: 1fr; gap: 0.9rem; } }
 
 .year-label {
-  font-family: var(--serif);
-  font-size: 2rem;
-  font-weight: 500;
+  font-family: var(--display);
+  font-size: 1.75rem;
+  font-weight: 700;
   line-height: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.04em;
   color: var(--faint);
   position: sticky;
   top: 96px;
@@ -857,31 +859,25 @@ html:lang(ko) .footer__bottom,
 html:lang(ko) #pubcounts { letter-spacing: 0.05em; }
 
 /* Pretendard has no true italic, and a slanted Hangul looks broken */
-/* Hangul falls back to Pretendard anyway; pulling the punctuation across too
-   stops Bodoni commas from sitting inside a Korean sentence */
-html:lang(ko) .display,
-html:lang(ko) .h2,
-html:lang(ko) .card__title { font-family: var(--sans); }
-html:lang(ko) .display,
-html:lang(ko) .h2 { font-weight: 600; letter-spacing: -0.035em; }
-html:lang(ko) .display { font-size: clamp(2.2rem, 4.4vw, 3.7rem); line-height: 1.24; }
-html:lang(ko) .h2 { line-height: 1.3; }
+/* Latin and Hangul share the display family now, so only the metrics differ */
+html:lang(ko) .display { font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1.26; letter-spacing: -0.035em; }
+html:lang(ko) .h2 { line-height: 1.3; letter-spacing: -0.03em; }
 html:lang(ko) .hero__title em,
 html:lang(ko) .display em,
 html:lang(ko) .h2 em {
   font-style: normal;
   box-shadow: inset 0 -0.12em 0 var(--accent);
 }
-html:lang(ko) .card__title { font-weight: 600; letter-spacing: -0.03em; }
+html:lang(ko) .card__title { letter-spacing: -0.025em; }
 html:lang(ko) .lede { line-height: 1.8; }
 html:lang(ko) .year-label,
 html:lang(ko) .stat__num,
-html:lang(ko) .portrait__initials { font-family: var(--serif); }
+html:lang(ko) .portrait__initials { font-family: var(--display); }
 
 /* ---------- research areas ---------- */
 
 .grid--areas { grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); }
 
 /* the hero headline is the lab's name now, not a short slogan */
-.hero__title { font-size: clamp(2.05rem, 3.5vw, 3.05rem); max-width: 16ch; }
-html:lang(ko) .hero__title { font-size: clamp(2rem, 3.4vw, 2.95rem); }
+.hero__title { font-size: clamp(1.95rem, 3.3vw, 2.9rem); max-width: 17ch; }
+html:lang(ko) .hero__title { font-size: clamp(1.9rem, 3.2vw, 2.8rem); }
