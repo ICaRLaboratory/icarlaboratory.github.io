@@ -60,7 +60,6 @@ const NAV_ITEMS = [
 
 const ICON = {
   menu:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
-  ext:   '<svg class="ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>',
 };
 
 let navScrollBound = false;
@@ -223,7 +222,7 @@ const groupByYear = (papers) => {
 function pubRow(p, i) {
   const href = p.doi ? `https://doi.org/${esc(p.doi)}` : "";
   const title = href
-    ? `<a class="pub__link" href="${href}" target="_blank" rel="noopener">${esc(p.title)}${ICON.ext}</a>`
+    ? `<a class="pub__link" href="${href}" target="_blank" rel="noopener">${esc(p.title)}</a>`
     : esc(p.title);
   const doi = p.doi
     ? ` &middot; <a class="pub__doi" href="${href}" target="_blank" rel="noopener">doi:${esc(p.doi)}</a>`
@@ -271,7 +270,7 @@ function renderPublications() {
   const counts = $("#pubcounts");
   if (counts) {
     const scholar = ADVISOR.scholar
-      ? ` &middot; <a class="pub__doi" href="${esc(ADVISOR.scholar)}" target="_blank" rel="noopener">Google Scholar${ICON.ext}</a>`
+      ? ` &middot; <a class="pub__doi" href="${esc(ADVISOR.scholar)}" target="_blank" rel="noopener">Google Scholar</a>`
       : "";
     counts.innerHTML =
       `${JOURNAL_PAPERS.length} journal articles &middot; ${CONFERENCE_PAPERS.length} conference papers${scholar}`;
@@ -379,7 +378,7 @@ function personCard(p, i, opts = {}) {
         <div class="person__meta">${(p.interests || []).map(esc).join(" &middot; ")}</div>
         ${line2 ? `<div class="person__meta faint">${line2}</div>` : ""}
         ${profiles.length ? `<div class="person__links">${profiles
-          .map(([n, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${n}${ICON.ext}</a>`)
+          .map(([n, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${n}</a>`)
           .join("")}</div>` : ""}
       </div>
     </div>`;
@@ -408,7 +407,7 @@ function renderMembers() {
           <div class="contact-row"><dt>Email</dt><dd><a href="mailto:${esc(a.email)}">${esc(a.email)}</a></dd></div>
           <div class="contact-row"><dt>Office</dt><dd>${esc(a.office)}</dd></div>
           <div class="contact-row"><dt>ORCID</dt><dd><a href="https://orcid.org/${esc(a.orcid)}" target="_blank" rel="noopener">${esc(a.orcid)}</a></dd></div>
-          ${a.scholar ? `<div class="contact-row"><dt>Scholar</dt><dd><a href="${esc(a.scholar)}" target="_blank" rel="noopener">Google Scholar${ICON.ext}</a></dd></div>` : ""}
+          ${a.scholar ? `<div class="contact-row"><dt>Scholar</dt><dd><a href="${esc(a.scholar)}" target="_blank" rel="noopener">Google Scholar</a></dd></div>` : ""}
         </dl>
       </div>
       <div data-reveal style="--d:120ms">
