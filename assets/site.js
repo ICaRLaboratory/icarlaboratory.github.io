@@ -330,14 +330,12 @@ function renderPublications() {
 
 /* ---------- home ---------- */
 
-const ROLE_KEY = { core: "areas.core", app: "areas.app", next: "areas.next" };
-
 function areaCard(a, i) {
+  const total = SITE.areas.length;
   return `
-    <article class="card card--area" data-reveal style="--d:${i * 80}ms">
-      <div class="card__index">
-        <span class="role role--${a.role || "core"}">${copy(ROLE_KEY[a.role] || "areas.core")}</span>
-      </div>
+    <article class="card ${a.image ? "card--media" : ""}" data-reveal style="--d:${i * 90}ms">
+      ${a.image ? `<div class="card__media"><img src="${esc(a.image)}" alt="" loading="lazy"></div>` : ""}
+      <div class="card__index">0${i + 1} / ${total < 10 ? "0" : ""}${total}</div>
       <h3 class="card__title">${esc(t(a.label))}</h3>
       <p>${esc(t(a.blurb))}</p>
       <div class="tags">${tl(a.keywords).map((k) => `<span class="tag">${esc(k)}</span>`).join("")}</div>

@@ -878,46 +878,9 @@ html:lang(ko) .year-label,
 html:lang(ko) .stat__num,
 html:lang(ko) .portrait__initials { font-family: var(--serif); }
 
-/* ---------- research areas: core / application / expanding ---------- */
+/* ---------- research areas ---------- */
 
-.grid--areas { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-@media (min-width: 900px) { .grid--areas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-
-.card--area .card__index { margin-bottom: 1.1rem; }
-
-.role {
-  display: inline-block;
-  font-family: var(--mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  padding: 0.28rem 0.62rem;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  color: var(--dim);
-}
-.role--core { background: var(--text); border-color: var(--text); color: var(--bg); font-weight: 600; }
-.role--next { border-style: dashed; }
-
-/* ---------- a single wide photograph on the research page ---------- */
-
-.band-photo { margin: 0; }
-.band-photo img {
-  width: 100%;
-  aspect-ratio: 21 / 8;
-  object-fit: cover;
-  object-position: 50% 42%;
-  border-radius: var(--r);
-  filter: grayscale(1) contrast(1.06);
-}
-.band-photo figcaption {
-  margin-top: 0.9rem;
-  font-family: var(--mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--faint);
-}
+.grid--areas { grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); }
 
 /* the hero headline is the lab's name now, not a short slogan */
 .hero__title { font-size: clamp(2.05rem, 3.5vw, 3.05rem); max-width: 16ch; }

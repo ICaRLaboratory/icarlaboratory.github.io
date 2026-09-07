@@ -42,7 +42,7 @@ const COPY = {
 
   /* drawn inside the hero figure by assets/hero.js */
   "fig.control":  { en: "CONTROL ALGORITHMS", ko: "제어 알고리즘" },
-  "fig.robotics": { en: "ROBOT MANIPULATOR",  ko: "로봇 매니퓰레이터" },
+  "fig.robotics": { en: "ROBOTICS",           ko: "로보틱스" },
   "fig.embedded": { en: "EMBEDDED SYSTEMS",   ko: "임베디드 시스템" },
 
   "lab.eyebrow": { en: "The laboratory", ko: "연구실 소개" },
@@ -55,15 +55,12 @@ const COPY = {
   "stat.members":    { en: "Lab members",        ko: "연구실 인원" },
 
   "areas.eyebrow": { en: "Research", ko: "연구 분야" },
-  "areas.title":   { en: "One core, two applications,<br>and where it is heading.",
-                     ko: "핵심 하나, 응용 둘,<br>그리고 확장 방향." },
+  "areas.title":   { en: "Three fields,<br>one loop.",
+                     ko: "세 개의 분야,<br>하나의 루프." },
   "areas.lede": {
-    en: "The core is control algorithms that can actually be implemented — conditions that stay solvable and gains that survive real hardware. The two applications we target are embedded platforms and robot manipulators. From there the work is extending from control into signal processing and AI.",
-    ko: "핵심은 실제로 구현할 수 있는 제어 알고리즘입니다. 풀리는 조건, 그리고 실제 하드웨어에서 버티는 이득을 목표로 합니다. 응용 대상은 임베디드 시스템과 로봇 매니퓰레이터 두 가지이며, 여기서 제어를 넘어 신호처리와 AI로 영역을 넓히고 있습니다.",
+    en: "Control algorithms are the centre of gravity, and the standard we hold them to is that they can be implemented, not only proved. Robotics and embedded systems are where that work lands — and where the hard problems come back from. All three are extending from control into signal processing and AI.",
+    ko: "제어 알고리즘이 무게중심이고, 증명에 그치지 않고 구현까지 되는지를 기준으로 삼습니다. 로보틱스와 임베디드 시스템은 그 결과가 도달하는 곳이자, 어려운 문제가 되돌아오는 곳입니다. 세 분야 모두 제어에서 신호처리와 AI로 영역을 넓히고 있습니다.",
   },
-  "areas.core":   { en: "Core",        ko: "핵심" },
-  "areas.app":    { en: "Application", ko: "응용" },
-  "areas.next":   { en: "Expanding",   ko: "확장" },
 
   "recent.eyebrow": { en: "Selected work",       ko: "최근 성과" },
   "recent.title":   { en: "Recent publications", ko: "최근 논문" },
@@ -90,12 +87,8 @@ const COPY = {
     ko: "이론에서 구현까지.",
   },
   "research.lede": {
-    en: "We develop stability analysis and controller synthesis for time-delay, sampled-data, networked and descriptor systems, and we hold that work to a practical bar: the condition has to be solvable and the controller has to run on the target board. Embedded platforms and robot manipulators are where it lands.",
-    ko: "시간지연·표본데이터·네트워크·특이 시스템의 안정성 해석과 제어기 설계를 연구하되, 실용성을 기준으로 잡습니다. 조건이 실제로 풀려야 하고, 제어기가 목표 보드 위에서 돌아가야 합니다. 임베디드 플랫폼과 로봇 매니퓰레이터가 그 도착지입니다.",
-  },
-  "research.band": {
-    en: "Control laws are only finished once they run on the arm.",
-    ko: "제어기는 로봇 위에서 돌아야 완성됩니다.",
+    en: "We develop stability analysis and controller synthesis for time-delay, sampled-data, networked and descriptor systems, and we hold that work to a practical bar: the condition has to be solvable and the controller has to run on the target board. Robotics and embedded systems are where it gets tested and where the next problem usually comes from.",
+    ko: "시간지연·표본데이터·네트워크·특이 시스템의 안정성 해석과 제어기 설계를 연구하되, 실용성을 기준으로 잡습니다. 조건이 실제로 풀려야 하고, 제어기가 목표 보드 위에서 돌아가야 합니다. 로보틱스와 임베디드 시스템은 그것이 검증되는 자리이자, 다음 문제가 나오는 자리입니다.",
   },
   "projects.eyebrow":   { en: "Funded projects", ko: "연구 과제" },
   "projects.title":     { en: "Where the funding goes.", ko: "수행 과제." },
