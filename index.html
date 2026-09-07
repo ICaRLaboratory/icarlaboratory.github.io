@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#070b14">
+<title>ICaR Lab · Intelligent Control and Robotics · Sejong University</title>
+<meta name="description" content="Intelligent Control and Robotics (ICaR) Laboratory at Sejong University — mathematical control theory for time-delay, sampled-data and networked systems, applied to robot manipulators and embedded platforms.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Instrument+Serif:ital@0;1&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script>
+  /* pick the theme before first paint, so there is no flash */
+  (function () {
+    try {
+      var t = localStorage.getItem("icar-theme");
+      if (!t) t = matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", t);
+    } catch (e) {}
+  })();
+</script>
+<script src="data/site.js"></script>
+<script src="data/members.js"></script>
+<script src="data/publications.js"></script>
+<script src="data/projects.js"></script>
+<script src="data/courses.js"></script>
+<script src="assets/site.js"></script>
+</head>
+<body>
+
+<div id="nav"></div>
+<script>renderNav("index.html");</script>
+
+<header class="hero">
+  <canvas id="phase" aria-hidden="true"></canvas>
+  <div class="wrap hero__inner">
+    <p class="eyebrow">Intelligent Control &amp; Robotics &middot; Sejong University</p>
+    <h1 class="display hero__title">Control theory that <em>converges</em>.</h1>
+    <p class="lede hero__lede" data-site="tagline"></p>
+    <div class="cta-row">
+      <a class="btn btn--primary" href="research.html">Explore the research <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a class="btn" href="members.html">Meet the lab</a>
+    </div>
+    <div class="hero__meta">
+      <span data-site="since"></span>
+      <span>Daeyang AI Center 515</span>
+      <span>Seoul, Korea</span>
+    </div>
+  </div>
+</header>
+<script>fillFields();</script>
+
+<section class="band wrap">
+  <p class="eyebrow">The laboratory</p>
+  <div class="grid grid--2" style="gap:clamp(2rem,5vw,4rem);align-items:start">
+    <h2 class="h2" data-reveal>A theory group<br>that ships to hardware.</h2>
+    <p class="lede" data-reveal style="--d:100ms" data-site="intro"></p>
+  </div>
+  <div class="stats" id="stats" style="margin-top:clamp(2.5rem,5vw,4rem)"></div>
+</section>
+
+<section class="band band--line wrap">
+  <p class="eyebrow">Research</p>
+  <h2 class="h2" data-reveal style="max-width:14ch">Three pillars,<br>one loop.</h2>
+  <p class="lede" data-reveal style="--d:90ms;margin-top:1.25rem">
+    Theory sharpens the stability criterion; the criterion becomes a controller; the controller
+    runs on a real manipulator. Whatever breaks there sets up the next theorem.
+  </p>
+  <div class="grid grid--3" id="areas" style="margin-top:clamp(2.5rem,5vw,3.5rem)"></div>
+</section>
+
+<section class="band band--line wrap">
+  <p class="eyebrow">Selected work</p>
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;flex-wrap:wrap">
+    <h2 class="h2" data-reveal>Recent publications</h2>
+    <a class="btn" href="publications.html" data-reveal style="--d:80ms">See all <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </div>
+  <div id="recent" style="margin-top:2.5rem"></div>
+</section>
+
+<section class="band band--line wrap">
+  <div class="card" style="padding:clamp(2rem,5vw,3.5rem)" data-reveal>
+    <p class="eyebrow">Join the lab</p>
+    <h2 class="h2" style="max-width:18ch">Comfortable with proofs<br>and with a screwdriver?</h2>
+    <p class="lede" style="margin-top:1.25rem">
+      We host graduate and undergraduate researchers working on control theory, robot
+      manipulators, and embedded implementation. Send a short note about what you would like to
+      work on &mdash; prior coursework in linear systems or a track record of building things both count.
+    </p>
+    <div class="cta-row">
+      <a class="btn btn--primary" href="mailto:lsy@sejong.ac.kr">Email the advisor <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a class="btn" href="https://maps.google.com/?q=Sejong+University+Daeyang+AI+Center" target="_blank" rel="noopener">Find the office</a>
+    </div>
+    <dl class="contact-list" style="margin-top:2rem">
+      <div class="contact-row"><dt>Office</dt><dd data-site="office"></dd></div>
+      <div class="contact-row"><dt>Address</dt><dd data-site="addressEn"></dd></div>
+      <div class="contact-row"><dt>주소</dt><dd data-site="addressKo"></dd></div>
+    </dl>
+  </div>
+</section>
+
+<div id="footer"></div>
+
+<script>boot("index.html");</script>
+<script src="assets/phase.js"></script>
+</body>
+</html>

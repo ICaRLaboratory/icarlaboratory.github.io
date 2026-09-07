@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#070b14">
+<title>Members · ICaR Lab</title>
+<meta name="description" content="Advisor, graduate students, undergraduate researchers and alumni of the ICaR Laboratory, Sejong University.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Instrument+Serif:ital@0;1&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<script>
+  /* pick the theme before first paint, so there is no flash */
+  (function () {
+    try {
+      var t = localStorage.getItem("icar-theme");
+      if (!t) t = matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", t);
+    } catch (e) {}
+  })();
+</script>
+<script src="data/site.js"></script>
+<script src="data/members.js"></script>
+<script src="data/publications.js"></script>
+<script src="data/projects.js"></script>
+<script src="data/courses.js"></script>
+<script src="assets/site.js"></script>
+</head>
+<body>
+
+<div id="nav"></div>
+<script>renderNav("members.html");</script>
+
+<header class="pagehead">
+  <div class="wrap">
+    <p class="eyebrow">Members</p>
+    <h1 class="h2" data-reveal style="max-width:18ch">The people running the loop.</h1>
+    
+  </div>
+</header>
+
+<section class="band--tight wrap">
+  <div class="advisor" id="advisor"></div>
+</section>
+
+<section class="band band--line wrap">
+  <p class="eyebrow">Graduate students</p>
+  <div class="people" id="grad"></div>
+</section>
+
+<section class="band band--line wrap" id="undergrad-section">
+  <p class="eyebrow">Undergraduate researchers</p>
+  <div class="people" id="undergrad"></div>
+</section>
+
+<section class="band band--line wrap">
+  <p class="eyebrow">Alumni</p>
+  <div class="people" id="alumni"></div>
+</section>
+
+<div id="footer"></div>
+
+<script>boot("members.html");</script>
+</body>
+</html>
