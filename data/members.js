@@ -13,9 +13,10 @@ const DEG = {
   ug:    { en: "Undergraduate Researcher", ko: "학부 연구생" },
 };
 
+/* kept in English in both languages -- these read as keywords, not prose */
 const TOPIC = {
-  robotics: { en: "Robotics",       ko: "로보틱스" },
-  control:  { en: "Control Theory", ko: "제어 이론" },
+  robotics: "Robotics",
+  control:  "Control Theory",
 };
 
 const GRAD_STUDENTS = [

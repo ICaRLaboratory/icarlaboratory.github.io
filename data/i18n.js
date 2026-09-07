@@ -3,8 +3,9 @@
 
    Anywhere a value can differ between languages, write it as
        { en: "...", ko: "..." }
-   A plain string is used as-is in both languages, which is what
-   you want for names, journal titles and citations.
+   A plain string is used as-is in both languages -- which is what
+   we want for names, journal titles, citations, and the technical
+   keywords, since those are read in English either way.
 
    COPY holds the fixed page text; the HTML pulls it in through
    data-t="key" attributes.
@@ -30,34 +31,39 @@ const COPY = {
   },
 
   /* ---- home ---- */
-  "hero.eyebrow": { en: "Intelligent Control &amp; Robotics Lab", ko: "지능제어 및 로보틱스 연구실" },
-  "hero.title":   { en: "Control theory that <em>converges</em>.", ko: "제어 이론은 결국 <em>수렴</em>한다." },
-  "hero.caption": { en: "One damped system &mdash; three views of the same loop",
-                    ko: "하나의 감쇠 시스템 — 같은 루프를 보는 세 가지 시선" },
+  "hero.eyebrow": { en: "Sejong University &middot; est. 2019", ko: "세종대학교 &middot; 2019년 설립" },
+  "hero.title":   { en: "Intelligent Control<br>and Robotics<br>Laboratory",
+                    ko: "지능제어 및<br>로보틱스 연구실" },
+  "hero.caption": { en: "One damped system, three views of the same loop",
+                    ko: "하나의 감쇠 시스템, 세 가지 관점" },
   "hero.cta1":    { en: "Explore the research", ko: "연구 살펴보기" },
   "hero.cta2":    { en: "Meet the lab",         ko: "구성원 보기" },
   "hero.city":    { en: "Seoul, Korea",         ko: "서울" },
 
-  /* labels drawn inside the hero figure (assets/hero.js) */
+  /* drawn inside the hero figure by assets/hero.js */
   "fig.control":  { en: "CONTROL ALGORITHMS", ko: "제어 알고리즘" },
-  "fig.robotics": { en: "ROBOTICS",           ko: "로보틱스" },
+  "fig.robotics": { en: "ROBOT MANIPULATOR",  ko: "로봇 매니퓰레이터" },
   "fig.embedded": { en: "EMBEDDED SYSTEMS",   ko: "임베디드 시스템" },
 
   "lab.eyebrow": { en: "The laboratory", ko: "연구실 소개" },
-  "lab.title":   { en: "A theory group<br>that ships to hardware.",
-                   ko: "이론을 하드웨어까지<br>끌고 가는 연구실." },
+  "lab.title":   { en: "Control algorithms,<br>built to be implemented.",
+                   ko: "구현 가능한<br>제어 알고리즘." },
 
-  "stat.journal":    { en: "Journal articles",   ko: "저널 논문" },
-  "stat.conference": { en: "Conference papers",  ko: "학회 논문" },
+  "stat.journal":    { en: "Journal articles",   ko: "학술지 논문" },
+  "stat.conference": { en: "Conference papers",  ko: "학술대회 논문" },
   "stat.projects":   { en: "Funded projects",    ko: "연구 과제" },
   "stat.members":    { en: "Lab members",        ko: "연구실 인원" },
 
   "areas.eyebrow": { en: "Research", ko: "연구 분야" },
-  "areas.title":   { en: "Three pillars,<br>one loop.", ko: "세 개의 축,<br>하나의 루프." },
+  "areas.title":   { en: "One core, two applications,<br>and where it is heading.",
+                     ko: "핵심 하나, 응용 둘,<br>그리고 확장 방향." },
   "areas.lede": {
-    en: "Theory sharpens the stability criterion; the criterion becomes a controller; the controller runs on a real manipulator. Whatever breaks there sets up the next theorem.",
-    ko: "이론이 안정성 판별 조건을 다듬고, 그 조건은 제어기가 되고, 제어기는 실제 매니퓰레이터 위에서 돕니다. 거기서 드러난 한계가 다음 정리의 출발점이 됩니다.",
+    en: "The core is control algorithms that can actually be implemented — conditions that stay solvable and gains that survive real hardware. The two applications we target are embedded platforms and robot manipulators. From there the work is extending from control into signal processing and AI.",
+    ko: "핵심은 실제로 구현할 수 있는 제어 알고리즘입니다. 풀리는 조건, 그리고 실제 하드웨어에서 버티는 이득을 목표로 합니다. 응용 대상은 임베디드 시스템과 로봇 매니퓰레이터 두 가지이며, 여기서 제어를 넘어 신호처리와 AI로 영역을 넓히고 있습니다.",
   },
+  "areas.core":   { en: "Core",        ko: "핵심" },
+  "areas.app":    { en: "Application", ko: "응용" },
+  "areas.next":   { en: "Expanding",   ko: "확장" },
 
   "recent.eyebrow": { en: "Selected work",       ko: "최근 성과" },
   "recent.title":   { en: "Recent publications", ko: "최근 논문" },
@@ -65,10 +71,10 @@ const COPY = {
 
   "join.eyebrow": { en: "Join the lab", ko: "연구실 지원" },
   "join.title":   { en: "Comfortable with proofs<br>and with a screwdriver?",
-                    ko: "증명도, 드라이버도<br>익숙하신가요?" },
+                    ko: "함께 연구할<br>학생을 찾습니다." },
   "join.lede": {
     en: "We host graduate and undergraduate researchers working on control theory, robot manipulators, and embedded implementation. Send a short note about what you would like to work on — prior coursework in linear systems or a track record of building things both count.",
-    ko: "제어 이론, 로봇 매니퓰레이터, 임베디드 구현을 함께할 대학원생과 학부 연구생을 모집합니다. 어떤 주제를 해보고 싶은지 짧게 적어 메일 주세요. 선형시스템 수강 경험도, 직접 만들어 본 이력도 모두 좋습니다.",
+    ko: "제어 이론, 로봇 매니퓰레이터, 임베디드 구현에 관심 있는 대학원생과 학부 연구생을 모집합니다. 어떤 주제를 해보고 싶은지 간단히 적어 메일 주시면 됩니다. 선형시스템·제어공학 수강 경험, 또는 직접 무언가 만들어 본 경험이 있으면 좋습니다.",
   },
   "join.cta1": { en: "Email the advisor", ko: "지도교수에게 메일" },
   "join.cta2": { en: "Find the office",   ko: "연구실 위치" },
@@ -81,33 +87,36 @@ const COPY = {
   "research.eyebrow": { en: "Research", ko: "연구" },
   "research.title": {
     en: "From an inequality on paper<br>to a manipulator that holds its line.",
-    ko: "종이 위의 부등식에서<br>흔들리지 않는 매니퓰레이터까지.",
+    ko: "이론에서 구현까지.",
   },
   "research.lede": {
-    en: "Our work develops mathematical control theories and applies them to automation systems — robotics, networked control systems, and AI-based systems — with a strong emphasis on system modeling and control for industrial robots.",
-    ko: "수학적 제어 이론을 개발하고 이를 자동화 시스템 — 로보틱스, 네트워크 제어 시스템, AI 기반 시스템 — 에 적용합니다. 특히 산업용 로봇의 시스템 모델링과 제어에 중점을 둡니다.",
+    en: "We develop stability analysis and controller synthesis for time-delay, sampled-data, networked and descriptor systems, and we hold that work to a practical bar: the condition has to be solvable and the controller has to run on the target board. Embedded platforms and robot manipulators are where it lands.",
+    ko: "시간지연·표본데이터·네트워크·특이 시스템의 안정성 해석과 제어기 설계를 연구하되, 실용성을 기준으로 잡습니다. 조건이 실제로 풀려야 하고, 제어기가 목표 보드 위에서 돌아가야 합니다. 임베디드 플랫폼과 로봇 매니퓰레이터가 그 도착지입니다.",
   },
-  "projects.eyebrow":   { en: "Funded projects",       ko: "연구 과제" },
-  "projects.title":     { en: "Where the funding goes.", ko: "수행 중인 과제." },
+  "research.band": {
+    en: "Control laws are only finished once they run on the arm.",
+    ko: "제어기는 로봇 위에서 돌아야 완성됩니다.",
+  },
+  "projects.eyebrow":   { en: "Funded projects", ko: "연구 과제" },
+  "projects.title":     { en: "Where the funding goes.", ko: "수행 과제." },
   "projects.ongoing":   { en: "Ongoing",   ko: "진행 중" },
   "projects.completed": { en: "Completed", ko: "완료" },
 
   /* ---- members ---- */
   "members.eyebrow":   { en: "Members", ko: "구성원" },
-  "members.title":     { en: "The people running the loop.", ko: "루프를 돌리는 사람들." },
+  "members.title":     { en: "The people running the loop.", ko: "연구실 구성원." },
   "members.grad":      { en: "Graduate students",         ko: "대학원생" },
   "members.undergrad": { en: "Undergraduate researchers", ko: "학부 연구생" },
   "members.alumni":    { en: "Alumni",                    ko: "졸업생" },
-  "members.appointments": { en: "Appointments", ko: "재직 이력" },
+  "members.appointments": { en: "Appointments", ko: "경력" },
   "members.education":    { en: "Education",    ko: "학력" },
   "members.graduated":    { en: "Graduated",    ko: "졸업" },
 
   /* ---- publications ---- */
   "pubs.eyebrow": { en: "Publications", ko: "논문" },
-  "pubs.title":   { en: "Peer-reviewed work,<br>newest first.",
-                    ko: "동료 심사를 거친 논문,<br>최신순." },
-  "pubs.journal":    { en: "Journal",    ko: "저널" },
-  "pubs.conference": { en: "Conference", ko: "학회" },
+  "pubs.title":   { en: "Peer-reviewed work,<br>newest first.", ko: "발표 논문, 최신순." },
+  "pubs.journal":    { en: "Journal",    ko: "학술지" },
+  "pubs.conference": { en: "Conference", ko: "학술대회" },
   "pubs.all":        { en: "All",        ko: "전체" },
 
   /* ---- lecture ---- */

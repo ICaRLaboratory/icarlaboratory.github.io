@@ -330,15 +330,14 @@ function renderPublications() {
 
 /* ---------- home ---------- */
 
-function areaCard(a, i, withCount) {
-  const total = SITE.areas.length;
-  const idx = withCount
-    ? `0${i + 1} / ${total < 10 ? "0" : ""}${total}`
-    : `0${i + 1}`;
+const ROLE_KEY = { core: "areas.core", app: "areas.app", next: "areas.next" };
+
+function areaCard(a, i) {
   return `
-    <article class="card ${a.image ? "card--media" : ""}" data-reveal style="--d:${i * 90}ms">
-      ${a.image ? `<div class="card__media"><img src="${esc(a.image)}" alt="" loading="lazy"></div>` : ""}
-      <div class="card__index">${idx}</div>
+    <article class="card card--area" data-reveal style="--d:${i * 80}ms">
+      <div class="card__index">
+        <span class="role role--${a.role || "core"}">${copy(ROLE_KEY[a.role] || "areas.core")}</span>
+      </div>
       <h3 class="card__title">${esc(t(a.label))}</h3>
       <p>${esc(t(a.blurb))}</p>
       <div class="tags">${tl(a.keywords).map((k) => `<span class="tag">${esc(k)}</span>`).join("")}</div>
@@ -347,7 +346,7 @@ function areaCard(a, i, withCount) {
 
 function renderHome() {
   const areasHost = $("#areas");
-  if (areasHost) areasHost.innerHTML = SITE.areas.map((a, i) => areaCard(a, i, true)).join("");
+  if (areasHost) areasHost.innerHTML = SITE.areas.map(areaCard).join("");
 
   const statsHost = $("#stats");
   if (statsHost) {
@@ -373,7 +372,7 @@ function renderHome() {
 
 function renderResearch() {
   const host = $("#areas-full");
-  if (host) host.innerHTML = SITE.areas.map((a, i) => areaCard(a, i, false)).join("");
+  if (host) host.innerHTML = SITE.areas.map(areaCard).join("");
 
   const projectHost = $("#projects");
   if (!projectHost) return;

@@ -13,12 +13,12 @@ const SITE = {
     ko: "지능제어 및 로보틱스 연구실",
   },
   tagline: {
-    en: "Mathematical control theory, made to move real machines.",
-    ko: "수학적 제어 이론으로 실제 기계를 움직입니다.",
+    en: "Control algorithms built to be implemented — on embedded hardware and on robot manipulators.",
+    ko: "구현 가능한 제어 알고리즘. 임베디드 하드웨어와 로봇 매니퓰레이터 위에서 검증합니다.",
   },
   intro: {
-    en: "We develop advanced mathematical control theories and apply them to automation systems — networked control systems, multi-agent systems, sampled-data systems, and neural-network-based systems. Our applied work targets industrial robotics, with a strong emphasis on system modeling, robust control, and AI integration.",
-    ko: "고도화된 수학적 제어 이론을 개발하고 이를 자동화 시스템 — 네트워크 제어 시스템, 다개체 시스템, 표본데이터 시스템, 신경망 기반 시스템 — 에 적용합니다. 응용 연구는 산업용 로보틱스를 향하며, 시스템 모델링과 강인 제어, AI 융합에 중점을 둡니다.",
+    en: "Our goal is control algorithms that can actually be implemented, not only proved. We develop stability analysis and controller synthesis for time-delay, sampled-data, networked and descriptor systems, and we target two applications: embedded platforms and robot manipulators. From there the work is extending from control into signal processing and AI.",
+    ko: "실용 가능한 제어 알고리즘 연구를 목표로 합니다. 시간지연·표본데이터·네트워크·특이 시스템의 안정성 해석과 제어기 설계 이론을 개발하고, 이를 임베디드 시스템과 로봇 매니퓰레이터라는 두 응용에 적용합니다. 최근에는 제어에서 신호처리와 AI 쪽으로 영역을 넓히고 있습니다.",
   },
   department: {
     en: "Department of Artificial Intelligence and Information Technology",
@@ -41,53 +41,71 @@ const SITE = {
     mapUrl: "https://maps.google.com/?q=Sejong+University+Daeyang+AI+Center",
   },
 
+  /* `role` is "core" | "app" | "next" -- it prints as the badge on the card.
+     Keywords stay in English in both languages: they are search terms. */
   areas: [
     {
       key: "control",
-      image: "assets/img/area-control.jpg",
+      role: "core",
       label: { en: "Control Algorithms", ko: "제어 알고리즘" },
       blurb: {
-        en: "Stability analysis and controller synthesis for time-delay, sampled-data, and descriptor systems. We build integral and summation inequalities, looped functionals, and LMI-based conditions that make conservative criteria sharp.",
-        ko: "시간지연·표본데이터·특이 시스템에 대한 안정성 해석과 제어기 설계. 적분·합 부등식, 루프드 함수, LMI 기반 조건을 새로 만들어 보수적인 판별 조건을 날카롭게 다듬습니다.",
+        en: "The centre of the lab. Stability analysis and controller synthesis for time-delay, sampled-data, networked and descriptor systems — integral and summation inequalities, looped functionals, LMI conditions. We hold the results to a practical bar: the condition has to stay solvable and the gain has to survive a real board.",
+        ko: "연구실의 중심입니다. 시간지연·표본데이터·네트워크·특이 시스템의 안정성 해석과 제어기 설계 — 적분·합 부등식, 루프드 함수, LMI 조건을 다룹니다. 결과는 실용성 기준으로 봅니다. 조건이 실제로 풀려야 하고, 이득이 실제 보드 위에서 버텨야 합니다.",
       },
       keywords: [
-        { en: "Time-delay systems",        ko: "시간지연 시스템" },
-        { en: "Sampled-data control",      ko: "표본데이터 제어" },
-        { en: "Linear matrix inequalities", ko: "선형행렬부등식" },
-        { en: "Robust control",            ko: "강인 제어" },
-        { en: "Networked control",         ko: "네트워크 제어" },
+        "Time-delay systems",
+        "Sampled-data control",
+        "Linear matrix inequalities",
+        "Robust control",
+        "Networked control",
       ],
     },
     {
       key: "robotics",
-      image: "assets/img/area-robotics.jpg",
-      label: { en: "Robotics", ko: "로보틱스" },
+      role: "app",
+      label: { en: "Robot Manipulators", ko: "로봇 매니퓰레이터" },
       blurb: {
-        en: "Adaptive sliding mode control for disturbed manipulators, time-delay estimation assisted by neural networks, admittance-based force tracking, and reinforcement learning for mobile robot navigation.",
-        ko: "외란이 있는 매니퓰레이터를 위한 적응 슬라이딩 모드 제어, 신경망 기반 시간지연 추정, 어드미턴스 기반 힘 추종, 그리고 이동로봇 주행을 위한 강화학습을 연구합니다.",
+        en: "One of the two application targets. Adaptive sliding mode control for disturbed manipulators, time-delay estimation assisted by neural networks, and admittance-based force tracking — tested on real arms rather than in simulation alone.",
+        ko: "두 응용 대상 중 하나입니다. 외란이 있는 매니퓰레이터를 위한 적응 슬라이딩 모드 제어, 신경망 기반 시간지연 추정, 어드미턴스 기반 힘 추종을 다루며, 시뮬레이션에 그치지 않고 실제 로봇에서 검증합니다.",
       },
       keywords: [
-        { en: "Robot manipulators",        ko: "로봇 매니퓰레이터" },
-        { en: "Adaptive sliding mode",     ko: "적응 슬라이딩 모드" },
-        { en: "Force / admittance control", ko: "힘·어드미턴스 제어" },
-        { en: "Reinforcement learning",    ko: "강화학습" },
-        { en: "Multi-agent systems",       ko: "다개체 시스템" },
+        "Adaptive sliding mode",
+        "Time-delay estimation",
+        "Force / admittance control",
+        "Trajectory tracking",
+        "Multi-agent systems",
       ],
     },
     {
       key: "embedded",
-      image: "assets/img/area-embedded.jpg",
+      role: "app",
       label: { en: "Embedded Systems", ko: "임베디드 시스템" },
       blurb: {
-        en: "Getting theory onto hardware: real-time implementation under quantization, limited bandwidth, and sampling jitter — plus on-device AI for manufacturing platforms.",
-        ko: "이론을 하드웨어로 옮기는 일. 양자화와 제한된 대역폭, 샘플링 지터 아래에서의 실시간 구현, 그리고 제조 플랫폼을 위한 온디바이스 AI를 다룹니다.",
+        en: "The other target, and the reason the theory has to stay implementable. Real-time execution under quantization, limited bandwidth and sampling jitter, plus on-device AI for manufacturing platforms.",
+        ko: "또 하나의 응용 대상이자, 이론이 구현 가능해야 하는 이유입니다. 양자화와 제한된 대역폭, 샘플링 지터 아래에서의 실시간 구동, 그리고 제조 플랫폼을 위한 온디바이스 AI를 다룹니다.",
       },
       keywords: [
-        { en: "Real-time implementation", ko: "실시간 구현" },
-        { en: "Input quantization",       ko: "입력 양자화" },
-        { en: "On-device AI",             ko: "온디바이스 AI" },
-        { en: "Sensor fusion",            ko: "센서 퓨전" },
-        { en: "Motor control",            ko: "모터 제어" },
+        "Real-time implementation",
+        "Input quantization",
+        "On-device AI",
+        "Motor control",
+        "Sensor interfacing",
+      ],
+    },
+    {
+      key: "spai",
+      role: "next",
+      label: { en: "Signal Processing & AI", ko: "신호처리 · AI" },
+      blurb: {
+        en: "Where the lab is heading. Learning-based estimation and classification placed alongside classical control — LSTM models on low-resolution sensors, reinforcement learning for mobile robot navigation, neural networks inside the loop rather than bolted onto it.",
+        ko: "확장하고 있는 방향입니다. 고전 제어 위에 학습 기반 추정·분류를 얹습니다. 저해상도 센서 기반 LSTM 분류, 이동로봇 주행을 위한 강화학습, 그리고 루프 바깥이 아니라 루프 안에 들어가는 신경망을 봅니다.",
+      },
+      keywords: [
+        "Neural network control",
+        "Reinforcement learning",
+        "Sensor fusion",
+        "LSTM / sequence models",
+        "Data-driven estimation",
       ],
     },
   ],
@@ -107,11 +125,11 @@ const ADVISOR = {
   orcid: "0000-0002-9071-4837",
 
   interests: [
-    { en: "Control theory",                    ko: "제어 이론" },
-    { en: "Robust and networked control systems", ko: "강인·네트워크 제어 시스템" },
-    { en: "Applied mathematics via linear matrix inequalities", ko: "선형행렬부등식 기반 응용수학" },
-    { en: "Robot manipulators",                ko: "로봇 매니퓰레이터" },
-    { en: "Neural-network-based systems",      ko: "신경망 기반 시스템" },
+    "Control theory",
+    "Robust and networked control",
+    "Linear matrix inequalities",
+    "Robot manipulators",
+    "Neural-network-based systems",
   ],
 
   career: [
@@ -135,7 +153,7 @@ const ADVISOR = {
     },
     {
       period: "2018.03 – 2019.08",
-      role: { en: "Staff Engineer", ko: "책임연구원" },
+      role: "Staff Engineer",
       org:  { en: "Samsung Electronics", ko: "삼성전자" },
       note: "",
     },
@@ -145,7 +163,7 @@ const ADVISOR = {
     {
       period: "2011.03 – 2018.02",
       degree: { en: "Ph.D.", ko: "박사" },
-      org: { en: "POSTECH", ko: "포항공과대학교" },
+      org: "POSTECH",
       note: {
         en: "Dissertation: “Stability Analysis of Systems with Time-varying Delays via Slack Matrix Based Approaches” · Advisor: Prof. PooGyeon Park",
         ko: "학위논문: 「Stability Analysis of Systems with Time-varying Delays via Slack Matrix Based Approaches」 · 지도교수: 박부견",
@@ -154,7 +172,7 @@ const ADVISOR = {
     {
       period: "2007.03 – 2011.02",
       degree: { en: "B.S.", ko: "학사" },
-      org: { en: "POSTECH", ko: "포항공과대학교" },
+      org: "POSTECH",
       note: { en: "Electrical Engineering", ko: "전자전기공학과" },
     },
   ],
