@@ -207,8 +207,9 @@ function countUp(el) {
 
 /* ---------- publications ---------- */
 
+/* the lab head, with the corresponding-author asterisk when the paper carries one */
 const markAuthor = (authors) =>
-  esc(authors).replace(/S\. Y\. Lee/g, "<b>S. Y. Lee</b>");
+  esc(authors).replace(/S\. Y\. Lee(\*?)/g, "<b>S. Y. Lee$1</b>");
 
 const groupByYear = (papers) => {
   const map = new Map();
