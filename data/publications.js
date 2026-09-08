@@ -2,7 +2,11 @@
    Journal & conference papers.
    To add a paper: copy the line above and edit it. Newest first.
    `authors` is a plain string -- "S. Y. Lee" is highlighted
-   automatically, so just type the author list as it appears.
+   automatically, so just type the author list as it appears. Mark
+   corresponding authors with an asterisk, as the entries below do.
+
+   Set `domestic: true` on papers published at Korean venues; they get
+   their own filter on the publications page.
    --------------------------------------------------------------- */
 
 const JOURNAL_PAPERS = [
@@ -293,6 +297,7 @@ const JOURNAL_PAPERS = [
     venue: "Journal of Institute of Control, Robotics and Systems",
     detail: "vol. 20, no. 3, pp. 289-297, Mar. 2014",
     doi: "10.5302/j.icros.2014.14.9016",
+    domestic: true,
   },
   {
     year: 2013,
@@ -301,6 +306,7 @@ const JOURNAL_PAPERS = [
     venue: "Journal of Institute of Control, Robotics and Systems",
     detail: "vol. 19, no. 8, pp. 676-681, Aug. 2013",
     doi: "10.5302/j.icros.2013.13.9013",
+    domestic: true,
   },
 ];
 

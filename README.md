@@ -39,7 +39,8 @@ it. Position in the file does not matter: entries are sorted by year, then by
 the month read out of `detail` ("Jul. 2026"), so a paper with no month printed
 sorts to the back of its year. Include the `doi` and the title becomes a link to
 doi.org automatically. Mark corresponding authors with an asterisk, as the
-existing entries do. `S. Y. Lee` in the `authors` string is bolded on its own.
+existing entries do, and add `domestic: true` for a Korean venue so it shows
+under the Domestic filter. `S. Y. Lee` in the `authors` string is bolded on its own.
 The counters on the home page and the year groups both update themselves.
 
 **Add a student** — add an entry to `GRAD_STUDENTS` in `data/members.js`. Reuse

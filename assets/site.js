@@ -253,10 +253,14 @@ function renderPublications() {
   const host = $("#publist");
   if (!host) return;
 
+  const every = [...JOURNAL_PAPERS, ...CONFERENCE_PAPERS];
+  /* Journal and Conference split by type; Domestic is a cross-cutting view of
+     the Korean-venue papers, which also appear under their own type. */
   const sets = {
     journal: JOURNAL_PAPERS,
     conference: CONFERENCE_PAPERS,
-    all: [...JOURNAL_PAPERS, ...CONFERENCE_PAPERS],
+    domestic: every.filter((p) => p.domestic),
+    all: every,
   };
 
   const draw = (key) => {
@@ -282,8 +286,10 @@ function renderPublications() {
 
   const counts = $("#pubcounts");
   if (counts) {
+    const dom = every.filter((p) => p.domestic).length;
     counts.textContent =
-      `${JOURNAL_PAPERS.length} journal articles · ${CONFERENCE_PAPERS.length} conference papers`;
+      `${JOURNAL_PAPERS.length} journal articles · ${CONFERENCE_PAPERS.length} conference papers` +
+      (dom ? ` · ${dom} at Korean venues` : "");
   }
 
   const banner = $("#profiles");
