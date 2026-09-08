@@ -26,6 +26,17 @@ const GALLERY = [
     ],
   },
   {
+    title: "The 7th International Conference on ICT for Smart Health & Home",
+    date: "December 2023",
+    place: "Grand Tourane Hotel, Da Nang, Vietnam",
+    photos: [
+      {
+        src: "assets/img/gallery/ict4shealth-2023-1.jpg",
+        alt: "Lab members outside the ICT4sHealth&Home 2023 venue in Da Nang",
+      },
+    ],
+  },
+  {
     title: "Conference on Information and Control Systems",
     titleKo: "2022년도 정보 및 제어 학술대회",
     date: "October 2022",
