@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0a0a0a">
+<title>Page not found · ICaR Lab</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="That page does not exist.">
+<link rel="icon" href="/assets/favicon.png" type="image/png">
+<link rel="preload" href="/assets/fonts/pretendard-subset.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/jetbrains-mono-subset.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/style.css">
+<script src="/data/site.js"></script>
+<script src="/data/members.js"></script>
+<script src="/data/publications.js"></script>
+<script src="/data/projects.js"></script>
+<script src="/data/courses.js"></script>
+<script src="/data/gallery.js"></script>
+<script src="/assets/site.js"></script>
+</head>
+<body>
+
+<div id="nav"></div>
+<script>
+  /* This page can be served from any depth, so its links must be root-absolute. */
+  NAV_ITEMS.forEach(i => { if (!i.href.startsWith("/")) i.href = "/" + i.href; });
+  renderNav("");
+</script>
+
+<header class="pagehead">
+  <div class="wrap">
+    <p class="eyebrow">404</p>
+    <h1 class="h2" data-reveal style="max-width:20ch">That page does not exist.</h1>
+    <p class="lede" data-reveal style="--d:90ms;margin-top:1.25rem">
+      The address may have changed, or it may never have been here. Everything on the site is
+      reachable from the menu above.
+    </p>
+    <div class="cta-row">
+      <a class="btn btn--primary" href="/">Back to the home page
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a class="btn" href="/publications.html">Publications</a>
+      <a class="btn" href="/members.html">Members</a>
+    </div>
+  </div>
+</header>
+
+<div id="footer"></div>
+
+<script>boot("");</script>
+</body>
+</html>

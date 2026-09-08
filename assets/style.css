@@ -1026,3 +1026,48 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
   transition: background 0.2s, border-color 0.2s;
 }
 .lightbox__x:hover { background: rgba(255, 255, 255, 0.14); border-color: #fff; }
+
+/* ---------- print ----------
+   On paper the black bands are just ink, the sticky bar repeats on every
+   sheet, and a link's destination is invisible. This makes the publication
+   list and the CV printable. */
+
+@media print {
+  :root {
+    --bg: #fff; --bg-soft: #fff;
+    --text: #000; --dim: #333; --faint: #555;
+    --line: #bbb; --line-soft: #ddd;
+    --panel: transparent; --panel-2: transparent;
+    --shadow: none; --glow: none;
+  }
+  /* the inverted bands print as plain paper */
+  .invert { background: #fff !important; color: #000 !important;
+            --bg: #fff; --text: #000; --dim: #333; --faint: #555;
+            --line: #bbb; --line-soft: #ddd; --panel: transparent; }
+
+  .nav, .hero__art, .lightbox, .filters, .cta-row, .icon-btn,
+  .map, .banner, .card__media { display: none !important; }
+
+  .hero { min-height: auto; background: none !important; }
+  .hero__inner { display: block; padding-block: 0 1.5rem; }
+
+  body { font-size: 11pt; }
+  .wrap { max-width: none; padding-inline: 0; }
+  .band, .band--tight, .pagehead { padding-block: 0 0.8rem; }
+  .card { border: 1px solid #ddd; break-inside: avoid; }
+
+  /* keep entries whole across page breaks */
+  .pub, .project, .person, .tl-item, .course, .album { break-inside: avoid; }
+  .year-group { break-inside: auto; }
+  h1, h2, h3 { break-after: avoid; }
+
+  /* a printed link is useless without its address */
+  .pub__link::after { content: " (" attr(href) ")"; font-size: 8.5pt; color: #555;
+                      word-break: break-all; }
+  .pub__doi, .person__links a, .contact-row a { text-decoration: underline; }
+
+  .footer { border-top: 1px solid #bbb; padding-block: 1rem 0; }
+  .footer__grid > :nth-child(2) { display: none; }   /* the nav list */
+
+  [data-reveal] { opacity: 1 !important; transform: none !important; }
+}
