@@ -49,3 +49,6 @@ __pycache__/
 # publicly with their EXIF (including GPS) intact. Web copies live in
 # assets/img/ and are generated from these.
 _originals/
+_preview/
+_preview-*.html
+_preview-*.js
