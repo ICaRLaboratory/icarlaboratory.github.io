@@ -433,6 +433,7 @@ function renderMembers() {
         <div class="tl-period">${esc(c.period)}</div>
         <div class="tl-role">${esc(c.role || c.degree)}</div>
         <div class="tl-org">${esc(c.org)}</div>
+        ${c.dept ? `<div class="tl-note">${esc(c.dept)}</div>` : ""}
         ${c.note ? `<div class="tl-note">${esc(c.note)}</div>` : ""}
       </div>`).join("");
 

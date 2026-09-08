@@ -128,6 +128,7 @@ const ADVISOR = {
       period: "2011.03 – 2018.02",
       degree: "Ph.D.",
       org: "POSTECH",
+      dept: "Division of IT Convergence Engineering (ITCE)",
       note:
         "Dissertation: “Stability Analysis of Systems with Time-varying Delays via Slack Matrix Based Approaches” · Advisor: Prof. PooGyeon Park",
     },
@@ -135,7 +136,8 @@ const ADVISOR = {
       period: "2007.03 – 2011.02",
       degree: "B.S.",
       org: "POSTECH",
-      note: "Electrical Engineering",
+      dept: "Electrical Engineering",
+      note: "",
     },
   ],
 };
