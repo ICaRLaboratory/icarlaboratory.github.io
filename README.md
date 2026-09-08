@@ -34,9 +34,12 @@ data/
 
 Everything you would normally change lives in `data/`.
 
-**Add a paper** — open `data/publications.js`, copy the topmost entry, edit it,
-keep the list newest-first. Include the `doi` and the title becomes a link to
-doi.org automatically. `S. Y. Lee` in the `authors` string is bolded on its own.
+**Add a paper** — open `data/publications.js`, copy the topmost entry and edit
+it. Position in the file does not matter: entries are sorted by year, then by
+the month read out of `detail` ("Jul. 2026"), so a paper with no month printed
+sorts to the back of its year. Include the `doi` and the title becomes a link to
+doi.org automatically. Mark corresponding authors with an asterisk, as the
+existing entries do. `S. Y. Lee` in the `authors` string is bolded on its own.
 The counters on the home page and the year groups both update themselves.
 
 **Add a student** — add an entry to `GRAD_STUDENTS` in `data/members.js`. Reuse

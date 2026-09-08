@@ -211,9 +211,21 @@ function countUp(el) {
 const markAuthor = (authors) =>
   esc(authors).replace(/S\. Y\. Lee(\*?)/g, "<b>S. Y. Lee$1</b>");
 
+const MONTHS = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
+                 jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 };
+
+/* `detail` carries the month for most entries ("Jul. 2026"); a few journals
+   print only a year, and those sort to the back of their year. */
+const pubMonth = (p) => {
+  const m = /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i.exec(p.detail || "");
+  return m ? MONTHS[m[1].toLowerCase()] : 0;
+};
+
+const byDate = (a, b) => b.year - a.year || pubMonth(b) - pubMonth(a);
+
 const groupByYear = (papers) => {
   const map = new Map();
-  papers.forEach((p) => {
+  [...papers].sort(byDate).forEach((p) => {
     if (!map.has(p.year)) map.set(p.year, []);
     map.get(p.year).push(p);
   });
@@ -330,7 +342,13 @@ function renderHome() {
   }
 
   const recentHost = $("#recent");
-  if (recentHost) recentHost.innerHTML = JOURNAL_PAPERS.slice(0, 4).map(pubRow).join("");
+  if (recentHost) {
+    recentHost.innerHTML = [...JOURNAL_PAPERS, ...CONFERENCE_PAPERS]
+      .sort(byDate)
+      .slice(0, 5)
+      .map(pubRow)
+      .join("");
+  }
 }
 
 /* ---------- research ---------- */
