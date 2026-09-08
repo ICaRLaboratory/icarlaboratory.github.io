@@ -286,6 +286,22 @@ const JOURNAL_PAPERS = [
     detail: "vol. 243, pp. 570-577, Sep. 2014",
     doi: "10.1016/j.amc.2014.05.116",
   },
+  {
+    year: 2014,
+    authors: "P. Park, W. I. Lee, and S. Y. Lee",
+    title: "Stability on Time Delay Systems: A Survey",
+    venue: "Journal of Institute of Control, Robotics and Systems",
+    detail: "vol. 20, no. 3, pp. 289-297, Mar. 2014",
+    doi: "10.5302/j.icros.2014.14.9016",
+  },
+  {
+    year: 2013,
+    authors: "J. W. Shin, J. M. Song, S. Y. Lee, H. T. Choi, and P. Park",
+    title: "Direction and Location Estimating Algorithm for Sound Sources with Two Hydrophones in Underwater Environment",
+    venue: "Journal of Institute of Control, Robotics and Systems",
+    detail: "vol. 19, no. 8, pp. 676-681, Aug. 2013",
+    doi: "10.5302/j.icros.2013.13.9013",
+  },
 ];
 
 const CONFERENCE_PAPERS = [
@@ -328,5 +344,21 @@ const CONFERENCE_PAPERS = [
     venue: "10th Asian Control Conference (ASCC)",
     detail: "Kota Kinabalu, Malaysia, May 2015",
     doi: "10.1109/ascc.2015.7244650",
+  },
+  {
+    year: 2013,
+    authors: "J. M. Song, S. Y. Lee, H. T. Choi, and P. Park",
+    title: "An evolving update interval algorithm for the optimal step-size affine projection algorithm",
+    venue: "International Symposium on Intelligent Signal Processing and Communication Systems (ISPACS)",
+    detail: "Naha, Japan, pp. 131-135, Nov. 2013",
+    doi: "10.1109/ispacs.2013.6704534",
+  },
+  {
+    year: 2013,
+    authors: "N. W. Kong, J. W. Shin, S. Y. Lee, J. M. Song, H. T. Choi, and P. Park",
+    title: "Non-periodic-partial-update affine projection algorithm with data-selective updating",
+    venue: "International Symposium on Intelligent Signal Processing and Communication Systems (ISPACS)",
+    detail: "Naha, Japan, pp. 152-156, Nov. 2013",
+    doi: "10.1109/ispacs.2013.6704538",
   },
 ];
