@@ -8,9 +8,9 @@ const SITE = {
   labShort: "ICaR",
   labName: "Intelligent Control and Robotics Laboratory",
   tagline:
-    "Control algorithms built to be implemented — worked through in robotics and on embedded hardware.",
+    "Control theory for time-delay, sampled-data and networked systems — applied in robotics and on embedded hardware.",
   intro:
-    "Our goal is control algorithms that can actually be implemented, not only proved. We develop stability analysis and controller synthesis for time-delay, sampled-data, networked and descriptor systems, and we carry that work through in robotics and embedded systems — manipulators, mobile and multi-agent robots, and the real-time platforms they run on. From there it is extending from control into signal processing and AI.",
+    "We judge a control algorithm by whether it can be implemented, not only proved. We develop stability analysis and controller synthesis for time-delay, sampled-data, networked and descriptor systems, and we carry that work through in robotics and embedded systems — manipulators, mobile and multi-agent robots, and the real-time platforms they run on. From there it is extending from control into signal processing and AI.",
   department: "Department of Artificial Intelligence and Information Technology",
   university: "Sejong University",
   since: 2019,
@@ -33,7 +33,7 @@ const SITE = {
       image: "assets/img/area-control.jpg",
       label: "Control Algorithms",
       blurb:
-        "The core of the lab. Stability analysis and controller synthesis for time-delay, sampled-data, networked and descriptor systems — integral and summation inequalities, looped functionals, LMI conditions. Held to a practical bar throughout: the condition has to stay solvable and the gain has to survive a real board.",
+        "The core of the lab. Stability analysis and controller synthesis for time-delay, sampled-data, networked and descriptor systems, built on integral and summation inequalities, looped functionals and LMI conditions. The test we apply is practical: the conditions have to stay numerically solvable, and the resulting gains have to work on the target hardware.",
       keywords: [
         "Time-delay systems",
         "Sampled-data control",
@@ -48,7 +48,7 @@ const SITE = {
       image: "assets/img/area-robotics.jpg",
       label: "Robotics",
       blurb:
-        "Manipulators first, but not only. Adaptive sliding mode control for disturbed arms, time-delay estimation assisted by neural networks, admittance-based force tracking for contact tasks, and trajectory tracking under uncertainty. Mobile robots and reinforcement-learning navigation sit here too, as do multi-agent and networked robot systems — several arms, or several vehicles, coordinating over a link that is not perfect.",
+        "Robot manipulators are the main platform: adaptive sliding mode control for disturbed arms, time-delay estimation assisted by neural networks, admittance-based force tracking for contact tasks, and trajectory tracking under uncertainty. The area also covers mobile robots and reinforcement-learning navigation, and multi-agent systems where several arms or vehicles coordinate over an unreliable communication link.",
       keywords: [
         "Robot manipulators",
         "Adaptive sliding mode",
@@ -63,7 +63,7 @@ const SITE = {
       image: "assets/img/area-embedded.jpg",
       label: "Embedded Systems",
       blurb:
-        "Everything between the algorithm and the machine. Real-time execution under quantization, limited bandwidth and sampling jitter; motor drives and sensor interfacing; networked and V2X platforms. Signal processing and AI increasingly run on the same device — on-device inference for manufacturing, and learning-based estimation and classification from low-resolution sensors.",
+        "Where the controller actually runs. Real-time execution under quantization, limited bandwidth and sampling jitter; motor drives and sensor interfacing; networked and V2X platforms. Signal processing and AI increasingly run on the same device — on-device inference for manufacturing, and learning-based estimation and classification from low-resolution sensors.",
       keywords: [
         "Real-time implementation",
         "Input quantization",
