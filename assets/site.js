@@ -55,6 +55,7 @@ const NAV_ITEMS = [
   { href: "members.html",      label: "Members" },
   { href: "publications.html", label: "Publications" },
   { href: "lecture.html",      label: "Lecture" },
+  { href: "gallery.html",      label: "Gallery" },
   { href: "contact.html",      label: "Contact" },
 ];
 
@@ -507,6 +508,46 @@ function renderCourses() {
   }
 }
 
+/* ---------- gallery ---------- */
+
+function renderGallery() {
+  const host = $("#gallery");
+  if (!host || typeof GALLERY === "undefined") return;
+
+  host.innerHTML = GALLERY.map((a, i) => `
+    <section class="album" data-reveal style="--d:${i * 80}ms">
+      <div class="album__head">
+        <h2 class="album__title">${esc(a.title)}</h2>
+        ${a.titleKo ? `<div class="album__ko">${esc(a.titleKo)}</div>` : ""}
+        <div class="album__meta">${esc(a.date)}${a.place ? " &middot; " + esc(a.place) : ""}</div>
+      </div>
+      <div class="album__grid">
+        ${a.photos.map((p) => `
+          <button class="shot" type="button" data-src="${esc(p.src)}" data-alt="${esc(p.alt)}">
+            <img src="${esc(p.src)}" alt="${esc(p.alt)}" loading="lazy">
+          </button>`).join("")}
+      </div>
+    </section>`).join("");
+
+  /* a native <dialog> gives Esc-to-close and focus handling for free */
+  const box = $("#lightbox");
+  if (!box) return;
+  const img = $("img", box);
+  const cap = $("figcaption", box);
+
+  host.addEventListener("click", (e) => {
+    const shot = e.target.closest(".shot");
+    if (!shot) return;
+    img.src = shot.dataset.src;
+    img.alt = shot.dataset.alt;
+    cap.textContent = shot.dataset.alt;
+    box.showModal();
+  });
+  box.addEventListener("click", (e) => { if (e.target === box) box.close(); });
+  $(".lightbox__x", box).addEventListener("click", () => box.close());
+  box.addEventListener("close", () => { img.removeAttribute("src"); });
+}
+
 /* ---------- contact ---------- */
 
 function renderContact() {
@@ -535,6 +576,7 @@ function boot(page) {
   renderMembers();
   renderPublications();
   renderCourses();
+  renderGallery();
   renderContact();
   renderFooter();
   initReveal();

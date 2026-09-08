@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0a0a0a">
-<title>Lecture · ICaR Lab</title>
-<meta name="description" content="Undergraduate and graduate courses taught by Prof. Seok Young Lee.">
+<title>Gallery · ICaR Lab</title>
+<meta name="description" content="Conferences, workshops and lab life at the Intelligent Control and Robotics Laboratory, Sejong University.">
 <link rel="icon" href="assets/favicon.png" type="image/png">
 <link rel="preload" href="assets/fonts/pretendard-subset.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/jetbrains-mono-subset.woff2" as="font" type="font/woff2" crossorigin>
@@ -21,35 +21,29 @@
 <body>
 
 <div id="nav"></div>
-<script>renderNav("lecture.html");</script>
+<script>renderNav("gallery.html");</script>
 
 <header class="pagehead">
   <div class="wrap">
-    <p class="eyebrow">Lecture</p>
-    <h1 class="h2" data-reveal style="max-width:18ch">Courses taught.</h1>
+    <p class="eyebrow">Gallery</p>
+    <h1 class="h2" data-reveal style="max-width:24ch">Conferences, trips, and the odd group photo.</h1>
   </div>
 </header>
 
 <section class="band--tight wrap">
-  <div class="grid grid--2" style="gap:clamp(2rem,5vw,3.5rem)">
-    <div data-reveal>
-      <p class="eyebrow">Spring semester</p>
-      <div id="spring"></div>
-    </div>
-    <div data-reveal style="--d:110ms">
-      <p class="eyebrow">Fall semester</p>
-      <div id="fall"></div>
-    </div>
-  </div>
+  <div id="gallery"></div>
 </section>
 
-<section class="band band--line wrap">
-  <p class="eyebrow">Previously taught &middot; 2019&ndash;2024</p>
-  <div class="tags" id="past" style="margin-top:.5rem;gap:.5rem"></div>
-</section>
+<dialog class="lightbox" id="lightbox">
+  <button class="lightbox__x" type="button" aria-label="Close">&times;</button>
+  <figure>
+    <img alt="">
+    <figcaption></figcaption>
+  </figure>
+</dialog>
 
 <div id="footer"></div>
 
-<script>boot("lecture.html");</script>
+<script>boot("gallery.html");</script>
 </body>
 </html>

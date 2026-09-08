@@ -13,6 +13,8 @@ research.html       Research areas + funded projects
 members.html        Advisor, graduate students, alumni
 publications.html   Journal / conference papers, filterable, grouped by year, DOI-linked
 lecture.html        Courses
+gallery.html        Event photos, grouped into albums
+contact.html        Address, email, map
 
 assets/
   style.css         All styling. Colours are the :root block at the top;
@@ -28,6 +30,7 @@ data/
   publications.js   Journal and conference papers, with DOIs
   projects.js       Funded projects
   courses.js        Teaching
+  gallery.js        Photo albums
 ```
 
 ## Updating content
@@ -54,6 +57,11 @@ current position, if you want it shown).
 
 **Add a project or course** — `data/projects.js` (`status` is `"ongoing"` or
 `"completed"`) and `data/courses.js`.
+
+**Add photos** — put web-sized JPEGs in `assets/img/gallery/` and list them in
+`data/gallery.js`, newest album first. Two things to do to a photo before it
+goes in: shrink it to about 1400px wide and 300 KB, and strip the metadata —
+phone photos carry the GPS coordinates of wherever they were taken.
 
 **Advisor CV, contact, research areas** — `data/site.js`.
 
