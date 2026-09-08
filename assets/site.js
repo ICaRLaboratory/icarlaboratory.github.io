@@ -34,7 +34,9 @@ const initials = (name) =>
    needs to switch voices mid-page. */
 
 const LANG_KEY = "icar-lang";
-let LANG = "en";
+/* Korean is the default: the lab and most of its visitors are Korean, so
+   English is the deliberate switch, not the other way round. */
+let LANG = "ko";
 
 function initLang() {
   const forced = new URLSearchParams(location.search).get("lang");
@@ -150,10 +152,10 @@ function renderNav(current) {
         </a>
         <div class="nav__links" id="navlinks">${links}</div>
         <div class="lang" role="group" aria-label="Description language">
-          <button type="button" data-lang="en" class="${LANG === "en" ? "on" : ""}"
-                  aria-pressed="${LANG === "en"}">EN</button>
           <button type="button" data-lang="ko" class="${LANG === "ko" ? "on" : ""}"
                   aria-pressed="${LANG === "ko"}" lang="ko">한국어</button>
+          <button type="button" data-lang="en" class="${LANG === "en" ? "on" : ""}"
+                  aria-pressed="${LANG === "en"}">EN</button>
         </div>
         <button class="icon-btn nav__toggle" id="menuBtn" type="button"
                 aria-label="Menu" aria-expanded="false">${ICON.menu}</button>
