@@ -358,7 +358,10 @@ function renderPublications() {
     filters.addEventListener("click", (e) => {
       const btn = e.target.closest(".chip");
       if (!btn) return;
-      $$(".chip", filters).forEach((c) => c.classList.toggle("is-active", c === btn));
+      $$(".chip", filters).forEach((c) => {
+        c.classList.toggle("is-active", c === btn);
+        c.setAttribute("aria-pressed", String(c === btn));
+      });
       draw(btn.dataset.set);
     });
   }

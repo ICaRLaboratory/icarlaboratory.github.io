@@ -111,7 +111,7 @@ const JOURNAL_PAPERS = [
     authors: "D. H. Seo, J. W. Lee, H. M. An, and S. Y. Lee*",
     title: "An Adaptive Sliding Mode Control Using a Novel Adaptive Law Based on Quasi-Convex Functions and Average Sliding Variables for Robot Manipulators",
     venue: "Electronics",
-    detail: "vol. 13, no. 19, Art. no. 19, Jan. 2024",
+    detail: "vol. 13, no. 19, Art. no. 3940, Oct. 2024",
     doi: "10.3390/electronics13193940",
   },
   {
@@ -127,7 +127,7 @@ const JOURNAL_PAPERS = [
     authors: "M. Park, S. Y. Lee, J. S. Hong, and N. K. Kwon*",
     title: "Deep Deterministic Policy Gradient-Based Autonomous Driving for Mobile Robots in Sparse Reward Environments",
     venue: "Sensors",
-    detail: "vol. 22, no. 24, Art. no. 24, Jan. 2022",
+    detail: "vol. 22, no. 24, Art. no. 9574, Dec. 2022",
     doi: "10.3390/s22249574",
   },
   {

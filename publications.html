@@ -50,10 +50,10 @@
   <p class="muted" id="pubcounts" style="font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;margin:0 0 1.5rem"></p>
   <div id="profiles"></div>
   <div class="filters" id="pubfilters">
-    <button class="chip is-active" type="button" data-set="journal">Journal</button>
-    <button class="chip" type="button" data-set="conference">Conference</button>
-    <button class="chip" type="button" data-set="domestic">Domestic</button>
-    <button class="chip" type="button" data-set="all">All</button>
+    <button class="chip is-active" type="button" data-set="journal" aria-pressed="true" aria-controls="publist">Journal</button>
+    <button class="chip" type="button" data-set="conference" aria-pressed="false" aria-controls="publist">Conference</button>
+    <button class="chip" type="button" data-set="domestic" aria-pressed="false" aria-controls="publist">Domestic</button>
+    <button class="chip" type="button" data-set="all" aria-pressed="false" aria-controls="publist">All</button>
   </div>
   <p class="pub-note">* corresponding author</p>
   <div id="publist"></div>

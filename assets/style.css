@@ -1,12 +1,10 @@
 /* ===============================================================
-   Self-hosted type. Both faces are subsets of the originals,
-   cut to the characters this site actually uses plus Latin
-   Extended-A, and both keep their variable weight axis.
-
-   Adding Korean text with a syllable outside the subset is safe:
-   the browser falls through to the system Korean face for that
-   character rather than showing a blank box. To fold new
-   characters in properly, re-run tools/build-fonts.sh.
+   Self-hosted type. Pretendard is the full official v1.3.9
+   variable font, covering every modern Hangul syllable. Its
+   legacy "pretendard-subset.woff2" filename is retained so the
+   CSS source and every HTML preload continue to share one URL.
+   JetBrains Mono remains a subset; both retain variable weights.
+   Source, license, checksums and coverage check: fonts/README.md.
    =============================================================== */
 
 @font-face {
