@@ -113,7 +113,7 @@ const ADVISOR = {
       period: "2019.09 – 2025.02",
       role: "Assistant Professor",
       org: "Soonchunhyang University",
-      note: "",
+      note: "Dept. of Electronic Engineering",
     },
     {
       period: "2018.03 – 2019.08",
