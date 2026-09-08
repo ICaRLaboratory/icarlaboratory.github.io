@@ -8,6 +8,14 @@
 const JOURNAL_PAPERS = [
   {
     year: 2026,
+    authors: "H. Jo, D. Park, S. Y. Lee*, and N. K. Kwon*",
+    title: "Feasibility and Evaluation of Effective Morphological Feature Representation for Contactless Blood Pressure Estimation Using Remote Photoplethysmography",
+    venue: "Electronics",
+    detail: "vol. 15, no. 17, p. 3864, Aug. 2026",
+    doi: "10.3390/electronics15173864",
+  },
+  {
+    year: 2026,
     authors: "S. Oh, B. Choi, S. Y. Lee*, and N. K. Kwon*",
     title: "Adaptive Sliding Mode Control with Time-Delay Error Compensation and Admittance-Based Force Tracking",
     venue: "Mathematics",
