@@ -2,3 +2,8 @@
 Thumbs.db
 *.swp
 *:Zone.Identifier
+
+# Camera originals: too big for the repo, and GitHub Pages would serve them
+# publicly with their EXIF (including GPS) intact. Web copies live in
+# assets/img/ and are generated from these.
+_originals/

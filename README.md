@@ -58,10 +58,13 @@ current position, if you want it shown).
 **Add a project or course** — `data/projects.js` (`status` is `"ongoing"` or
 `"completed"`) and `data/courses.js`.
 
-**Add photos** — put web-sized JPEGs in `assets/img/gallery/` and list them in
-`data/gallery.js`, newest album first. Two things to do to a photo before it
-goes in: shrink it to about 1400px wide and 300 KB, and strip the metadata —
-phone photos carry the GPS coordinates of wherever they were taken.
+**Add photos** — drop the camera originals in `_originals/gallery/`. That
+folder is gitignored, so they stay on this machine: they are far too big for
+the repo, and anything committed here is served publicly by GitHub Pages, EXIF
+and GPS coordinates included. What goes on the site is a web copy in
+`assets/img/gallery/` — graded at full size, resized to 1400px last so the
+image is resampled and JPEG-encoded only once, with the metadata dropped. Then
+list it in `data/gallery.js`, newest album first.
 
 **Advisor CV, contact, research areas** — `data/site.js`.
 
