@@ -270,11 +270,26 @@ function renderPublications() {
 
   const counts = $("#pubcounts");
   if (counts) {
-    const scholar = ADVISOR.scholar
-      ? ` &middot; <a class="pub__doi" href="${esc(ADVISOR.scholar)}" target="_blank" rel="noopener">Google Scholar</a>`
-      : "";
-    counts.innerHTML =
-      `${JOURNAL_PAPERS.length} journal articles &middot; ${CONFERENCE_PAPERS.length} conference papers${scholar}`;
+    counts.textContent =
+      `${JOURNAL_PAPERS.length} journal articles · ${CONFERENCE_PAPERS.length} conference papers`;
+  }
+
+  const banner = $("#profiles");
+  if (banner) {
+    const links = [
+      ADVISOR.scholar && ["Google Scholar", ADVISOR.scholar, "btn--primary"],
+      ADVISOR.orcid && ["ORCID", `https://orcid.org/${ADVISOR.orcid}`, "btn--ghost"],
+    ].filter(Boolean);
+    banner.innerHTML = `
+      <div class="banner invert">
+        <div>
+          <div class="banner__t">The complete record, kept up to date</div>
+          <div class="banner__s">Profiles for ${esc(ADVISOR.nameEn)}</div>
+        </div>
+        <div class="banner__a">${links
+          .map(([n, u, c]) => `<a class="btn ${c}" href="${esc(u)}" target="_blank" rel="noopener">${n}</a>`)
+          .join("")}</div>
+      </div>`;
   }
 
   draw("journal");
