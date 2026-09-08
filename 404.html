@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<!-- served at whatever path was requested, so relative URLs need a root -->
+<base href="/">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0a0a0a">
 <title>Page not found · ICaR Lab</title>
@@ -22,11 +24,7 @@
 <body>
 
 <div id="nav"></div>
-<script>
-  /* This page can be served from any depth, so its links must be root-absolute. */
-  NAV_ITEMS.forEach(i => { if (!i.href.startsWith("/")) i.href = "/" + i.href; });
-  renderNav("");
-</script>
+<script>renderNav("");</script>
 
 <header class="pagehead">
   <div class="wrap">
