@@ -12,12 +12,12 @@ const SITE = {
   labShort: "ICaR",
   labName: "Intelligent Control and Robotics Laboratory",
   tagline: {
-    en: "Control theory for time-delay, sampled-data and networked systems — applied in robotics and on embedded hardware.",
-    ko: "시간지연·표본데이터·네트워크 제어 시스템의 이론을 연구하고, 이를 로봇과 임베디드 하드웨어에서 구현합니다.",
+    en: "We study control algorithms, robotics and embedded systems, pursuing fundamental questions and practical advances in each field.",
+    ko: "제어 알고리즘, 로보틱스, 임베디드 시스템을 연구하며 각 분야의 이론적 깊이와 기술적 가능성을 탐구합니다.",
   },
   intro: {
-    en: "We judge a control algorithm by whether it can be implemented, not only proved. We develop stability analysis and controller synthesis for time-delay, sampled-data, networked and descriptor systems, and we carry that work through in robotics and embedded systems — manipulators, mobile and multi-agent robots, and the real-time platforms they run on. From there it is extending from control into signal processing and AI.",
-    ko: "본 연구실은 실용 가능한 제어 알고리즘 연구를 목표로 합니다. 시간지연 시스템, 표본데이터 시스템, 네트워크 제어 시스템, 특이 시스템의 안정도 해석과 제어기 설계를 연구하고, 그 결과를 로봇과 임베디드 시스템에서 검증합니다. 로봇 매니퓰레이터, 이동 로봇과 다개체 로봇, 그리고 이들을 구동하는 실시간 플랫폼이 주요 대상입니다. 최근에는 제어를 넘어 신호처리와 AI로 연구 영역을 넓히고 있습니다.",
+    en: "ICaR Lab at Sejong University conducts research in control algorithms, robotics and embedded systems. Our work addresses stability analysis and controller synthesis, robot motion and interaction, and real-time computing and on-device intelligence. Each field has its own research questions, with opportunities for joint work across them. We combine mathematical analysis, algorithm design and system experiments according to the problem at hand.",
+    ko: "세종대학교 ICaR 연구실은 제어 알고리즘, 로보틱스, 임베디드 시스템을 주요 연구 분야로 삼고 있습니다. 시스템의 안정도 해석과 제어기 설계, 로봇의 운동과 상호작용, 실시간 연산과 온디바이스 지능을 다룹니다. 각 분야 고유의 연구 문제를 탐구하는 동시에, 분야 간 협력을 통해 새로운 문제에 접근합니다. 연구 주제에 따라 수학적 분석, 알고리즘 설계, 시스템 실험을 결합합니다.",
   },
   department: "Department of Artificial Intelligence and Information Technology",
   university: "Sejong University",
@@ -25,16 +25,16 @@ const SITE = {
 
   /* Prose that used to sit in the HTML; here so it can follow the toggle. */
   homeNote: {
-    en: "Control algorithms are the core; robotics and embedded systems are where that work is tested, and the problems found there set the next questions. All three are extending from control into signal processing and AI.",
-    ko: "제어 알고리즘이 연구의 중심입니다. 로봇과 임베디드 시스템에서 그 결과를 검증하고, 이 과정에서 드러난 문제가 다음 연구 주제가 됩니다. 세 분야 모두 제어에서 신호처리와 AI로 확장되고 있습니다.",
+    en: "Our three research areas address distinct questions: how to analyze and control dynamic systems, how robots move and interact, and how embedded devices sense and compute. Signal processing and AI also form part of this work.",
+    ko: "동적 시스템의 해석과 제어, 로봇의 동작과 상호작용, 임베디드 장치의 센싱과 연산을 각각의 연구 주제로 다룹니다. 신호처리와 AI를 포함해 각 분야의 방법론을 발전시키고, 공통의 문제에서는 연구 경험을 공유합니다.",
   },
   researchLede: {
-    en: "We develop stability analysis and controller synthesis for time-delay, sampled-data, networked and descriptor systems, and we hold the results to a practical requirement: the conditions have to be numerically solvable, and the controller has to run on the target hardware. Robotics and embedded systems are where that gets tested.",
-    ko: "시간지연 시스템, 표본데이터 시스템, 네트워크 제어 시스템, 특이 시스템의 안정도 해석과 제어기 설계를 연구합니다. 결과는 실용성을 기준으로 판단합니다. 조건이 수치적으로 풀려야 하고, 제어기가 목표 하드웨어에서 실제로 동작해야 합니다. 검증은 로봇과 임베디드 시스템에서 이루어집니다.",
+    en: "We pursue research in control theory and algorithms, robot motion and coordination, and embedded computing and signal processing. Topics include dynamic systems with delays and uncertainty, robot interaction with the environment, and real-time processing and inference on resource-constrained devices. We develop each area independently and connect them where the research calls for it.",
+    ko: "제어 이론과 알고리즘, 로봇의 운동과 협업, 임베디드 연산과 신호처리를 연구합니다. 지연과 불확실성을 갖는 동적 시스템, 환경과 상호작용하는 로봇, 제한된 자원에서 실시간 처리와 추론을 수행하는 장치가 주요 연구 대상입니다. 각 분야의 독립적인 연구를 수행하며, 주제에 따라 분야를 연결하는 공동 연구도 진행합니다.",
   },
   notFound: {
     en: "The address may have changed, or it may never have been here. Everything on the site is reachable from the menu above.",
-    ko: "주소가 바뀌었거나, 처음부터 없던 페이지일 수 있습니다. 위 메뉴에서 사이트의 모든 페이지로 이동할 수 있습니다.",
+    ko: "요청하신 페이지를 찾을 수 없습니다. 주소를 확인하거나 상단 메뉴에서 원하시는 페이지로 이동해 주세요.",
   },
 
   contact: {
@@ -55,13 +55,13 @@ const SITE = {
       image: "assets/img/area-control.jpg",
       label: "Control Algorithms",
       blurb: {
-        en: "The core of the lab. Stability analysis and controller synthesis for time-delay, sampled-data, networked and descriptor systems, built on integral and summation inequalities, looped functionals and LMI conditions. The test we apply is practical: the conditions have to stay numerically solvable, and the resulting gains have to work on the target hardware.",
-        ko: "연구실의 중심 분야입니다. 시간지연 시스템, 표본데이터 시스템, 네트워크 제어 시스템, 특이 시스템의 안정도 해석과 제어기 설계를 다루며, 적분 부등식과 합 부등식, looped functional, LMI 조건을 주로 사용합니다. 판단 기준은 실용성입니다. 조건이 수치적으로 풀려야 하고, 그렇게 얻은 제어 이득이 목표 하드웨어에서 동작해야 합니다.",
+        en: "We study how dynamic systems can remain stable and achieve desired performance under uncertainty and external disturbances. Our research addresses the effects of limited sensing, communication delays and resource constraints on system behavior, and develops control theory and algorithms that account for these conditions. We seek to establish when stability and performance can be guaranteed, and to expand those guarantees.",
+        ko: "불확실성과 외란이 존재하는 환경에서 동적 시스템의 안정성을 확보하고 원하는 성능을 달성하는 방법을 연구합니다. 제한된 관측 정보, 통신 지연, 자원 제약이 시스템의 동작에 미치는 영향을 분석하고, 이를 고려한 제어 이론과 알고리즘을 개발합니다. 안정성과 성능을 보장할 수 있는 조건을 규명하고 그 범위를 넓히는 것이 주요 연구 목표입니다.",
       },
       keywords: [
-        "Time-delay systems",
-        "Sampled-data control",
-        "Linear matrix inequalities",
+        "System stability",
+        "Control performance",
+        "Uncertain systems",
         "Robust control",
         "Networked control",
         "Neural-network-based systems",
@@ -72,8 +72,8 @@ const SITE = {
       image: "assets/img/area-robotics.jpg",
       label: "Robotics",
       blurb: {
-        en: "Robot manipulators are the main platform: adaptive sliding mode control for disturbed arms, time-delay estimation assisted by neural networks, admittance-based force tracking for contact tasks, and trajectory tracking under uncertainty. The area also covers mobile robots and reinforcement-learning navigation, and multi-agent systems where several arms or vehicles coordinate over an unreliable communication link.",
-        ko: "로봇 매니퓰레이터가 주된 플랫폼입니다. 외란이 존재하는 매니퓰레이터를 위한 적응 슬라이딩 모드 제어, 신경망을 결합한 시간지연 추정, 접촉 작업을 위한 어드미턴스 기반 힘 추종, 불확실성 하에서의 궤적 추종을 연구합니다. 이동 로봇과 강화학습 기반 주행, 그리고 통신이 불안정한 환경에서 여러 대의 매니퓰레이터나 이동체가 협조하는 다개체 시스템도 함께 다룹니다.",
+        en: "We study motion, environmental interaction and coordination in robot manipulators and mobile robots. Topics include trajectory tracking under uncertainty, admittance-based force tracking for contact tasks, and reinforcement-learning-based navigation. We investigate adaptive sliding mode control and neural-network-assisted time-delay estimation, as well as multi-robot coordination under unreliable communication.",
+        ko: "로봇 매니퓰레이터와 이동 로봇의 운동, 환경과의 상호작용, 다중 로봇의 협업을 연구합니다. 불확실한 환경에서의 궤적 추종, 접촉 작업을 위한 어드미턴스 기반 힘 추종, 강화학습 기반 자율주행이 주요 주제입니다. 적응 슬라이딩 모드 제어와 신경망 기반 시간지연 추정 기법을 다루며, 통신이 불안정한 환경에서 여러 로봇이 협조하는 방법도 탐구합니다.",
       },
       keywords: [
         "Robot manipulators",
@@ -89,8 +89,8 @@ const SITE = {
       image: "assets/img/area-embedded.jpg",
       label: "Embedded Systems",
       blurb: {
-        en: "Where the controller actually runs. Real-time execution under quantization, limited bandwidth and sampling jitter; motor drives and sensor interfacing; networked and V2X platforms. Signal processing and AI increasingly run on the same device — on-device inference for manufacturing, and learning-based estimation and classification from low-resolution sensors.",
-        ko: "제어기가 실제로 동작하는 환경입니다. 양자화, 제한된 대역폭, 샘플링 지터를 고려한 실시간 구현과 모터 구동, 센서 인터페이스, 네트워크 및 V2X 플랫폼을 다룹니다. 최근에는 신호처리와 AI도 같은 장치에서 함께 수행합니다. 제조 현장을 위한 온디바이스 추론, 저해상도 센서 기반의 학습형 추정 및 분류가 여기에 해당합니다.",
+        en: "We study real-time computing, sensor signal processing and on-device AI in embedded systems. Topics include learning-based estimation and classification with low-resolution sensors, on-device inference for manufacturing, motor drives and sensor interfaces. We also investigate networked and V2X platforms, accounting for quantization, limited bandwidth and sampling jitter in system design and implementation.",
+        ko: "임베디드 시스템의 실시간 연산, 센서 신호처리, 온디바이스 AI를 연구합니다. 저해상도 센서를 활용한 학습 기반 추정과 분류, 제조 현장을 위한 온디바이스 추론, 모터 구동 및 센서 인터페이스를 다룹니다. 네트워크 및 V2X 플랫폼도 연구하며, 양자화, 대역폭 제한, 샘플링 지터 등 실제 장치의 제약을 고려하여 시스템을 설계하고 구현합니다.",
       },
       keywords: [
         "Real-time implementation",
