@@ -259,7 +259,7 @@ main:focus { outline: none; }
 .lang button {
   border: 0;
   background: none;
-  color: var(--muted);
+  color: var(--dim);
   font: inherit;
   font-size: 0.78rem;
   line-height: 1;
@@ -285,6 +285,78 @@ main:focus { outline: none; }
 @media (max-width: 460px) {
   .lang { margin-right: 0.35rem; padding: 2px; }
   .lang button { padding: 0.36rem 0.5rem; font-size: 0.72rem; }
+}
+
+/* ---------- news ---------- */
+
+/* A short-lived band under the hero. renderNews() sets [hidden] when
+   nothing is inside the window, and the rule below has to restate
+   display:none because .news sets its own display. */
+.news {
+  background: var(--bg-soft);
+  border-bottom: 1px solid var(--line-soft);
+}
+.news[hidden] { display: none; }
+
+.news__inner {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: clamp(1.1rem, 4vw, 3rem);
+  align-items: start;
+  padding-block: clamp(1.4rem, 3vw, 2.1rem);
+}
+
+.news__label {
+  margin: 0;
+  padding-top: 0.35rem;
+  white-space: nowrap;
+}
+/* the shared eyebrow trails a rule; here the grid already separates it */
+.news__label::after { content: none; }
+
+.news__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.news__item {
+  display: grid;
+  grid-template-columns: 4.6rem 1fr;
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.news__date {
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+  white-space: nowrap;
+}
+
+.news__text {
+  font-size: 1.02rem;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.news__link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 0.22em;
+  transition: text-decoration-color 0.16s;
+}
+.news__link:hover { text-decoration-color: currentColor; }
+
+@media (max-width: 640px) {
+  .news__inner { grid-template-columns: 1fr; gap: 0.85rem; }
+  .news__label { padding-top: 0; }
+  .news__item { grid-template-columns: 1fr; gap: 0.15rem; }
 }
 
 /* ---------- nav ---------- */

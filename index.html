@@ -59,6 +59,7 @@
 <script src="data/projects.js"></script>
 <script src="data/courses.js"></script>
 <script src="data/gallery.js"></script>
+<script src="data/news.js"></script>
 <script src="assets/site.js"></script>
 </head>
 <body>
@@ -92,6 +93,14 @@
   </div>
 </header>
 <script>fillFields();</script>
+
+<!-- Rendered by renderNews(); hidden entirely when nothing is current. -->
+<section class="news" id="news" aria-labelledby="news-h" hidden>
+  <div class="wrap news__inner">
+    <h2 class="eyebrow news__label" id="news-h">News</h2>
+    <ol class="news__list" id="newslist"></ol>
+  </div>
+</section>
 
 <section class="band wrap">
   <p class="eyebrow">The laboratory</p>

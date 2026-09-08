@@ -75,6 +75,7 @@ function setLang(next) {
    event listener (the nav, the lightbox) is rebuilt. */
 function applyLang() {
   fillFields();
+  renderNews();
   ["#areas", "#areas-full"].forEach((sel) => {
     const host = $(sel);
     if (!host) return;
@@ -405,6 +406,58 @@ function areaCard(a, i) {
     </article>`;
 }
 
+/* ---------- news ---------- */
+
+/* Parsed as a local calendar day. new Date("2026-09-15") would be UTC
+   midnight, which reads as the previous day west of Greenwich. */
+function newsDay(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || "").trim());
+  if (!m) return null;
+  const d = new Date(+m[1], +m[2] - 1, +m[3]);
+  return isNaN(d) ? null : d;
+}
+
+function currentNews(now = new Date()) {
+  if (typeof NEWS === "undefined") return [];
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const window = (typeof NEWS_WINDOW_DAYS === "number" ? NEWS_WINDOW_DAYS : 14);
+  return NEWS
+    .map((n) => ({ ...n, day: newsDay(n.date) }))
+    .filter((n) => {
+      if (!n.day) return false;
+      const age = Math.round((today - n.day) / 86400000);
+      return age >= 0 && age < window;      /* not yet due, or expired */
+    })
+    .sort((a, b) => b.day - a.day);
+}
+
+const NEWS_MONTH = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function renderNews() {
+  const band = $("#news");
+  if (!band) return;
+  const items = currentNews();
+  /* Nothing inside the window: drop the band rather than leave a gap. */
+  if (!items.length) { band.hidden = true; return; }
+  band.hidden = false;
+
+  const list = items.map((n) => {
+    const label = t(n.title);
+    const ko = LANG === "ko" && n.title && n.title.ko ? ' lang="ko"' : "";
+    const body = n.href
+      ? `<a class="news__link" href="${esc(n.href)}">${esc(label)}</a>`
+      : esc(label);
+    const stamp = `${NEWS_MONTH[n.day.getMonth()]} ${n.day.getDate()}`;
+    return `<li class="news__item">
+        <time class="news__date" datetime="${esc(n.date)}">${stamp}</time>
+        <span class="news__text"${ko}>${body}</span>
+      </li>`;
+  }).join("");
+
+  $("#newslist", band).innerHTML = list;
+}
+
 function renderHome() {
   const areasHost = $("#areas");
   if (areasHost) areasHost.innerHTML = SITE.areas.map(areaCard).join("");
@@ -646,6 +699,7 @@ function renderContact() {
 function boot(page) {
   if ($("#nav") && !$("#nav").firstElementChild) renderNav(page);
   fillFields();
+  renderNews();
   renderHome();
   renderResearch();
   renderMembers();

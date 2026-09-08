@@ -1,0 +1,35 @@
+/* ---------------------------------------------------------------
+   Short-lived announcements for the top of the home page.
+
+   Each item disappears on its own once it is older than
+   NEWS_WINDOW_DAYS, and when nothing is left inside the window the
+   whole band vanishes -- no empty heading, no gap. Nothing needs to be
+   deleted by hand; old entries can simply be left in the list, or
+   cleared out whenever it suits.
+
+   Add an item at the top:
+
+     {
+       date: "2026-09-15",                 // YYYY-MM-DD, the day it happened
+       title: {
+         en: "Paper accepted to Automatica.",
+         ko: "Automatica 논문 게재 확정.",
+       },
+       href: "publications.html",          // optional, omit for plain text
+     },
+
+   Notes
+   - `date` is read as a local calendar day, so there is no timezone drift.
+   - An item dated in the future stays hidden until that day arrives, so
+     something can be queued up in advance.
+   - `title` follows the language toggle. A plain string is shown as-is
+     in both languages.
+   - Newest first is not required; the list is sorted by date anyway.
+   --------------------------------------------------------------- */
+
+/* How long an item stays up, in days. */
+const NEWS_WINDOW_DAYS = 14;
+
+const NEWS = [
+  // Nothing current. Add entries above using the shape in the comment.
+];
