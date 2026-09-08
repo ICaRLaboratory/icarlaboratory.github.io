@@ -50,11 +50,13 @@
   <div id="gallery"></div>
 </section>
 
-<dialog class="lightbox" id="lightbox">
+<!-- The caption is filled from the photo's alt text before the dialog opens,
+     so it names the dialog; aria-label is the fallback if a photo has none. -->
+<dialog class="lightbox" id="lightbox" aria-labelledby="lightboxcap" aria-label="Photo viewer">
   <button class="lightbox__x" type="button" aria-label="Close">&times;</button>
   <figure>
     <img alt="">
-    <figcaption></figcaption>
+    <figcaption id="lightboxcap"></figcaption>
   </figure>
 </dialog>
 
