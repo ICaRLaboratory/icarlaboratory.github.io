@@ -131,11 +131,11 @@ function renderFooter() {
             esc(SITE.labName)}, ${esc(SITE.department)}, ${esc(SITE.university)}.</p>
         </div>
         <div>
-          <h4>Navigate</h4>
+          <h2>Navigate</h2>
           <ul>${NAV_ITEMS.map((i) => `<li><a href="${i.href}">${i.label}</a></li>`).join("")}</ul>
         </div>
         <div>
-          <h4>Find us</h4>
+          <h2>Find us</h2>
           <ul>
             <li>${esc(c.office)}</li>
             <li>${esc(c.address)}</li>
@@ -297,7 +297,7 @@ function renderPublications() {
   if (banner) {
     const links = [
       ADVISOR.scholar && ["Google Scholar", ADVISOR.scholar, "btn--primary"],
-      ADVISOR.orcid && ["ORCID", `https://orcid.org/${ADVISOR.orcid}`, "btn--ghost"],
+      ADVISOR.orcid && ["ORCID", `https://orcid.org/${esc(ADVISOR.orcid)}`, "btn--ghost"],
     ].filter(Boolean);
     banner.innerHTML = `
       <div class="banner invert">
@@ -406,7 +406,7 @@ function personCard(p, i, opts = {}) {
 
   const profiles = [
     p.scholar && ["Google Scholar", p.scholar],
-    p.orcid && ["ORCID", `https://orcid.org/${p.orcid}`],
+    p.orcid && ["ORCID", `https://orcid.org/${esc(p.orcid)}`],
   ].filter(Boolean);
 
   return `
@@ -556,7 +556,7 @@ function renderContact() {
   const c = SITE.contact;
   host.innerHTML = `
     <iframe src="${esc(c.mapEmbed)}" title="Map to the ICaR Laboratory"
-            loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
+            loading="lazy" referrerpolicy="no-referrer"></iframe>`;
 
   const links = $("#contactlinks");
   if (links) {
