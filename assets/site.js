@@ -159,7 +159,7 @@ function renderNav(current) {
                   aria-pressed="${LANG === "en"}">EN</button>
         </div>
         <button class="icon-btn nav__toggle" id="menuBtn" type="button"
-                aria-label="Menu" aria-expanded="false">${ICON.menu}</button>
+                aria-label="Menu" aria-expanded="false" aria-controls="navlinks">${ICON.menu}</button>
       </div>
     </nav>`;
 
@@ -170,12 +170,30 @@ function renderNav(current) {
 
   const menuBtn = $("#menuBtn");
   const navlinks = $("#navlinks");
-  menuBtn.addEventListener("click", () => {
-    const open = navlinks.classList.toggle("is-open");
+  const mobileNav = window.matchMedia("(max-width: 920px)");
+  const setMenuOpen = (open) => {
+    const collapsed = mobileNav.matches && !open;
+    /* Move focus before inert hides the links, including at a breakpoint. */
+    if (collapsed && navlinks.contains(document.activeElement)) menuBtn.focus();
+    navlinks.classList.toggle("is-open", open);
     menuBtn.setAttribute("aria-expanded", String(open));
+    navlinks.toggleAttribute("inert", collapsed);
+  };
+  setMenuOpen(false);
+  menuBtn.addEventListener("click", () => {
+    setMenuOpen(!navlinks.classList.contains("is-open"));
   });
   navlinks.addEventListener("click", (e) => {
-    if (e.target.tagName === "A") navlinks.classList.remove("is-open");
+    if (e.target.closest("a")) setMenuOpen(false);
+  });
+  host.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && navlinks.classList.contains("is-open")) {
+      setMenuOpen(false);
+      menuBtn.focus();
+    }
+  });
+  mobileNav.addEventListener("change", () => {
+    setMenuOpen(false);
   });
 
   if (!navScrollBound) {
@@ -417,7 +435,9 @@ function newsDay(iso) {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || "").trim());
   if (!m) return null;
   const d = new Date(+m[1], +m[2] - 1, +m[3]);
-  return isNaN(d) ? null : d;
+  /* Date normalizes impossible days/months instead of rejecting them. */
+  return d.getFullYear() === +m[1] && d.getMonth() === +m[2] - 1 &&
+    d.getDate() === +m[3] ? d : null;
 }
 
 function currentNews(now = new Date()) {

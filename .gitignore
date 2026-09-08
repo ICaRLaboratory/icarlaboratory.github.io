@@ -3,6 +3,48 @@ Thumbs.db
 *.swp
 *:Zone.Identifier
 
+# Local configuration, credentials and private keys (never deploy these).
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.keystore
+id_rsa*
+id_ed25519*
+id_ecdsa*
+id_dsa*
+*credential*
+*secret*
+*token*
+.netrc
+.npmrc
+.pypirc
+.ssh/
+.aws/
+.gnupg/
+.azure/
+.gcloud/
+
+# Dependency caches, editor state and generated local artifacts.
+node_modules/
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+.idea/
+.vscode/
+*.pyc
+*.log
+*.bak
+*.tmp
+
+# Only sanitized placeholders belong in example/template files.
+!*.example
+!*.sample
+!*.template
+
 # Camera originals: too big for the repo, and GitHub Pages would serve them
 # publicly with their EXIF (including GPS) intact. Web copies live in
 # assets/img/ and are generated from these.

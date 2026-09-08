@@ -118,6 +118,50 @@ Edit the file in `data/`, check it locally by opening `index.html`, then:
 ./publish.sh "Add 2027 Automatica paper"
 ```
 
-That commits everything and pushes. GitHub Pages redeploys on its own, usually
-within a minute or two. If a page comes up blank after an edit, open the browser
-console (F12) — a missing comma in a data file will say so there.
+Publishing requires **Bash, Git, Python 3 (standard library only), and Node.js**.
+There is no package install or fontTools requirement for daily publishing.
+
+The script only runs on `main`. It fetches `origin/main` and refuses a missing
+remote or a branch that is behind/diverged before making a commit. Initialize
+the remote using the Publishing steps above before using this daily helper.
+It checks JavaScript (`.js`, `.cjs`, `.mjs`) with `node --check` and shell scripts
+with `bash -n`, then prints the exact changed/new/deleted paths, plus any existing
+unpushed commit IDs and their touched paths. Review the list and type **`publish`**
+to approve. Anything else cancels without staging or committing. Do not edit files
+or run other Git operations while reviewing the prompt.
+
+Only the enumerated, nonignored paths are staged, not a blanket `git add -A`.
+Partially staged files are refused rather than silently overwriting your staged
+selection; finish staging or unstage them first. A clean working tree can still
+push reviewed, existing ahead commits without creating an empty commit. After
+pushing, the script checks the remote branch SHA. GitHub Pages normally redeploys
+within a minute or two; that SHA check is not a deployment/browser test.
+
+Noninteractive use is refused by default. For deliberate, already-reviewed
+automation, `./publish.sh --yes "Commit message"` bypasses only the confirmation,
+not the safety checks. The original optional message argument is preserved;
+omitting it still uses `Update site`.
+
+`.gitignore` excludes common environment files, keys, credentials, dependency
+caches and local artifacts. Sanitized `*.example`, `*.sample`, and `*.template`
+files are allowed outside private/cache directories. The publisher independently
+blocks suspicious paths even if force-staged, already tracked, or present in an
+outgoing commit that later deleted them. It also refuses symlinks. Checks report
+path names only, not secret contents. These are conservative filename safeguards,
+**not a content-based secret scanner**: review all public files and templates.
+If a credential was committed, stop, rotate it and remove it from the relevant
+history before publishing; merely deleting the current file is not enough.
+
+### Verification
+
+```sh
+python3 -m unittest discover -s tests -p test_publish.py -v
+node --test tests/news.test.cjs
+bash -n publish.sh
+git diff --check
+```
+
+Publishing tests use disposable Git repositories, test identities and local bare
+remotes only; they never push the real origin. To run the browser checks, serve
+the repository root with `python3 -m http.server 8000`, then open
+`http://localhost:8000/tests/browser-checks.html`.

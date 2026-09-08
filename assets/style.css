@@ -445,6 +445,7 @@ main:focus { outline: none; }
     pointer-events: none;
     transition: opacity 0.22s, transform 0.22s;
   }
+  .nav__links[inert] { visibility: hidden; }
   .nav__links.is-open { opacity: 1; transform: none; pointer-events: auto; }
   .nav__links a { padding: 0.8rem 0.25rem; font-size: 1rem; border-radius: 0; border-bottom: 1px solid var(--line-soft); }
   .nav__links a[aria-current="page"]::after { left: 0.25rem; right: auto; width: 22px; bottom: 0.35rem; }
