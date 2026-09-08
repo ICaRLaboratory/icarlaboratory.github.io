@@ -146,7 +146,7 @@ function renderFooter() {
       </div>
       <div class="wrap footer__bottom">
         <span>&copy; ${new Date().getFullYear()} ${esc(SITE.labShort)} Lab &middot; ${esc(SITE.university)}</span>
-        <span>${esc(c.addressKo)}</span>
+        <span lang="ko">${esc(c.addressKo)}</span>
       </div>
     </footer>`;
 }
@@ -243,11 +243,11 @@ function pubRow(p, i) {
     : "";
 
   return `
-    <div class="pub" data-reveal style="--d:${Math.min(i, 6) * 45}ms">
+    <li class="pub" data-reveal style="--d:${Math.min(i, 6) * 45}ms">
       <div class="pub__title">${title}</div>
       <div class="pub__authors">${markAuthor(p.authors)}</div>
       <div class="pub__venue"><em>${esc(p.venue)}</em> &middot; ${esc(p.detail)}${doi}</div>
-    </div>`;
+    </li>`;
 }
 
 function renderPublications() {
@@ -268,8 +268,8 @@ function renderPublications() {
     host.innerHTML = groupByYear(sets[key])
       .map(([year, papers]) => `
         <section class="year-group">
-          <div class="year-label">${year}</div>
-          <div>${papers.map(pubRow).join("")}</div>
+          <h2 class="year-label">${year}</h2>
+          <ol class="pub-list">${papers.map(pubRow).join("")}</ol>
         </section>`)
       .join("");
     initReveal();
@@ -350,11 +350,9 @@ function renderHome() {
 
   const recentHost = $("#recent");
   if (recentHost) {
-    recentHost.innerHTML = [...JOURNAL_PAPERS, ...CONFERENCE_PAPERS]
-      .sort(byDate)
-      .slice(0, 5)
-      .map(pubRow)
-      .join("");
+    recentHost.innerHTML = '<ol class="pub-list">' +
+      [...JOURNAL_PAPERS, ...CONFERENCE_PAPERS].sort(byDate).slice(0, 5).map(pubRow).join("") +
+      "</ol>";
   }
 }
 
@@ -371,7 +369,7 @@ function renderResearch() {
     <div class="project" data-reveal style="--d:${i * 60}ms">
       <div>
         <div class="project__title">${esc(p.titleEn)}</div>
-        <div class="project__ko">${esc(p.titleKo)}</div>
+        <div class="project__ko" lang="ko">${esc(p.titleKo)}</div>
         <div class="project__meta">
           <span>${esc(p.agency)}</span>
           <span>${esc(p.role)}</span>
@@ -413,7 +411,7 @@ function personCard(p, i, opts = {}) {
     <div class="person" data-reveal style="--d:${i * 60}ms">
       <div class="avatar">${avatar}</div>
       <div>
-        <div class="person__name">${esc(p.nameEn)}<span class="person__ko">${esc(p.nameKo || "")}</span>${
+        <div class="person__name">${esc(p.nameEn)}<span class="person__ko" lang="ko">${esc(p.nameKo || "")}</span>${
           p.role ? `<span class="badge">${esc(p.role)}</span>` : ""}</div>
         <div class="person__role">${esc(p.degree)}</div>
         <div class="person__meta">${(p.interests || []).map(esc).join(" &middot; ")}</div>
@@ -453,7 +451,7 @@ function renderMembers() {
         </dl>
       </div>
       <div data-reveal style="--d:120ms">
-        <h2 class="h2">${esc(a.nameEn)} <span class="faint" style="font-size:.5em">${esc(a.nameKo)}</span></h2>
+        <h2 class="h2">${esc(a.nameEn)} <span class="faint" lang="ko" style="font-size:.5em">${esc(a.nameKo)}</span></h2>
         <p class="lede" style="margin-top:.75rem">${esc(a.title)}, ${esc(a.affiliation)}</p>
         <div class="tags" style="margin-top:1.5rem">
           ${a.interests.map((k) => `<span class="tag">${esc(k)}</span>`).join("")}
@@ -491,7 +489,7 @@ function renderCourses() {
     <div class="course">
       <span>
         <span class="course__name">${esc(c.nameEn)}</span>
-        <span class="course__ko">${esc(c.nameKo)}</span>
+        <span class="course__ko" lang="ko">${esc(c.nameKo)}</span>
       </span>
       <span class="course__years">${esc(c.years || c.level)}</span>
     </div>`;
@@ -503,7 +501,7 @@ function renderCourses() {
   const past = $("#past");
   if (past) {
     past.innerHTML = COURSES.past
-      .map((c) => `<span class="tag">${esc(c.nameEn)} <span class="faint">${esc(c.nameKo)}</span></span>`)
+      .map((c) => `<span class="tag">${esc(c.nameEn)} <span class="faint" lang="ko">${esc(c.nameKo)}</span></span>`)
       .join("");
   }
 }
@@ -518,7 +516,7 @@ function renderGallery() {
     <section class="album" data-reveal style="--d:${i * 80}ms">
       <div class="album__head">
         <h2 class="album__title">${esc(a.title)}</h2>
-        ${a.titleKo ? `<div class="album__ko">${esc(a.titleKo)}</div>` : ""}
+        ${a.titleKo ? `<div class="album__ko" lang="ko">${esc(a.titleKo)}</div>` : ""}
         <div class="album__meta">${esc(a.date)}${a.place ? " &middot; " + esc(a.place) : ""}</div>
       </div>
       <div class="album__grid">

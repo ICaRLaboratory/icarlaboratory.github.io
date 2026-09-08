@@ -210,6 +210,40 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
   color: transparent;
 }
 
+/* ---------- keyboard ---------- */
+
+/* Buttons and chips carry custom backgrounds, so the browser's default ring
+   can vanish against them. One visible treatment everywhere. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+.invert :focus-visible { outline-color: var(--text); }
+
+/* Lets a keyboard user reach the content without tabbing the whole menu.
+   It drops over the sticky black nav band, so it takes the inverted palette:
+   a light pill on the dark bar, with a light ring to match. */
+.skip {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  padding: 0.7rem 1.15rem;
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 0 0 10px 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: top 0.18s;
+}
+.skip:focus { top: 0; }
+.skip:focus-visible { outline-color: var(--bg); outline-offset: 2px; }
+
+/* The skip target only takes focus programmatically; a ring around the whole
+   page body would be noise, and the scroll jump is the feedback. */
+main:focus { outline: none; }
+
 /* ---------- nav ---------- */
 
 .nav {
@@ -660,6 +694,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
 @media (max-width: 700px) { .year-group { grid-template-columns: 1fr; gap: 0.9rem; } }
 
 .year-label {
+  margin: 0;
   font-family: var(--display);
   font-size: 1.75rem;
   font-weight: 700;
@@ -672,6 +707,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
 }
 @media (max-width: 700px) { .year-label { position: static; font-size: 1.5rem; color: var(--accent); } }
 
+.pub-list { list-style: none; margin: 0; padding: 0; }
 .pub { padding: 0.95rem 0; border-bottom: 1px solid var(--line-soft); }
 .pub:last-child { border-bottom: none; }
 .pub__title { font-size: 1rem; font-weight: 550; line-height: 1.5; letter-spacing: -0.01em; }

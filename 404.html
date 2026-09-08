@@ -10,6 +10,7 @@
 <meta name="robots" content="noindex">
 <meta name="description" content="That page does not exist.">
 <link rel="icon" href="/assets/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/pretendard-subset.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/assets/fonts/jetbrains-mono-subset.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/style.css">
@@ -22,9 +23,12 @@
 <script src="/assets/site.js"></script>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 
 <div id="nav"></div>
 <script>renderNav("");</script>
+
+<main id="main" tabindex="-1">
 
 <header class="pagehead">
   <div class="wrap">
@@ -42,6 +46,8 @@
     </div>
   </div>
 </header>
+
+</main>
 
 <div id="footer"></div>
 
