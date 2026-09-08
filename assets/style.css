@@ -244,6 +244,49 @@ h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.12; letter-spacing:
    page body would be noise, and the scroll jump is the feedback. */
 main:focus { outline: none; }
 
+/* ---------- language toggle ---------- */
+
+/* Sits in the black nav band, so it reads on the inverted palette. */
+.lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 1.25rem;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+.lang button {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  padding: 0.42rem 0.72rem;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.16s, background 0.16s;
+}
+.lang button:hover { color: var(--text); }
+.lang button.on {
+  background: var(--text);
+  color: var(--bg);
+}
+
+@media (max-width: 860px) {
+  .lang { margin-left: auto; margin-right: 0.5rem; }
+}
+
+/* At phone widths the bar holds brand + toggle + menu, so the toggle
+   gives up its padding before the brand gives up its second line. */
+@media (max-width: 460px) {
+  .lang { margin-right: 0.35rem; padding: 2px; }
+  .lang button { padding: 0.36rem 0.5rem; font-size: 0.72rem; }
+}
+
 /* ---------- nav ---------- */
 
 .nav {

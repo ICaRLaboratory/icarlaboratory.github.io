@@ -26,6 +26,67 @@ const initials = (name) =>
     .toUpperCase();
 
 /* text bound through data-site="field" */
+/* ---------- language ----------
+   Only descriptive prose is translated. Headings, technical terms,
+   keywords and the hero figure stay English on both sides, so the page
+   is mixed-language in Korean mode: the <html lang> stays "en" and the
+   Korean runs are tagged individually, which is what a screen reader
+   needs to switch voices mid-page. */
+
+const LANG_KEY = "icar-lang";
+let LANG = "en";
+
+function initLang() {
+  const forced = new URLSearchParams(location.search).get("lang");
+  let saved = null;
+  try { saved = localStorage.getItem(LANG_KEY); } catch (e) { /* private mode */ }
+  if (forced === "ko" || forced === "en") LANG = forced;
+  else if (saved === "ko" || saved === "en") LANG = saved;
+}
+
+/* renderNav() runs from the page body before boot(), so the language has
+   to be settled while this file loads, not on boot. */
+initLang();
+
+/* A { en, ko } pair follows the toggle; a plain string is shown as-is. */
+const t = (v) =>
+  v && typeof v === "object" && !Array.isArray(v) ? v[LANG] ?? v.en ?? "" : v;
+
+/* True when the value actually differs by language, so only real
+   translations get lang="ko" — not the strings shared by both. */
+const isPair = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+
+function setProse(el, v) {
+  el.textContent = t(v);
+  if (LANG === "ko" && isPair(v) && v.ko) el.setAttribute("lang", "ko");
+  else el.removeAttribute("lang");
+}
+
+function setLang(next) {
+  if (next === LANG) return;
+  LANG = next;
+  try { localStorage.setItem(LANG_KEY, next); } catch (e) { /* ignore */ }
+  applyLang();
+}
+
+/* Re-renders only what the toggle touches, so nothing that holds an
+   event listener (the nav, the lightbox) is rebuilt. */
+function applyLang() {
+  fillFields();
+  ["#areas", "#areas-full"].forEach((sel) => {
+    const host = $(sel);
+    if (!host) return;
+    host.innerHTML = SITE.areas.map(areaCard).join("");
+    /* They were already on screen, so skip the entrance animation. */
+    $$("[data-reveal]", host).forEach((el) => el.classList.add("is-in"));
+  });
+  $$("[data-lang]").forEach((b) => {
+    const on = b.dataset.lang === LANG;
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-pressed", String(on));
+  });
+}
+
 function fillFields(root = document) {
   const map = {
     tagline: SITE.tagline,
@@ -40,10 +101,13 @@ function fillFields(root = document) {
     address: SITE.contact.address,
     addressKo: SITE.contact.addressKo,
     mapUrl: SITE.contact.mapUrl,
+    homeNote: SITE.homeNote,
+    researchLede: SITE.researchLede,
+    notFound: SITE.notFound,
   };
   $$("[data-site]", root).forEach((el) => {
     const v = map[el.dataset.site];
-    if (v != null) el.textContent = v;
+    if (v != null) setProse(el, v);
   });
 }
 
@@ -85,10 +149,21 @@ function renderNav(current) {
           </span>
         </a>
         <div class="nav__links" id="navlinks">${links}</div>
+        <div class="lang" role="group" aria-label="Description language">
+          <button type="button" data-lang="en" class="${LANG === "en" ? "on" : ""}"
+                  aria-pressed="${LANG === "en"}">EN</button>
+          <button type="button" data-lang="ko" class="${LANG === "ko" ? "on" : ""}"
+                  aria-pressed="${LANG === "ko"}" lang="ko">한국어</button>
+        </div>
         <button class="icon-btn nav__toggle" id="menuBtn" type="button"
                 aria-label="Menu" aria-expanded="false">${ICON.menu}</button>
       </div>
     </nav>`;
+
+  $(".lang", host).addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-lang]");
+    if (b) setLang(b.dataset.lang);
+  });
 
   const menuBtn = $("#menuBtn");
   const navlinks = $("#navlinks");
@@ -322,8 +397,8 @@ function areaCard(a, i) {
     <article class="card ${a.image ? "card--media" : ""}" data-reveal style="--d:${i * 90}ms">
       ${a.image ? `<div class="card__media"><img src="${esc(a.image)}" alt="" loading="lazy"></div>` : ""}
       <div class="card__index">0${i + 1} / ${total < 10 ? "0" : ""}${total}</div>
-      <h3 class="card__title">${esc(a.label)}</h3>
-      <p>${esc(a.blurb)}</p>
+      <h3 class="card__title">${esc(t(a.label))}</h3>
+      <p${LANG === "ko" && a.blurb.ko ? ' lang="ko"' : ""}>${esc(t(a.blurb))}</p>
       <div class="tags">${a.keywords.map((k) => `<span class="tag">${esc(k)}</span>`).join("")}</div>
     </article>`;
 }
