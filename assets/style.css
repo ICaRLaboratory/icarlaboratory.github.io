@@ -1,19 +1,7 @@
-/* ===============================================================
-   Self-hosted type. Pretendard is the full official v1.3.9
-   variable font, covering every modern Hangul syllable. Its
-   legacy "pretendard-subset.woff2" filename is retained so the
-   CSS source and every HTML preload continue to share one URL.
-   JetBrains Mono remains a subset; both retain variable weights.
-   Source, license, checksums and coverage check: fonts/README.md.
-   =============================================================== */
-
-@font-face {
-  font-family: "Pretendard Variable";
-  src: url("fonts/pretendard-subset.woff2") format("woff2");
-  font-weight: 45 930;
-  font-style: normal;
-  font-display: swap;
-}
+/* Self-hosted official Pretendard v1.3.9 dynamic Unicode subsets.
+   All modern Hangul remains available; browsers request only needed chunks.
+   Source, license, checksums and coverage check: fonts/README.md. */
+@import url("fonts/pretendardvariable-dynamic-subset.css");
 
 @font-face {
   font-family: "JetBrains Mono";
@@ -577,8 +565,8 @@ main:focus { outline: none; }
 /* ---------- generic grid + cards ---------- */
 
 .grid { display: grid; gap: 1.1rem; }
-.grid--3 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
-.grid--2 { grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); }
+.grid--3 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); }
+.grid--2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); }
 
 .card {
   position: relative;
@@ -629,7 +617,9 @@ main:focus { outline: none; }
   border: 1px solid var(--line-soft);
   color: var(--dim);
   background: var(--panel);
-  white-space: nowrap;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 /* ---------- people ---------- */
@@ -871,7 +861,7 @@ main:focus { outline: none; }
 }
 .course:last-child { border-bottom: none; }
 .course__name { font-weight: 540; font-size: 0.97rem; }
-.course__ko { color: var(--faint); font-size: 0.85rem; margin-left: 0.45rem; }
+.course__ko { color: var(--faint); font-size: 0.85rem; margin-left: 0.45rem; word-break: keep-all; }
 .course__years { margin-left: auto; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; color: var(--faint); white-space: nowrap; }
 
 /* ---------- page header (inner pages) ---------- */
@@ -1054,7 +1044,7 @@ main:focus { outline: none; }
 
 /* ---------- research areas ---------- */
 
-.grid--areas { grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); }
+.grid--areas { grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); }
 
 /* the hero headline is the lab's name now, not a short slogan */
 .hero__title { font-size: clamp(1.95rem, 3.3vw, 2.9rem); max-width: 17ch; }

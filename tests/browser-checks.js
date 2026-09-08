@@ -3,20 +3,29 @@
 window.testResults = [];
 window.testsDone = false;
 (async () => {
+  let savedLang;
+  try { savedLang = localStorage.getItem('icar-lang'); } catch (_) { /* private mode */ }
   const frame = document.createElement('iframe');
   frame.style.cssText = 'width:390px;height:844px;border:0';
   const loaded = new Promise(resolve => frame.onload = resolve);
-  frame.src = '../index.html';
+  frame.src = '../index.html?test-run=' + Date.now();
   document.body.append(frame);
   const check = (name, pass) => window.testResults.push({ name, pass: !!pass });
   const settle = () => new Promise(resolve => setTimeout(resolve, 300));
+  const refreshStyles = async doc => {
+    await Promise.all([...doc.querySelectorAll('link[rel="stylesheet"]')].map(sheet =>
+      new Promise((resolve, reject) => {
+        sheet.onload = resolve;
+        sheet.onerror = () => reject(new Error('Stylesheet failed: ' + sheet.href));
+        sheet.href += '?test-run=' + Date.now();
+      })));
+  };
   try {
+    check('test page opts out of search indexing',
+      document.querySelector('meta[name="robots"]')?.content.split(/[,\s]+/).includes('noindex'));
     await loaded;
-    // A parent reload need not revalidate the iframe's stylesheet cache.
-    const sheet = frame.contentDocument.querySelector('link[rel="stylesheet"]');
-    const styled = new Promise(resolve => sheet.onload = resolve);
-    sheet.href += '?test-run=' + Date.now();
-    await styled;
+    // Revalidate every fixture's styles when rerunning during local development.
+    await refreshStyles(frame.contentDocument);
     await settle();
     const doc = frame.contentDocument;
     const nav = doc.querySelector('#navlinks');
@@ -49,10 +58,46 @@ window.testsDone = false;
     check('desktop-to-mobile resize returns navigation focus to toggle', doc.activeElement === button);
     first.focus();
     check('returning to mobile keeps collapsed links unfocusable', doc.activeElement !== first && button.getAttribute('aria-expanded') === 'false');
+    for (const page of ['index.html', 'research.html', 'members.html', 'publications.html',
+      'lecture.html', 'gallery.html', 'contact.html']) {
+      const pageLoaded = new Promise(resolve => frame.onload = resolve);
+      frame.src = '../' + page + '?test-run=' + Date.now();
+      await pageLoaded;
+      const pageDoc = frame.contentDocument;
+      await refreshStyles(pageDoc);
+      await pageDoc.fonts.ready;
+      for (const width of [320, 360, 768, 1100]) {
+        frame.style.width = width + 'px';
+        await settle();
+        for (const lang of ['ko', 'en']) {
+          pageDoc.querySelector(`[data-lang="${lang}"]`).click();
+          await pageDoc.fonts.ready;
+          const edge = pageDoc.documentElement.clientWidth;
+          const clipped = [...pageDoc.querySelectorAll('main *')].filter(el => {
+            const rect = el.getBoundingClientRect();
+            const style = frame.contentWindow.getComputedStyle(el);
+            return rect.width > 2 && style.visibility !== 'hidden' &&
+              (rect.right > edge + 1 || rect.left < -1);
+          });
+          check(`${page}: ${width}px ${lang} content fits viewport`, clipped.length === 0);
+          if (clipped.length) window.testResults.at(-1).elements = clipped.slice(0, 4)
+            .map(el => el.tagName + '.' + el.className);
+          if (page === 'contact.html') {
+            const address = pageDoc.querySelector('[data-site="addressKo"]');
+            check(`Korean address keeps ko language in ${lang} mode at ${width}px`,
+              address.closest('[lang]')?.lang === 'ko');
+          }
+        }
+      }
+    }
   } catch (error) {
     window.testResults.push({ name: 'test harness', pass: false, error: String(error) });
   } finally {
     frame.remove();
+    try {
+      if (savedLang === null) localStorage.removeItem('icar-lang');
+      else if (savedLang !== undefined) localStorage.setItem('icar-lang', savedLang);
+    } catch (_) { /* private mode */ }
     window.testsDone = true;
     document.querySelector('#results').textContent = JSON.stringify(window.testResults, null, 2);
   }
