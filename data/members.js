@@ -36,6 +36,7 @@ const GRAD_STUDENTS = [
   {
     nameEn: "Jae Min Rho",
     nameKo: "노재민",
+    scholar: "https://scholar.google.com/citations?user=XMcAejEAAAAJ",
     orcid: "0009-0002-3284-338X",
     photo: "assets/img/jaemin-rho.jpg",
     degree: DEG.ms,
@@ -46,6 +47,7 @@ const GRAD_STUDENTS = [
   {
     nameEn: "Sun Gene Park",
     nameKo: "박순진",
+    scholar: "https://scholar.google.com/citations?user=fUIa0hIAAAAJ",
     orcid: "0009-0000-5533-0259",
     photo: "assets/img/soonjin-park.jpg",
     degree: DEG.ms,
