@@ -1238,3 +1238,65 @@ main:focus { outline: none; }
 
   [data-reveal] { opacity: 1 !important; transform: none !important; }
 }
+
+/* ---------- interactive loop (research page) ---------- */
+
+/* the two columns match heights, and the figure centres inside whichever
+   one ends up taller, so no column trails a block of empty page */
+.sim { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 260px); gap: clamp(1.5rem, 3vw, 2.5rem); align-items: stretch; }
+@media (max-width: 900px) { .sim { grid-template-columns: 1fr; } }
+
+.sim__fig {
+  margin: 0;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r);
+  background: var(--bg-soft);
+  padding: 0.9rem;
+  display: grid;
+  align-content: center;
+}
+.sim__fig canvas { display: block; width: 100%; aspect-ratio: 78 / 34; }
+/* stacked, the three panels read better one above the other */
+@media (max-width: 620px) { .sim__fig canvas { aspect-ratio: 34 / 54; } }
+
+.sim__panel { display: flex; flex-direction: column; gap: 1.05rem; }
+
+.sim__ctrl { display: grid; grid-template-columns: 1fr auto; gap: 0.35rem 0.6rem; align-items: baseline; }
+.sim__ctrl label { font-size: 0.82rem; color: var(--dim); }
+.sim__ctrl label i { font-family: Georgia, "Times New Roman", serif; }
+.sim__ctrl output {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  color: var(--text);
+  white-space: nowrap;
+}
+.sim__ctrl input[type="range"] {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin: 0;
+  accent-color: var(--text);
+  cursor: ew-resize;
+}
+.sim__ctrl input[type="range"]:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+
+.sim__out {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--line-soft);
+}
+.sim__rho { display: flex; flex-direction: column; gap: 0.2rem; }
+.sim__rho-label {
+  font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--faint);
+}
+.sim__rho-val { font-family: var(--mono); font-size: 1.5rem; letter-spacing: -0.02em; color: var(--text); }
+.sim__verdict {
+  font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--dim);
+  padding: 0.18rem 0.5rem; border: 1px solid var(--line); border-radius: 5px;
+}
+/* an unstable loop is stated in ink, not colour, like everything else here */
+.sim__verdict.is-bad { color: var(--bg); background: var(--text); border-color: var(--text); }
+
+.sim__foot { font-size: 0.78rem; color: var(--faint); margin: 0; }
