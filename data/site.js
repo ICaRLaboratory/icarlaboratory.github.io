@@ -51,12 +51,12 @@ const SITE = {
     contact: {
       tab: "Admittance contact",
       note: {
-        en: "Admittance control against a wall: the force error drives a virtual mass, spring and damper — the virtual stiffness leaves the force short, and a hard enough wall makes the contact chatter.",
-        ko: "힘 오차로 가상의 질량-스프링-감쇠기를 움직여 벽을 누르는 어드미턴스 제어 — 가상 강성은 힘을 모자라게 하고, 단단한 벽은 접촉을 떨게 합니다.",
+        en: "One machine pressed on a wall, wired both ways round: measure force and command motion, or measure motion and command force — a hard enough contact breaks the first, a slow enough clock the second.",
+        ko: "같은 기계를 벽에 누르되 인과만 뒤집습니다 — 힘을 재서 위치를 지령하거나(어드미턴스), 위치를 재서 힘을 지령하거나(임피던스). 딱딱한 접촉은 앞쪽을, 느린 클럭은 뒤쪽을 먼저 무너뜨립니다.",
       },
       foot: {
-        en: "The rightmost of the loop's poles while it is in contact: below zero the contact settles, and the further below the faster; above zero it chatters.",
-        ko: "접촉 중인 루프의 극점 가운데 가장 오른쪽 값입니다. 0보다 작으면 접촉이 가라앉고 작을수록 빨리 가라앉으며, 0을 넘으면 떨립니다.",
+        en: "The radius is the selected loop taken in contact, and past one it chatters; the stiffness that matters is not the wall's own but that of the sensor and the tool in series with it.",
+        ko: "반경은 선택한 루프를 접촉 상태에서 잡은 값이고 1을 넘으면 떨립니다. 실제로 문제가 되는 강성은 벽 자체가 아니라 직렬로 놓인 힘센서와 툴의 유연성입니다.",
       },
     },
   },

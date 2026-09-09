@@ -30,10 +30,10 @@ const SIM = (function () {
      Teal and amber stay apart for the common colour deficiencies, and the
      line weights and dashes still differ, so colour is never the only cue. */
   const HUE = {
-    one: "#0f766e",                      /* shoulder, and what was measured */
-    two: "#b45309",                      /* elbow, and what was predicted */
-    onePale: "rgba(15,118,110,0.34)",
-    twoPale: "rgba(180,83,9,0.34)",
+    one: "#0d9488",                      /* shoulder, and what was measured */
+    two: "#ea580c",                      /* elbow, and what was predicted */
+    onePale: "rgba(13,148,136,0.45)",
+    twoPale: "rgba(234,88,12,0.45)",
   };
 
   /* one shape wide, another stacked; a module lays its own blocks out
@@ -280,6 +280,47 @@ const SIM = (function () {
     return Math.log(rho) / h;
   }
 
+  /* The matrix exponential, by scaling and squaring: the plants here are
+     stiff enough that a plain Taylor series at a full sampling period would
+     be nonsense, so it is taken at a step small enough to converge and
+     squared back up. */
+  function expm(M, n) {
+    let worst = 0;
+    for (let i = 0; i < n; i++) {
+      let row = 0;
+      for (let j = 0; j < n; j++) row += Math.abs(M[i][j]);
+      if (row > worst) worst = row;
+    }
+    const squarings = Math.max(0, Math.ceil(Math.log2(Math.max(worst, 1e-12))) + 1);
+    const scale = Math.pow(2, squarings);
+    const A = M.map((r) => r.map((c) => c / scale));
+    const I = () => Array.from({ length: n }, (_, i) =>
+      Array.from({ length: n }, (_, j) => (i === j ? 1 : 0)));
+    let E = I(), term = I();
+    for (let k = 1; k <= 20; k++) {
+      term = matmul(term, A, n).map((r) => r.map((c) => c / k));
+      E = E.map((r, i) => r.map((c, j) => c + term[i][j]));
+    }
+    for (let k = 0; k < squarings; k++) E = matmul(E, E, n);
+    return E;
+  }
+
+  /* x' = A x + B u with u held over T, as one step: the augmented exponential
+     gives the state map and the input map together. */
+  function discretize(A, B, T, n, m) {
+    const N = n + m;
+    const Z = Array.from({ length: N }, () => new Array(N).fill(0));
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) Z[i][j] = A[i][j] * T;
+      for (let j = 0; j < m; j++) Z[i][n + j] = B[i][j] * T;
+    }
+    const E = expm(Z, N);
+    return {
+      Ad: Array.from({ length: n }, (_, i) => E[i].slice(0, n)),
+      Bd: Array.from({ length: n }, (_, i) => E[i].slice(n, N)),
+    };
+  }
+
   /* ---------- one running simulation ---------- */
 
   function runner(def, host) {
@@ -303,13 +344,23 @@ const SIM = (function () {
 
     const panel = host.querySelector(".sim__panel");
     panel.innerHTML =
-      def.controls.map((c) => `
+      def.controls.map((c) => (c.choices ? `
+        <div class="sim__ctrl sim__ctrl--pick">
+          <span class="sim__ctrl-name" id="sim-${def.id}-${c.id}-lab">${c.label}</span>
+          <div class="sim__pick" role="radiogroup"
+               aria-labelledby="sim-${def.id}-${c.id}-lab" id="sim-${def.id}-${c.id}">
+            ${c.choices.map((o) => `
+              <button type="button" class="chip${o.value === c.value ? " is-active" : ""}"
+                      role="radio" aria-checked="${o.value === c.value}"
+                      data-value="${o.value}">${o.label}</button>`).join("")}
+          </div>
+        </div>` : `
         <div class="sim__ctrl">
           <label for="sim-${def.id}-${c.id}">${c.label}</label>
           <output id="sim-${def.id}-${c.id}-val" for="sim-${def.id}-${c.id}"></output>
           <input id="sim-${def.id}-${c.id}" type="range" min="${c.min}" max="${c.max}"
                  step="${c.step}" value="${c.value}">
-        </div>`).join("") +
+        </div>`)).join("") +
       `<button class="chip sim__play" type="button"
                id="sim-${def.id}-play">Play</button>` +
       def.readouts.map((r, i) => `
@@ -337,11 +388,25 @@ const SIM = (function () {
 
     function readParams() {
       for (const c of def.controls) {
-        const raw = +inputs[c.id].value;
-        P[c.id] = c.read ? c.read(raw) : raw;
+        if (c.choices) {
+          const on = inputs[c.id].querySelector("[aria-checked=true]");
+          P[c.id] = on ? on.dataset.value : c.value;
+        } else {
+          const raw = +inputs[c.id].value;
+          P[c.id] = c.read ? c.read(raw) : raw;
+        }
       }
+      /* A slider can be beside the point in one mode and not another -- a
+         virtual mass means nothing to a controller that has no way to render
+         one -- so a control can say when it does not apply, and is switched
+         off and dimmed rather than quietly ignored. */
       for (const c of def.controls) {
-        outs[c.id].textContent = c.show ? c.show(P[c.id], P) : String(P[c.id]);
+        if (c.choices) continue;
+        const applies = c.applies ? c.applies(P) : true;
+        inputs[c.id].disabled = !applies;
+        inputs[c.id].closest(".sim__ctrl").classList.toggle("is-off", !applies);
+        outs[c.id].textContent = !applies ? (c.off || "—")
+          : c.show ? c.show(P[c.id], P) : String(P[c.id]);
       }
     }
 
@@ -443,7 +508,20 @@ const SIM = (function () {
     }
 
     for (const c of def.controls) {
-      inputs[c.id].addEventListener("input", () => { retune(); start(); });
+      if (c.choices) {
+        inputs[c.id].addEventListener("click", (ev) => {
+          const btn = ev.target.closest("[role=radio]");
+          if (!btn) return;
+          for (const b of inputs[c.id].querySelectorAll("[role=radio]")) {
+            b.classList.toggle("is-active", b === btn);
+            b.setAttribute("aria-checked", String(b === btn));
+          }
+          retune();
+          start();
+        });
+      } else {
+        inputs[c.id].addEventListener("input", () => { retune(); start(); });
+      }
     }
 
     /* the setting can be changed while the page is open */
@@ -575,6 +653,7 @@ const SIM = (function () {
     hue: HUE,
     radiusByPowers,
     rightmostPole,
+    discretize,
     boot,
   };
 })();

@@ -438,8 +438,8 @@ SIM.register((function () {
 
   const H = SIM.hue;
   const JOINT = [
-    { name: "SHOULDER", on: H.one, off: H.onePale, w: 1.7 },
-    { name: "ELBOW", on: H.two, off: H.twoPale, w: 1.4 },
+    { name: "SHOULDER", on: H.one, off: H.onePale, w: 2.1 },
+    { name: "ELBOW", on: H.two, off: H.twoPale, w: 1.8 },
   ];
 
   /* Each joint's tracking error against how fast that error is changing. A
@@ -454,9 +454,9 @@ SIM.register((function () {
     const sy = (bottom - top) / 2 / dTop;
 
     g.keyRow([
-      { label: JOINT[0].name, stroke: JOINT[0].on, width: 1.7 },
-      { label: JOINT[1].name, stroke: JOINT[1].on, width: 1.4 },
-      { label: "BEFORE " + KG, stroke: JOINT[0].off, width: 1.7 },
+      { label: JOINT[0].name, stroke: JOINT[0].on, width: 2.1 },
+      { label: JOINT[1].name, stroke: JOINT[1].on, width: 1.8 },
+      { label: "BEFORE " + KG, stroke: JOINT[0].off, width: 2.1 },
     ], p.x + 12, p.y + 34);
 
     /* the axes, named and scaled */
@@ -511,8 +511,8 @@ SIM.register((function () {
     const py = (e) => mid - (e / eTop) * ((yBot - yTop) / 2);
 
     g.keyRow([
-      { label: JOINT[0].name, stroke: JOINT[0].on, width: 1.7 },
-      { label: JOINT[1].name, stroke: JOINT[1].on, width: 1.4 },
+      { label: JOINT[0].name, stroke: JOINT[0].on, width: 2.1 },
+      { label: JOINT[1].name, stroke: JOINT[1].on, width: 1.8 },
       { label: "BETWEEN SAMPLES", stroke: g.ink(0.3), width: 1 },
     ], p.x + 12, p.y + 34);
 

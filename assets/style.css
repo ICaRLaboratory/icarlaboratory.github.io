@@ -1341,6 +1341,16 @@ main:focus { outline: none; }
    the three words without the row shifting under a thumb. */
 .sim__play { align-self: flex-start; min-width: 7.5rem; text-align: center; }
 
+/* a control that picks between named alternatives rather than sliding */
+.sim__ctrl--pick { gap: 0.5rem; }
+.sim__ctrl-name { font-size: 0.82rem; color: var(--dim); grid-column: 1 / -1; }
+.sim__pick { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.sim__pick .chip { padding: 0.4rem 0.8rem; }
+.sim__pick .chip:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+/* a slider the current mode cannot use: still readable, plainly not in play */
+.sim__ctrl.is-off { opacity: 0.42; }
+.sim__ctrl.is-off input[type="range"] { cursor: not-allowed; }
+
 /* A button laid over the figure opens the viewer. Covering the media rather
    than replacing it leaves the card's own layout, its bleed and its hover rule
    exactly as they were -- a real button sizes itself shrink-to-fit even as a
