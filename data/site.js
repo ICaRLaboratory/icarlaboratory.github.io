@@ -13,11 +13,11 @@ const SITE = {
   labName: "Intelligent Control and Robotics Laboratory",
   tagline: {
     en: "We study control algorithms, robotics and embedded systems, pursuing fundamental questions and practical advances in each field.",
-    ko: "제어 알고리즘, 로보틱스, 임베디드 시스템을 연구하며 각 분야의 이론적 깊이와 기술적 가능성을 탐구합니다.",
+    ko: "제어 알고리즘, 로보틱스, 임베디드 시스템의 이론과 기술을 연구합니다.",
   },
   intro: {
     en: "ICaR Lab at Sejong University conducts research in control algorithms, robotics and embedded systems. Our work addresses stability analysis and controller synthesis, robot motion and interaction, and real-time computing and on-device intelligence. Each field has its own research questions, with opportunities for joint work across them. We combine mathematical analysis, algorithm design and system experiments according to the problem at hand.",
-    ko: "세종대학교 ICaR 연구실은 제어 알고리즘, 로보틱스, 임베디드 시스템을 주요 연구 분야로 삼고 있습니다. 시스템의 안정도 해석과 제어기 설계, 로봇의 운동과 상호작용, 실시간 연산과 온디바이스 지능을 다룹니다. 각 분야 고유의 연구 문제를 탐구하는 동시에, 분야 간 협력을 통해 새로운 문제에 접근합니다. 연구 주제에 따라 수학적 분석, 알고리즘 설계, 시스템 실험을 결합합니다.",
+    ko: "세종대학교 ICaR 연구실은 제어 알고리즘, 로보틱스, 임베디드 시스템을 연구합니다. 주요 연구 주제는 시스템 안정성 분석과 제어기 설계, 로봇의 움직임과 주변 환경과의 상호작용, 실시간 연산과 온디바이스 AI입니다. 각 분야의 연구를 독립적으로 진행하면서, 여러 분야의 지식이 필요한 문제는 함께 다룹니다. 연구 주제에 맞춰 수학적 해석, 알고리즘 개발, 실험을 수행합니다.",
   },
   department: "Department of Artificial Intelligence and Information Technology",
   university: "Sejong University",
@@ -26,11 +26,11 @@ const SITE = {
   /* Prose that used to sit in the HTML; here so it can follow the toggle. */
   homeNote: {
     en: "Our three research areas address distinct questions: how to analyze and control dynamic systems, how robots move and interact, and how embedded devices sense and compute. Signal processing and AI also form part of this work.",
-    ko: "동적 시스템의 해석과 제어, 로봇의 동작과 상호작용, 임베디드 장치의 센싱과 연산을 각각의 연구 주제로 다룹니다. 신호처리와 AI를 포함해 각 분야의 방법론을 발전시키고, 공통의 문제에서는 연구 경험을 공유합니다.",
+    ko: "동적 시스템의 해석과 제어, 로봇의 움직임과 상호작용, 임베디드 장치의 센싱과 연산을 연구합니다. 신호처리와 AI를 비롯한 다양한 방법을 활용하고 발전시키며, 여러 분야에 걸친 문제도 함께 연구합니다.",
   },
   researchLede: {
     en: "We pursue research in control theory and algorithms, robot motion and coordination, and embedded computing and signal processing. Topics include dynamic systems with delays and uncertainty, robot interaction with the environment, and real-time processing and inference on resource-constrained devices. We develop each area independently and connect them where the research calls for it.",
-    ko: "제어 이론과 알고리즘, 로봇의 운동과 협업, 임베디드 연산과 신호처리를 연구합니다. 지연과 불확실성을 갖는 동적 시스템, 환경과 상호작용하는 로봇, 제한된 자원에서 실시간 처리와 추론을 수행하는 장치가 주요 연구 대상입니다. 각 분야의 독립적인 연구를 수행하며, 주제에 따라 분야를 연결하는 공동 연구도 진행합니다.",
+    ko: "제어 이론과 알고리즘, 로봇의 동작과 협업, 임베디드 시스템의 연산과 신호처리가 주요 연구 분야입니다. 시간 지연과 불확실성이 있는 시스템의 안정성, 로봇과 주변 환경의 상호작용, 연산 자원이 제한된 장치에서의 실시간 처리와 AI 추론 등을 다룹니다. 각 분야의 연구를 진행하면서, 주제에 따라 공동 연구도 수행합니다.",
   },
   /* The two loops on the research page. Each block is keyed by the id its
      module in assets/ registers, so the physics and the words stay apart.
@@ -41,33 +41,33 @@ const SITE = {
       tab: "Sampled-data PD",
       note: {
         en: "A two-link arm tracing a circle under sampled PD feedback, with six kilogrammes landing on it at five seconds — past a spectral radius of one, the loop diverges.",
-        ko: "샘플드데이터 PD로 원을 그리는 2관절 팔 — 5초에 6 kg이 실리고, 스펙트럼 반경이 1을 넘으면 발산합니다.",
+        ko: "샘플드데이터 PD 제어로 원 궤적을 따라 움직이는 2관절 로봇 팔입니다. 시작 5초 후 6 kg의 하중이 추가됩니다. 스펙트럼 반경이 1을 넘으면 제어계가 불안정해집니다.",
       },
       foot: {
         en: "The radius is taken at the worst pose on the circle and at whatever the arm is carrying, so it moves when the payload lands.",
-        ko: "반경은 원 위에서 가장 나쁜 자세와 그 순간의 적재 질량 기준이라, 페이로드가 실릴 때 함께 움직입니다.",
+        ko: "스펙트럼 반경은 원 궤적에서 안정성에 가장 불리한 자세와 현재 하중을 기준으로 계산합니다. 하중이 추가되면 이 값도 달라집니다.",
       },
     },
     smc: {
       tab: "Sampled-data SMC",
       note: {
         en: "The same arm and the same six kilogrammes, driven onto the surface s = e′ + λe instead of towards a point: sliding mode shrugs the load off, and pays for it by straddling that surface in a band that opens as the sampling period grows.",
-        ko: "같은 팔에 같은 6 kg을, 한 점이 아니라 면 s = e′ + λe 위로 몰아붙입니다. 슬라이딩 모드는 하중을 무시하는 대신 그 면을 사이에 두고 떨며, 샘플링 주기가 길어질수록 그 띠가 벌어집니다.",
+        ko: "같은 로봇 팔에 6 kg의 하중을 추가하고, 슬라이딩 모드 제어로 s = e′ + λe = 0인 슬라이딩 면에 수렴하도록 합니다. 하중 변화에 대응하는 과정에서 슬라이딩 면 주변에 진동이 나타나며, 샘플링 주기가 길어질수록 진동 폭이 커집니다.",
       },
       foot: {
         en: "The band is the largest |s| over the run once the surface has been reached: inside the boundary layer Φ the law is continuous, and outside it the torque is hard over one way or the other and flipping every sample.",
-        ko: "띠는 면에 도달한 뒤 실행 전체에서 |s|의 최댓값입니다. 경계층 Φ 안이면 제어가 연속이고, 벗어나면 토크가 양극단을 오가며 매 샘플 부호가 뒤집힙니다.",
+        ko: "표시된 진동 폭은 슬라이딩 면에 도달한 이후 |s|의 최댓값입니다. 경계층 Φ 안에서는 제어 입력이 연속적으로 변하고, 밖에서는 불연속 제어 성분의 부호가 s에 따라 전환됩니다.",
       },
     },
     contact: {
       tab: "Admittance contact",
       note: {
         en: "One machine pressed on a wall, wired both ways round: admittance measures the force and commands a motion, and gives way on a hard contact; impedance measures the motion and commands a force, and gives way as the sampling period grows.",
-        ko: "같은 기계를 벽에 누르되 인과만 뒤집습니다. 힘을 재서 위치를 지령하는 어드미턴스는 딱딱한 접촉에서 무너지고, 위치를 재서 힘을 지령하는 임피던스는 샘플링 주기가 길어지면 무너집니다.",
+        ko: "같은 장치를 벽에 접촉시켜 두 제어 방식을 비교합니다. 어드미턴스 제어는 측정한 힘을 바탕으로 목표 위치를 정하고, 임피던스 제어는 측정한 위치를 바탕으로 힘을 정합니다. 이 모델에서는 접촉 강성이 높을 때 어드미턴스 제어가, 샘플링 주기가 길 때 임피던스 제어가 불안정해질 수 있습니다.",
       },
       foot: {
         en: "The radius is the selected loop taken in contact, and past one it chatters; the stiffness that matters is not the wall's own but that of the sensor and the tool in series with it.",
-        ko: "반경은 선택한 루프를 접촉 상태에서 잡은 값이고 1을 넘으면 떨립니다. 실제로 문제가 되는 강성은 벽 자체가 아니라 직렬로 놓인 힘센서와 툴의 유연성입니다.",
+        ko: "스펙트럼 반경은 선택한 제어계의 접촉 상태를 기준으로 계산하며, 1을 넘으면 불안정해집니다. 접촉 강성은 벽의 강성뿐 아니라 직렬로 연결된 힘센서와 툴의 유연성에도 영향을 받습니다.",
       },
     },
   },
@@ -96,7 +96,7 @@ const SITE = {
       label: "Control Algorithms",
       blurb: {
         en: "We study how dynamic systems can remain stable and achieve desired performance under uncertainty and external disturbances. Our research addresses the effects of limited sensing, communication delays and resource constraints on system behavior, and develops control theory and algorithms that account for these conditions. We seek to establish when stability and performance can be guaranteed, and to expand those guarantees.",
-        ko: "불확실성과 외란이 존재하는 환경에서 동적 시스템의 안정성을 확보하고 원하는 성능을 달성하는 방법을 연구합니다. 제한된 관측 정보, 통신 지연, 자원 제약이 시스템의 동작에 미치는 영향을 분석하고, 이를 고려한 제어 이론과 알고리즘을 개발합니다. 안정성과 성능을 보장할 수 있는 조건을 규명하고 그 범위를 넓히는 것이 주요 연구 목표입니다.",
+        ko: "불확실성과 외란이 있는 상황에서도 시스템이 안정적으로 동작하고 목표 성능을 낼 수 있도록 제어 이론과 알고리즘을 연구합니다. 관측 정보의 부족, 통신 지연, 자원 제약이 시스템에 미치는 영향을 분석하고 이를 제어기 설계에 반영합니다. 시스템의 안정성과 성능을 보장하는 조건을 밝히고, 더 다양한 조건에서도 이를 보장할 수 있는 방법을 찾습니다.",
       },
       keywords: [
         "System stability",
@@ -113,7 +113,7 @@ const SITE = {
       label: "Robotics",
       blurb: {
         en: "We study motion, environmental interaction and coordination in robot manipulators and mobile robots. Topics include trajectory tracking under uncertainty, admittance-based force tracking for contact tasks, and reinforcement-learning-based navigation. We investigate adaptive sliding mode control and neural-network-assisted time-delay estimation, as well as multi-robot coordination under unreliable communication.",
-        ko: "로봇 매니퓰레이터와 이동 로봇의 운동, 환경과의 상호작용, 다중 로봇의 협업을 연구합니다. 불확실한 환경에서의 궤적 추종, 접촉 작업을 위한 어드미턴스 기반 힘 추종, 강화학습 기반 자율주행이 주요 주제입니다. 적응 슬라이딩 모드 제어와 신경망 기반 시간지연 추정 기법을 다루며, 통신이 불안정한 환경에서 여러 로봇이 협조하는 방법도 탐구합니다.",
+        ko: "로봇 매니퓰레이터와 이동 로봇의 동작, 주변 환경과의 상호작용, 여러 로봇의 협업을 연구합니다. 불확실한 환경에서 목표 궤적을 따라 움직이는 기술, 접촉 작업에서 어드미턴스 제어로 목표 힘을 따라가도록 하는 기술, 강화학습 기반 자율주행이 주요 주제입니다. 적응 슬라이딩 모드 제어와 신경망 기반 시간지연 추정 기법을 연구하고, 통신이 불안정한 상황에서도 여러 로봇이 협업할 수 있는 방법을 개발합니다.",
       },
       keywords: [
         "Robot manipulators",
@@ -130,7 +130,7 @@ const SITE = {
       label: "Embedded Systems",
       blurb: {
         en: "We study real-time computing, sensor signal processing and on-device AI in embedded systems. Topics include learning-based estimation and classification with low-resolution sensors, on-device inference for manufacturing, motor drives and sensor interfaces. We also investigate networked and V2X platforms, accounting for quantization, limited bandwidth and sampling jitter in system design and implementation.",
-        ko: "임베디드 시스템의 실시간 연산, 센서 신호처리, 온디바이스 AI를 연구합니다. 저해상도 센서를 활용한 학습 기반 추정과 분류, 제조 현장을 위한 온디바이스 추론, 모터 구동 및 센서 인터페이스를 다룹니다. 네트워크 및 V2X 플랫폼도 연구하며, 양자화, 대역폭 제한, 샘플링 지터 등 실제 장치의 제약을 고려하여 시스템을 설계하고 구현합니다.",
+        ko: "임베디드 시스템의 실시간 연산, 센서 신호처리, 온디바이스 AI를 연구합니다. 저해상도 센서 데이터를 이용한 학습 기반 추정과 분류, 제조 현장의 기기에서 직접 실행하는 AI 추론, 모터 구동과 센서 인터페이스 등을 다룹니다. 네트워크 및 V2X 플랫폼도 연구하며, 양자화와 제한된 통신 대역폭, 샘플링 시점의 변동 등 실제 장치의 동작 조건을 고려해 시스템을 설계하고 구현합니다.",
       },
       keywords: [
         "Real-time implementation",
