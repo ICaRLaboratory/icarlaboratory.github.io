@@ -1,9 +1,12 @@
 /* ---------------------------------------------------------------
    Funded research projects. `status` is "ongoing" or "completed".
-   `titleKo` and `agencyKo` are the OFFICIAL Korean names, copied from the lab's
-   own page. Never edit or "correct" them -- they are what the grant is called.
-   `titleEn` and `agency` are only an English rendering shown beside the Korean,
-   so when the two disagree it is the English that gets fixed.
+   `titleKo` and `agencyKo` are the OFFICIAL Korean names, copied verbatim from
+   the lab's own projects page -- agency first, then the programme, as that page
+   writes them. Never edit or "correct" them, spacing included. `titleEn` and
+   `agency` are only an English rendering shown beside the Korean, so when the
+   two disagree it is the English that gets fixed.
+   The page dates each grant to the day (e.g. 26.03.01~31.02.28); `period` keeps
+   months, which is what the cards have always shown.
    --------------------------------------------------------------- */
 
 const PROJECTS = [
@@ -11,17 +14,17 @@ const PROJECTS = [
     status: "ongoing",
     titleEn: "An integrated data- and network-based resilient and robust control framework for reassembly systems using modular heterogeneous manipulators",
     titleKo: "모듈형 이종 매니퓰레이터 기반 재조립 시스템을 위한 데이터·네트워크 기반 회복탄력·강인 제어 통합 프레임워크 연구",
-    agency: "National Research Foundation of Korea",
-    agencyKo: "한국연구재단",
+    agency: "National Research Foundation of Korea, Young Researcher Program (Type B)",
+    agencyKo: "한국연구재단, 신진연구(유형B)",
     period: "2026.03 – 2031.02",
     role: "Principal Investigator",
   },
   {
     status: "ongoing",
     titleEn: "Training program for AX-based manufacturing process technology (on-device AI manufacturing platform)",
-    titleKo: "AX 기반 제조공정 활용기술 전문인력 양성 (온디바이스 AI 제조플랫폼)",
-    agency: "Korea Institute for Advancement of Technology",
-    agencyKo: "한국산업기술진흥원",
+    titleKo: "AX기반제조공정활용기술전문인력양성 (온디바이스 AI 제조플랫폼)",
+    agency: "Korea Institute for Advancement of Technology, Industrial Innovation Talent Growth Support (R&D)",
+    agencyKo: "한국산업기술진흥원, 산업혁신인재 성장지원 (R&D)",
     period: "2026.03 – 2031.02",
     role: "Co-Investigator",
   },
@@ -56,8 +59,8 @@ const PROJECTS = [
     status: "completed",
     titleEn: "Robust sampled-data control for networked systems with uncertainties",
     titleKo: "불확실성을 지닌 네트워크 시스템에서의 표본 데이터 강인 제어",
-    agency: "National Research Foundation of Korea (Young Researcher Program)",
-    agencyKo: "한국연구재단 (신진연구지원사업)",
+    agency: "National Research Foundation of Korea, First Research Grant",
+    agencyKo: "한국연구재단, 생애첫연구",
     period: "2020.03 – 2023.02",
     role: "Principal Investigator",
   },
