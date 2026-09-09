@@ -533,7 +533,8 @@ function renderResearch() {
         <div class="project__title">${esc(p.titleEn)}</div>
         <div class="project__ko" lang="ko">${esc(p.titleKo)}</div>
         <div class="project__meta">
-          <span>${esc(p.agency)}</span>
+          <span>${esc(p.agency)}${p.agencyKo
+            ? ` <span class="project__agency-ko" lang="ko">${esc(p.agencyKo)}</span>` : ""}</span>
           <span>${esc(p.role)}</span>
           <span>${esc(p.period)}</span>
         </div>

@@ -1345,3 +1345,4 @@ main:focus { outline: none; }
 .sim__loop .sl-eq   { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 16px }
 .sim__loop .sl-mid  { text-anchor: middle; font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 15px }
 .sim__loop .sl-sign { fill: none; stroke: var(--dim); stroke-width: 1.8; stroke-linecap: round }
+.project__agency-ko { color: var(--faint); }
