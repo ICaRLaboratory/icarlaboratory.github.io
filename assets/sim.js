@@ -450,29 +450,36 @@
     ctx.fillText(text, x, y);
   }
 
-  /* The controller and the two measurement blocks stack in a column down the
-     left, which leaves the whole right side to the arm. That is the block
-     worth the space: it is the only one with something moving in it. */
+  /* The arm keeps the whole right side, because it is the only block with
+     something moving in it. Down the left: the target step, the junction, the
+     controller, and then the sampler and the delay side by side in one row --
+     they carry a word and a number each and do not need a block apiece. */
   function drawLoop(r) {
     const { x, y, w, h } = r;
-    const colX = x + w * 0.05, colW = w * 0.26;
+    const colX = x + w * 0.035, colW = w * 0.30;
     const colMid = colX + colW / 2;
-    const jy = y + h * 0.135, jr = Math.min(h * 0.055, 15);
-    const feedX = x + w * 0.013;
+    const feedX = x + w * 0.008;
 
-    /* the step it is asked to follow, coming straight down into the junction */
-    words("Target", colMid, y + h * 0.028, 13);
-    ctx.strokeStyle = "#0f766e";
-    ctx.lineWidth = 2.4;
+    /* the step it is asked to follow, drawn large enough to read as a step */
+    const sx = colX, sw = colW, sy = y + h * 0.10, sh = h * 0.11;
+    words("Target", colMid, y + h * 0.045, 13);
+    ctx.strokeStyle = INK(0.12);
+    ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(colMid - 32, y + h * 0.072);
-    ctx.lineTo(colMid - 18, y + h * 0.072);
-    ctx.bezierCurveTo(colMid - 6, y + h * 0.072, colMid - 6, y + h * 0.05, colMid + 6, y + h * 0.05);
-    ctx.lineTo(colMid + 32, y + h * 0.05);
+    ctx.moveTo(sx, sy + sh); ctx.lineTo(sx + sw, sy + sh);
     ctx.stroke();
-    arrow(colMid, y + h * 0.082, colMid, jy - jr - 2);
+    ctx.strokeStyle = "#0f766e";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(sx + 2, sy + sh);
+    ctx.lineTo(sx + sw * 0.26, sy + sh);
+    ctx.bezierCurveTo(sx + sw * 0.42, sy + sh, sx + sw * 0.42, sy, sx + sw * 0.58, sy);
+    ctx.lineTo(sx + sw - 2, sy);
+    ctx.stroke();
 
     /* summing junction */
+    const jy = y + h * 0.32, jr = Math.min(h * 0.055, 15);
+    arrow(colMid, sy + sh + 6, colMid, jy - jr - 2);
     ctx.beginPath();
     ctx.arc(colMid, jy, jr, 0, 7);
     ctx.fillStyle = "#fff"; ctx.fill();
@@ -482,60 +489,63 @@
     ctx.moveTo(colMid - jr * 0.5, jy); ctx.lineTo(colMid + jr * 0.5, jy);
     ctx.moveTo(colMid, jy - jr * 0.5); ctx.lineTo(colMid, jy + jr * 0.5);
     ctx.stroke();
-    /* the signs, drawn rather than set, and kept clear of both wires */
+    /* the signs, drawn rather than set, clear of both wires */
     ctx.beginPath();
     ctx.moveTo(colMid + jr + 8, jy - jr + 2); ctx.lineTo(colMid + jr + 18, jy - jr + 2);
     ctx.moveTo(colMid + jr + 13, jy - jr - 3); ctx.lineTo(colMid + jr + 13, jy - jr + 7);
     ctx.moveTo(colMid - jr - 20, jy + jr + 4); ctx.lineTo(colMid - jr - 10, jy + jr + 4);
     ctx.stroke();
 
-    /* down the column: the controller, with the gains as they stand */
-    const bh = Math.min(h * 0.17, 62);
-    const pdY = y + h * 0.26;
+    /* the controller, with the gains as they stand */
+    const pdY = y + h * 0.46, pdH = Math.min(h * 0.19, 66);
     arrow(colMid, jy + jr + 2, colMid, pdY - 2);
-    roundBox(colX, pdY, colW, bh);
+    roundBox(colX, pdY, colW, pdH);
     cap("PD", colX, pdY - 9, 10, "left");
-    maths("K", colX + colW * 0.30, pdY + bh * 0.42, 15, "right");
-    maths("p", colX + colW * 0.30 + 2, pdY + bh * 0.42 + 4, 10, "left", 0.8);
-    words(P.kp.toFixed(0), colX + colW * 0.76, pdY + bh * 0.42, 13);
-    maths("K", colX + colW * 0.30, pdY + bh * 0.84, 15, "right");
-    maths("d", colX + colW * 0.30 + 2, pdY + bh * 0.84 + 4, 10, "left", 0.8);
-    words(P.kd.toFixed(1), colX + colW * 0.76, pdY + bh * 0.84, 13);
+    maths("K", colX + colW * 0.30, pdY + pdH * 0.42, 15, "right");
+    maths("p", colX + colW * 0.30 + 2, pdY + pdH * 0.42 + 4, 10, "left", 0.8);
+    words(P.kp.toFixed(0), colX + colW * 0.74, pdY + pdH * 0.42, 13);
+    maths("K", colX + colW * 0.30, pdY + pdH * 0.84, 15, "right");
+    maths("d", colX + colW * 0.30 + 2, pdY + pdH * 0.84 + 4, 10, "left", 0.8);
+    words(P.kd.toFixed(1), colX + colW * 0.74, pdY + pdH * 0.84, 13);
 
-    /* the plant: the whole right side, because the arm lives in it */
-    const px0 = x + w * 0.38, pw = w * 0.60;
+    /* the plant: the whole right side, with the arm in it */
+    const px0 = x + w * 0.40, pw = w * 0.585;
     const py0 = y + h * 0.03, ph = h * 0.94;
     roundBox(px0, py0, pw, ph, 5);
     cap("ARM", px0 + pw / 2, py0 - 9);
     drawArm({ x: px0, y: py0, w: pw, h: ph });
-    maths("\u03c4", (colX + colW + px0) / 2, pdY + bh * 0.45 - 10, 15);
-    arrow(colX + colW + 2, pdY + bh * 0.5, px0 - 2, pdY + bh * 0.5);
+    maths("\u03c4", (colX + colW + px0) / 2, pdY + pdH * 0.45 - 10, 15);
+    arrow(colX + colW + 2, pdY + pdH * 0.5, px0 - 2, pdY + pdH * 0.5);
 
-    /* the measured angle leaves the arm and comes back down the column */
-    const delY = y + h * 0.52, samY = y + h * 0.78;
-    maths("q", (colX + colW + px0) / 2, delY + bh * 0.45 - 10, 16);
-    arrow(px0 - 2, delY + bh * 0.5, colX + colW + 2, delY + bh * 0.5);
-    roundBox(colX, delY, colW, bh);
-    words("Delay", colMid, delY + bh * 0.4, 13);
+    /* the measurement, back along one row: the delay, then the sampler */
+    const rowY = y + h * 0.78, rowH = Math.min(h * 0.155, 54);
+    const halfW = (colW - w * 0.02) / 2;
+    const samX = colX, delX = colX + halfW + w * 0.02;
+    maths("q", (colX + colW + px0) / 2, rowY + rowH * 0.42 - 10, 16);
+    arrow(px0 - 2, rowY + rowH * 0.5, delX + halfW + 2, rowY + rowH * 0.5);
+
+    roundBox(delX, rowY, halfW, rowH);
+    words("Delay", delX + halfW / 2, rowY + rowH * 0.42, 13);
     if (P.m === 0) {
-      maths("m = 0", colMid, delY + bh * 0.82, 12, "center", 0.6);
+      maths("m = 0", delX + halfW / 2, rowY + rowH * 0.85, 12, "center", 0.6);
     } else {
-      maths("m = " + P.m, colMid - 4, delY + bh * 0.82, 12, "right", 0.6);
+      maths("m = " + P.m, delX + halfW / 2 - 3, rowY + rowH * 0.85, 12, "right", 0.6);
       words(" \u00b7 " + Math.round(P.m * P.h * 1000) + " ms",
-        colMid - 2, delY + bh * 0.82, 11, "left", 0.55);
+        delX + halfW / 2 - 1, rowY + rowH * 0.85, 10.5, "left", 0.55);
     }
 
-    arrow(colMid, delY + bh + 2, colMid, samY - 2);
-    roundBox(colX, samY, colW, bh);
-    words("Sample", colMid, samY + bh * 0.4, 13);
-    maths("h", colMid - 16, samY + bh * 0.82, 13, "right", 0.6);
-    words(" = " + Math.round(P.h * 1000) + " ms", colMid - 14, samY + bh * 0.82, 11, "left", 0.55);
+    arrow(delX - 2, rowY + rowH * 0.5, samX + halfW + 2, rowY + rowH * 0.5);
+    roundBox(samX, rowY, halfW, rowH);
+    words("Sample", samX + halfW / 2, rowY + rowH * 0.42, 13);
+    maths("h", samX + halfW / 2 - 18, rowY + rowH * 0.85, 12, "right", 0.6);
+    words(" = " + Math.round(P.h * 1000) + " ms",
+      samX + halfW / 2 - 16, rowY + rowH * 0.85, 10.5, "left", 0.55);
 
     /* and up the outside, back to the junction */
     ctx.strokeStyle = INK(0.9); ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(colX - 2, samY + bh * 0.5);
-    ctx.lineTo(feedX, samY + bh * 0.5);
+    ctx.moveTo(samX - 2, rowY + rowH * 0.5);
+    ctx.lineTo(feedX, rowY + rowH * 0.5);
     ctx.lineTo(feedX, jy);
     ctx.stroke();
     arrow(feedX, jy, colMid - jr - 2, jy);
