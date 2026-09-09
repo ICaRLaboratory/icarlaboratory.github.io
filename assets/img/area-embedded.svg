@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300" width="480" height="300"
+     role="img" aria-label="A ROS node graph: a sensor node publishing to an inference node and on to a motor controller, with joint states published back">
+  <!-- Embedded Systems card figure. A ROS graph in the shape rqt_graph draws
+       one: nodes as ellipses, topics as the boxes on the wires. Paper, ink
+       and hairline are the site's own bg-soft, text and line colours. -->
+  <style>
+    .paper { fill: #f5f5f3 }
+    .wire  { fill: none; stroke: #0a0a0a; stroke-width: 2.1; stroke-linecap: square }
+    .thin  { fill: none; stroke: rgba(10,10,10,.3); stroke-width: 1.3 }
+    .node  { fill: #ffffff; stroke: #0a0a0a; stroke-width: 1.9 }
+    .topic { fill: #ffffff; stroke: rgba(10,10,10,.45); stroke-width: 1.3 }
+    .nname { font: 500 12.5px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+             letter-spacing: .3px; fill: #0a0a0a; text-anchor: middle }
+    .tname { font: 400 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+             letter-spacing: .2px; fill: rgba(10,10,10,.78); text-anchor: middle }
+    .rate  { font: 500 10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+             letter-spacing: 1.2px; fill: rgba(10,10,10,.5); text-anchor: middle }
+    .band  { font: 500 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+             letter-spacing: 2.4px; fill: rgba(10,10,10,.46); text-anchor: middle }
+  </style>
+
+  <rect class="paper" width="480" height="300"/>
+
+  <defs>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0.6 L10 5 L0 9.4 Z" fill="#0a0a0a"/>
+    </marker>
+  </defs>
+
+  <!-- publisher: the sensor node -->
+  <ellipse class="node" cx="62" cy="104" rx="50" ry="26"/>
+  <text class="nname" x="62" y="108">/sensor</text>
+  <text class="rate" x="62" y="66">1 kHz</text>
+
+  <!-- topic on the wire -->
+  <path class="wire" d="M112 104 H150"/>
+  <rect class="topic" x="150" y="90" width="66" height="28" rx="2"/>
+  <text class="tname" x="183" y="108">/scan</text>
+  <path class="wire" marker-end="url(#b)" d="M216 104 H252"/>
+
+  <!-- on-device inference -->
+  <ellipse class="node" cx="308" cy="104" rx="56" ry="26"/>
+  <text class="nname" x="308" y="108">/inference</text>
+  <text class="rate" x="308" y="148">ON-DEVICE</text>
+
+  <!-- out to the motor controller, wrapped to the second row -->
+  <path class="wire" d="M364 104 H414 V186 H396"/>
+  <rect class="topic" x="330" y="172" width="66" height="28" rx="2"/>
+  <text class="tname" x="363" y="190">/cmd</text>
+  <path class="wire" marker-end="url(#b)" d="M330 186 H296"/>
+
+  <ellipse class="node" cx="238" cy="186" rx="58" ry="26"/>
+  <text class="nname" x="238" y="190">/motor_ctrl</text>
+
+  <!-- and the measured state published back -->
+  <path class="wire" d="M180 186 H126"/>
+  <rect class="topic" x="34" y="172" width="92" height="28" rx="2"/>
+  <text class="tname" x="80" y="190">/joint_states</text>
+  <path class="wire" marker-end="url(#b)" d="M62 172 V130"/>
+
+  <!-- the transport everything rides on -->
+  <path class="thin" d="M34 246 H446"/>
+  <text class="band" x="240" y="268">DDS &#183; REAL-TIME</text>
+</svg>
