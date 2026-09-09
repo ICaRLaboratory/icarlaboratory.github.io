@@ -88,6 +88,9 @@ function applyLang() {
     /* Same as the area cards: already on screen, so no entrance animation. */
     $$("[data-reveal]", $("#projects")).forEach((el) => el.classList.add("is-in"));
   }
+  /* The simulator's tab labels and notes live in assets/sim.js, which loads
+     after this file and only on the research page. */
+  document.dispatchEvent(new CustomEvent("icar:lang"));
   $$("[data-lang]").forEach((b) => {
     const on = b.dataset.lang === LANG;
     b.classList.toggle("on", on);

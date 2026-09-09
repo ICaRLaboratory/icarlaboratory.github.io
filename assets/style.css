@@ -1240,10 +1240,47 @@ main:focus { outline: none; }
 
 /* ---------- interactive loop (research page) ---------- */
 
-/* the two columns match heights, and the figure centres inside whichever
-   one ends up taller, so no column trails a block of empty page */
-.sim { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 260px); gap: clamp(1.5rem, 3vw, 2.5rem); align-items: stretch; }
-@media (max-width: 900px) { .sim { grid-template-columns: 1fr; } }
+/* One tab per loop. The chips are the publication filters' -- same job, same
+   shape -- with a tablist's keyboard behaviour added in assets/sim.js. */
+.simtabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 2.25rem; }
+.simtabs .chip:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+.sim__note { margin-top: 1.5rem; max-width: 60ch; }
+.simpanel .sim { margin-top: 2.5rem; }
+/* a browser with canvas turned off keeps the prose and loses the empty box */
+.sim--noctx .sim__fig, .sim--noctx .sim__panel { display: none; }
+
+/* Wide: the figure on the left, the controls and then the footnote down the
+   right. The two columns match heights and the figure centres inside
+   whichever ends up taller, so no column trails a block of empty page.
+
+   Narrow: the controls come first. The figure is three panels tall on a
+   phone, and with the controls under it there was no way to move a slider
+   and see what it did -- the numbers alone are nearly a screen away. The
+   footnote is long and belongs at the end either way. */
+.sim {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 260px);
+  grid-template-rows: auto 1fr;
+  grid-template-areas: "fig panel" "fig foot";
+  column-gap: clamp(1.5rem, 3vw, 2.5rem);
+  row-gap: 1.05rem;
+  align-items: stretch;
+}
+.sim__fig { grid-area: fig; }
+.sim__panel { grid-area: panel; }
+.sim__foot { grid-area: foot; }
+@media (max-width: 900px) {
+  .sim {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    grid-template-areas: "panel" "fig" "foot";
+    row-gap: 1.6rem;
+  }
+  /* every row saved here is a row of the figure that arrives on the same
+     screen as the slider being dragged */
+  .sim__panel { gap: 0.8rem; }
+  .sim__out { padding-top: 0.7rem; }
+}
 
 .sim__fig {
   margin: 0;
@@ -1299,6 +1336,10 @@ main:focus { outline: none; }
 .sim__verdict.is-bad { color: var(--bg); background: var(--text); border-color: var(--text); }
 
 .sim__foot { font-size: 0.78rem; color: var(--faint); margin: 0; }
+
+/* Named for what it will do next, so the width has to hold the longest of
+   the three words without the row shifting under a thumb. */
+.sim__play { align-self: flex-start; min-width: 7.5rem; text-align: center; }
 
 /* A button laid over the figure opens the viewer. Covering the media rather
    than replacing it leaves the card's own layout, its bleed and its hover rule
