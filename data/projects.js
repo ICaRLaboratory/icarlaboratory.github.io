@@ -1,9 +1,9 @@
 /* ---------------------------------------------------------------
    Funded research projects. `status` is "ongoing" or "completed".
-   `titleKo` and `agencyKo` are the official Korean names, shown under and
-   beside the English ones. Agencies are proper names, so the Korean belongs
-   here whichever language the page is in -- it is the programme name that
-   identifies the grant.
+   `titleKo` and `agencyKo` are the OFFICIAL Korean names, copied from the lab's
+   own page. Never edit or "correct" them -- they are what the grant is called.
+   `titleEn` and `agency` are only an English rendering shown beside the Korean,
+   so when the two disagree it is the English that gets fixed.
    --------------------------------------------------------------- */
 
 const PROJECTS = [
@@ -11,8 +11,8 @@ const PROJECTS = [
     status: "ongoing",
     titleEn: "An integrated data- and network-based resilient and robust control framework for reassembly systems using modular heterogeneous manipulators",
     titleKo: "모듈형 이종 매니퓰레이터 기반 재조립 시스템을 위한 데이터·네트워크 기반 회복탄력·강인 제어 통합 프레임워크 연구",
-    agency: "National Research Foundation of Korea (Young Researcher Program, Type B)",
-    agencyKo: "한국연구재단 (신진연구, 유형 B)",
+    agency: "National Research Foundation of Korea",
+    agencyKo: "한국연구재단",
     period: "2026.03 – 2031.02",
     role: "Principal Investigator",
   },
@@ -56,11 +56,8 @@ const PROJECTS = [
     status: "completed",
     titleEn: "Robust sampled-data control for networked systems with uncertainties",
     titleKo: "불확실성을 지닌 네트워크 시스템에서의 표본 데이터 강인 제어",
-    agency: "National Research Foundation of Korea (First Research Grant)",
-    /* The two NRF grants are different programmes and both are on this list:
-       생애첫연구 here, their first, and 신진연구 유형 B above. The original data had
-       this one's Korean naming the wrong one of the two. */
-    agencyKo: "한국연구재단 (생애첫연구사업)",
+    agency: "National Research Foundation of Korea (Young Researcher Program)",
+    agencyKo: "한국연구재단 (신진연구지원사업)",
     period: "2020.03 – 2023.02",
     role: "Principal Investigator",
   },
