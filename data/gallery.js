@@ -26,6 +26,21 @@ const GALLERY = [
     ],
   },
   {
+    title: "The 6th Engineering in Biomedical and Rehabilitation & Home Conference",
+    date: "June 2024",
+    place: "Hotel Mystays Ochanomizu Conference Center, Tokyo, Japan",
+    photos: [
+      {
+        src: "assets/img/gallery/ebrc-home-2024-1.jpg",
+        alt: "Lab members holding the EBRC&HOME 2024 banner in Tokyo",
+      },
+      {
+        src: "assets/img/gallery/ebrc-home-2024-2.jpg",
+        alt: "A lab member outside Shimbashi Station in Tokyo during the conference",
+      },
+    ],
+  },
+  {
     title: "The 7th International Conference on ICT for Smart Health & Home",
     date: "December 2023",
     place: "Grand Tourane Hotel, Da Nang, Vietnam",
