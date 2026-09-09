@@ -1300,3 +1300,20 @@ main:focus { outline: none; }
 .sim__verdict.is-bad { color: var(--bg); background: var(--text); border-color: var(--text); }
 
 .sim__foot { font-size: 0.78rem; color: var(--faint); margin: 0; }
+
+/* A button laid over the figure opens the viewer. Covering the media rather
+   than replacing it leaves the card's own layout, its bleed and its hover rule
+   exactly as they were -- a real button sizes itself shrink-to-fit even as a
+   block, which would have undone the bleed. */
+.card__zoom {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+.card__zoom:focus-visible { outline: 2px solid var(--text); outline-offset: -4px; }
+.lightbox img[src$=".svg"] { width: min(94vw, 1100px); height: auto; }

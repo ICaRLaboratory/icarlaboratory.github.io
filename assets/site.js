@@ -419,7 +419,10 @@ function areaCard(a, i) {
   const total = SITE.areas.length;
   return `
     <article class="card ${a.image ? "card--media" : ""}" data-reveal style="--d:${i * 90}ms">
-      ${a.image ? `<div class="card__media"><img src="${esc(a.image)}" alt="" loading="lazy"></div>` : ""}
+      ${a.image ? `<div class="card__media"><img src="${esc(a.image)}" alt="" loading="lazy">
+        <button class="card__zoom" type="button" data-src="${esc(a.image)}"
+          data-alt="${esc(t(a.label))}" aria-label="Enlarge the ${esc(t(a.label))} figure"></button>
+        </div>` : ""}
       <div class="card__index">0${i + 1} / ${total < 10 ? "0" : ""}${total}</div>
       <h3 class="card__title">${esc(t(a.label))}</h3>
       <p${LANG === "ko" && a.blurb.ko ? ' lang="ko"' : ""}>${esc(t(a.blurb))}</p>
@@ -483,7 +486,10 @@ function renderNews() {
 
 function renderHome() {
   const areasHost = $("#areas");
-  if (areasHost) areasHost.innerHTML = SITE.areas.map(areaCard).join("");
+  if (areasHost) {
+    areasHost.innerHTML = SITE.areas.map(areaCard).join("");
+    wireLightbox(areasHost, ".card__zoom");
+  }
 
   const statsHost = $("#stats");
   if (statsHost) {
@@ -513,7 +519,10 @@ function renderHome() {
 
 function renderResearch() {
   const host = $("#areas-full");
-  if (host) host.innerHTML = SITE.areas.map(areaCard).join("");
+  if (host) {
+    host.innerHTML = SITE.areas.map(areaCard).join("");
+    wireLightbox(host, ".card__zoom");
+  }
 
   const projectHost = $("#projects");
   if (!projectHost) return;
@@ -681,20 +690,31 @@ function renderGallery() {
       </div>
     </section>`).join("");
 
-  /* a native <dialog> gives Esc-to-close and focus handling for free */
+  wireLightbox(host, ".shot");
+}
+
+/* One viewer for the gallery photos and the research figures alike. A native
+   <dialog> gives Esc-to-close and focus handling for free, and the trigger is
+   a real button, so keyboard users reach it without any help from us.
+
+   The listener sits on the host, not on the triggers: the language toggle
+   replaces the cards' innerHTML but never the host, so this survives it. */
+function wireLightbox(host, selector) {
   const box = $("#lightbox");
-  if (!box) return;
+  if (!host || !box) return;
   const img = $("img", box);
   const cap = $("figcaption", box);
 
   host.addEventListener("click", (e) => {
-    const shot = e.target.closest(".shot");
-    if (!shot) return;
-    img.src = shot.dataset.src;
-    img.alt = shot.dataset.alt;
-    cap.textContent = shot.dataset.alt;
+    const trigger = e.target.closest(selector);
+    if (!trigger) return;
+    img.src = trigger.dataset.src;
+    img.alt = trigger.dataset.alt;
+    cap.textContent = trigger.dataset.alt;
     box.showModal();
   });
+  if (box.dataset.wired) return;        /* the dialog's own controls, once */
+  box.dataset.wired = "1";
   box.addEventListener("click", (e) => { if (e.target === box) box.close(); });
   $(".lightbox__x", box).addEventListener("click", () => box.close());
   box.addEventListener("close", () => { img.removeAttribute("src"); });
