@@ -5,9 +5,13 @@
    One damped second-order system  x'' + 2ζω x' + ω² x = 0  drives
    all three blocks at once:
 
-     C(z)     phase plane of (x, x')          → Control Algorithms
-     plant    two-link arm posed from the state → Robotics
-     sensor   zero-order-hold of the sampled x  → Embedded Systems
+     left     phase plane of (x, x')             → Control Algorithms
+     middle   two-link arm posed from the state   → Robotics
+     right    zero-order-hold of the sampled x    → Embedded Systems
+
+   The blocks carry no transfer-function labels: each one is named by
+   its caption, and what is drawn inside is the state itself, not a
+   z-domain description of it.
 
    When the state settles the loop restarts from a new initial
    condition, so the figure keeps converging.
@@ -170,7 +174,6 @@
     ctx.beginPath(); ctx.arc(hx, hy, 2.4, 0, 7); ctx.fill();
     ctx.restore();
 
-    sym("C(z)", CTRL.x + 32, CTRL.y + 19, 15, 0.78);
   }
 
   function drawArm() {
