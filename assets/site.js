@@ -564,9 +564,10 @@ function personCard(p, i, opts = {}) {
     <div class="person" data-reveal style="--d:${i * 60}ms">
       <div class="avatar">${avatar}</div>
       <div>
-        <div class="person__name">${esc(p.nameEn)}<span class="person__ko" lang="ko">${esc(p.nameKo || "")}</span>${
-          p.role ? `<span class="badge">${esc(p.role)}</span>` : ""}</div>
+        <div class="person__name">${esc(p.nameEn)}<span class="person__ko" lang="ko">${esc(p.nameKo || "")}</span></div>
         <div class="person__role">${esc(p.degree)}</div>
+        <!-- always rendered, so a card without a role keeps the same rhythm -->
+        <div class="badge-slot">${p.role ? `<span class="badge">${esc(p.role)}</span>` : ""}</div>
         <div class="person__meta">${(p.interests || []).map(esc).join(" &middot; ")}</div>
         ${line2 ? `<div class="person__meta faint">${line2}</div>` : ""}
         ${profiles.length ? `<div class="person__links">${profiles
