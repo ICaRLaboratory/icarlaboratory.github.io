@@ -292,7 +292,7 @@ const JOURNAL_PAPERS = [
   },
   {
     year: 2014,
-    authors: "P. Park, W. I. Lee, and S. Y. Lee",
+    authors: "P. Park*, W. I. Lee, and S. Y. Lee",
     title: "Stability on Time Delay Systems: A Survey",
     venue: "Journal of Institute of Control, Robotics and Systems",
     detail: "vol. 20, no. 3, pp. 289-297, Mar. 2014",
@@ -301,7 +301,7 @@ const JOURNAL_PAPERS = [
   },
   {
     year: 2013,
-    authors: "J. W. Shin, J. M. Song, S. Y. Lee, H. T. Choi, and P. Park",
+    authors: "J. W. Shin, J. M. Song, S. Y. Lee, H. T. Choi, and P. Park*",
     title: "Direction and Location Estimating Algorithm for Sound Sources with Two Hydrophones in Underwater Environment",
     venue: "Journal of Institute of Control, Robotics and Systems",
     detail: "vol. 19, no. 8, pp. 676-681, Aug. 2013",
@@ -321,7 +321,7 @@ const CONFERENCE_PAPERS = [
   },
   {
     year: 2016,
-    authors: "S. Y. Lee, W. I. Lee, and P. Park",
+    authors: "S. Y. Lee, W. I. Lee, and P. Park*",
     title: "Improved slack-matrix-based summation inequality and applications to discrete-time systems with time-varying delays",
     venue: "IEEE 55th Conference on Decision and Control (CDC)",
     detail: "Las Vegas, NV, USA, Dec. 2016",
@@ -329,7 +329,7 @@ const CONFERENCE_PAPERS = [
   },
   {
     year: 2016,
-    authors: "S. Y. Lee, W. I. Lee, and P. Park",
+    authors: "S. Y. Lee, W. I. Lee, and P. Park*",
     title: "Combined-slack-matrix-based integral inequality: Application to time-delay systems",
     venue: "55th Annual Conference of the Society of Instrument and Control Engineers of Japan (SICE)",
     detail: "Tsukuba, Japan, Sep. 2016",
@@ -353,7 +353,7 @@ const CONFERENCE_PAPERS = [
   },
   {
     year: 2013,
-    authors: "J. M. Song, S. Y. Lee, H. T. Choi, and P. Park",
+    authors: "J. M. Song, S. Y. Lee, H. T. Choi, and P. Park*",
     title: "An evolving update interval algorithm for the optimal step-size affine projection algorithm",
     venue: "International Symposium on Intelligent Signal Processing and Communication Systems (ISPACS)",
     detail: "Naha, Japan, pp. 131-135, Nov. 2013",
@@ -361,7 +361,7 @@ const CONFERENCE_PAPERS = [
   },
   {
     year: 2013,
-    authors: "N. W. Kong, J. W. Shin, S. Y. Lee, J. M. Song, H. T. Choi, and P. Park",
+    authors: "N. W. Kong, J. W. Shin, S. Y. Lee, J. M. Song, H. T. Choi, and P. Park*",
     title: "Non-periodic-partial-update affine projection algorithm with data-selective updating",
     venue: "International Symposium on Intelligent Signal Processing and Communication Systems (ISPACS)",
     detail: "Naha, Japan, pp. 152-156, Nov. 2013",
