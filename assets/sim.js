@@ -1,23 +1,41 @@
 /* ===============================================================
    The loop, with the gains exposed.
 
-   Two joints of an arm, each under the same sampled-data PD law:
+   The plant is a two-link planar arm in the horizontal plane, with
+   its real dynamics rather than a stand-in for them:
 
-       plant       q'' = u                    (one per joint)
-       controller  u[k] = Kp (r - q[k-m]) - Kd q'[k-m],  held to k+1
+       M(q) q'' + c(q, q') = tau
 
-   Decoupled double integrators are the model a computed-torque law
-   leaves behind, so this is the honest small version of the lab's
-   own subject rather than a cartoon of it. Both joints share the
-   gains, the sampling period and the delay, which is why one
-   stability number covers the pair.
+   M is the inertia matrix, which changes with the elbow angle, and c
+   collects the Coriolis and centripetal terms. The joints are
+   therefore coupled: swinging the shoulder throws the elbow, and the
+   inertia the controller is pushing against is different at the end
+   of the move than at the start.
 
-   A run is one step, held, and it ends when the response does: both
-   joints inside a 2% band for long enough and it stops there. The
-   length of the record is therefore the answer. A well damped loop
-   finishes in about a second and leaves most of the axis empty; a
-   poorly damped one rings across all of it; an unstable one walks
-   off the frame. Ten seconds is only the cap.
+   The controller is plain sampled PD on each joint, with no attempt
+   to cancel any of that:
+
+       tau[k] = Kp (r - q[k-m]) - Kd q'[k-m],   held until k+1
+
+   Deliberately plain. Computed torque would cancel the coupling and
+   leave two identical step responses, which is the point of the
+   method and the death of the picture.
+
+   The stability readout is the loop linearised about the target
+   pose, discretised with the hold and the delay: at q' = 0 the
+   Coriolis terms and their derivatives vanish, so the linearisation
+   is exactly M(r) dq'' = -Kp dq - Kd dq', and its spectral radius
+   decides local stability. Checked against the nonlinear run over a
+   dozen settings: every radius over one fails to settle. Some of
+   those do not run away, though -- the varying inertia and the
+   Coriolis terms bound the growth, and the arm chatters around the
+   pose in a limit cycle instead of leaving the frame. So the verdict
+   can read Unstable beside a settling time of "over 10 s" rather
+   than "never", and both are telling the truth: unstable about the
+   pose, and never settling on it.
+
+   A run ends when both joints hold a 2% band, so its length is the
+   answer. Ten seconds is only the cap.
    =============================================================== */
 
 (function () {
@@ -47,7 +65,7 @@
   const settleOut = document.getElementById("sim-settle");
   if (!inputs.kp || !rhoOut) return;
 
-  const P = { kp: 6, kd: 3, h: 0.05, m: 0 };
+  const P = { kp: 40, kd: 5, h: 0.04, m: 0 };
 
   const WINDOW = 10;          /* the cap on one run, in seconds */
   const HOLD = 0.45;          /* how long it has to stay inside the band */
@@ -57,6 +75,35 @@
     { from: 1.62, to: 0.54 },
   ];
   const BAND = 0.02;          /* of each joint's own step */
+
+  /* the arm: point masses at the end of each link, which is the smallest
+     model that still has a varying inertia and real Coriolis terms */
+  const ARM = { m1: 1, m2: 0.7, l1: 1, l2: 0.85 };
+
+  function inertia(q2) {
+    const { m1, m2, l1, l2 } = ARM;
+    const off = m2 * l2 * l2 + m2 * l1 * l2 * Math.cos(q2);
+    return [(m1 + m2) * l1 * l1 + m2 * l2 * l2 + 2 * m2 * l1 * l2 * Math.cos(q2),
+            off, off, m2 * l2 * l2];                       /* [a, b, b, d] */
+  }
+
+  /* Coriolis and centripetal, the terms that couple the two joints */
+  function coriolis(q2, d1, d2) {
+    const k = ARM.m2 * ARM.l1 * ARM.l2 * Math.sin(q2);
+    return [-k * (2 * d1 * d2 + d2 * d2), k * d1 * d1];
+  }
+
+  function solve2(Mv, r0, r1) {
+    const [a, b, , d] = Mv;
+    const det = a * d - b * b;
+    return [(d * r0 - b * r1) / det, (a * r1 - b * r0) / det];
+  }
+
+  /* q'' = M(q)^-1 (tau - c(q, q')) */
+  function accel(qv, dv, tau) {
+    const c = coriolis(qv[1], dv[0], dv[1]);
+    return solve2(inertia(qv[1]), tau[0] - c[0], tau[1] - c[1]);
+  }
 
   /* ---------- the sampled-data loop ---------- */
 
@@ -78,18 +125,39 @@
     settledAt = null;
   }
 
-  /* Exact between samples: with the input held constant a double integrator
-     closes in one line, so nothing here accumulates integration error. */
-  function coast(dt) {
-    for (let i = 0; i < 2; i++) {
-      q[i] += v[i] * dt + 0.5 * held[i] * dt * dt;
-      v[i] += held[i] * dt;
-    }
+  /* The arm is nonlinear, so it is integrated rather than solved: RK4 on
+     [q, q'] with the torque held, in steps well under the sampling period. */
+  const SUB = 1 / 600;
+
+  function deriv(y) {
+    const a = accel([y[0], y[1]], [y[2], y[3]], held);
+    return [y[2], y[3], a[0], a[1]];
+  }
+
+  function rk4(dt) {
+    let y = [q[0], q[1], v[0], v[1]];
+    const k1 = deriv(y);
+    const k2 = deriv(y.map((c, i) => c + (dt / 2) * k1[i]));
+    const k3 = deriv(y.map((c, i) => c + (dt / 2) * k2[i]));
+    const k4 = deriv(y.map((c, i) => c + dt * k3[i]));
+    y = y.map((c, i) => c + (dt / 6) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]));
+    q = [y[0], y[1]];
+    v = [y[2], y[3]];
     simT += dt;
+  }
+
+  function coast(dt) {
+    let left = dt;
+    while (left > 1e-12) {
+      const step = Math.min(SUB, left);
+      rk4(step);
+      left -= step;
+    }
   }
 
   function sample() {
     for (let i = 0; i < 2; i++) {
+      /* plain PD, in torque, with nothing cancelled */
       queue[i].push(P.kp * (JOINTS[i].to - q[i]) - P.kd * v[i]);
       const k = queue[i].length - 1 - P.m;
       held[i] = k >= 0 ? queue[i][k] : 0;
@@ -119,8 +187,8 @@
     hist.push([simT, q[0], q[1], v[0], v[1]]);
     if (hist.length > 1400) hist.shift();
 
-    const wild = q.some((a, i) => !Number.isFinite(a) || Math.abs(progress(i)) > 4)
-      || v.some((s) => Math.abs(s) > 80);
+    const wild = q.some((a, i) => !Number.isFinite(a) || Math.abs(progress(i)) > 5)
+      || v.some((s) => Math.abs(s) > 120);
     if (wild) diverged = true;
 
     if (!diverged) {
@@ -136,54 +204,76 @@
   }
 
   /* ---------- stability of the loop, not of the picture ----------
-     One step of the loop, written on the augmented state
-     z = [q, q', u(k-1), ..., u(k-m)], is a matrix, and the loop is stable
-     exactly when that matrix has spectral radius under 1. Without a delay
-     it is 2x2 and closes in radicals; with one it is read off matrix
-     powers, which a complex leading pair does not throw off. Both joints
-     carry the same matrix, so one number covers them. */
+     Linearise about the target pose. At q' = 0 the Coriolis terms and their
+     derivatives both vanish, so what is left is M(r) dq'' = -Kp dq - Kd dq' --
+     a four-state plant whose channels are coupled only through M(r)^-1. The
+     hold makes that exact rather than approximate: with A nilpotent,
+     exp(Ah) and its integral are polynomials in h, so no matrix exponential
+     is needed. Written on z = [dq, dq', tau(k-1), ..., tau(k-m)] the loop is
+     one matrix, and it is locally stable exactly when the radius is under 1. */
 
   function spectralRadius() {
-    const h = P.h, m = P.m, n = 2 + m;
-    const M = Array.from({ length: n }, () => new Array(n).fill(0));
-    if (m === 0) {
-      M[0][0] = 1 - 0.5 * h * h * P.kp;
-      M[0][1] = h - 0.5 * h * h * P.kd;
-      M[1][0] = -h * P.kp;
-      M[1][1] = 1 - h * P.kd;
-      const tr = M[0][0] + M[1][1];
-      const det = M[0][0] * M[1][1] - M[0][1] * M[1][0];
-      const disc = tr * tr - 4 * det;
-      if (disc < 0) return Math.sqrt(Math.abs(det));
-      const r = Math.sqrt(disc);
-      return Math.max(Math.abs((tr + r) / 2), Math.abs((tr - r) / 2));
+    const h = P.h, m = P.m;
+    const Mv = inertia(JOINTS[1].to);
+    const [a, b, , d] = Mv;
+    const det = a * d - b * b;
+    const Mi = [d / det, -b / det, -b / det, a / det];      /* M(r)^-1 */
+
+    const n = 4 + 2 * m;
+    const A = Array.from({ length: n }, () => new Array(n).fill(0));
+    /* dq(k+1) = dq + h dq' + (h^2/2) M^-1 tau,  dq'(k+1) = dq' + h M^-1 tau */
+    A[0][0] = 1; A[1][1] = 1;
+    A[0][2] = h; A[1][3] = h;
+    A[2][2] = 1; A[3][3] = 1;
+    const put = (row, col, val) => { A[row][col] += val; };
+    const applied = m === 0 ? null : n - 2;                 /* the oldest torque */
+    for (let i = 0; i < 2; i++) {
+      for (let j = 0; j < 2; j++) {
+        const g = Mi[i * 2 + j];
+        if (applied === null) {
+          /* tau(k) = -Kp dq - Kd dq', substituted straight in */
+          put(i, j, -0.5 * h * h * g * P.kp);
+          put(i, 2 + j, -0.5 * h * h * g * P.kd);
+          put(2 + i, j, -h * g * P.kp);
+          put(2 + i, 2 + j, -h * g * P.kd);
+        } else {
+          put(i, applied + j, 0.5 * h * h * g);
+          put(2 + i, applied + j, h * g);
+        }
+      }
     }
-    M[0][0] = 1; M[0][1] = h; M[0][n - 1] = 0.5 * h * h;
-    M[1][1] = 1; M[1][n - 1] = h;
-    M[2][0] = -P.kp; M[2][1] = -P.kd;
-    for (let i = 3; i < n; i++) M[i][i - 1] = 1;
-    return radiusByPowers(M, n);
+    if (applied !== null) {
+      for (let i = 0; i < 2; i++) {
+        A[4 + i][i] = -P.kp;                                /* the new torque */
+        A[4 + i][2 + i] = -P.kd;
+      }
+      for (let k = 1; k < m; k++) {                         /* and the queue shifts */
+        A[4 + 2 * k][2 + 2 * k] = 1;
+        A[5 + 2 * k][3 + 2 * k] = 1;
+      }
+    }
+    return radiusByPowers(A, n);
   }
 
   /* rho(M) = lim ||M^n||^(1/n); repeated squaring reaches n = 4096 in twelve
      multiplications and does not stall on a complex leading pair. */
   function radiusByPowers(M, n) {
-    const norm = (A) => {
+    const norm = (X) => {
       let best = 0;
       for (let i = 0; i < n; i++) {
         let row = 0;
-        for (let j = 0; j < n; j++) row += Math.abs(A[i][j]);
+        for (let j = 0; j < n; j++) row += Math.abs(X[i][j]);
         if (row > best) best = row;
       }
       return best;
     };
-    const mul = (A, B) => {
+    const mul = (X, Y) => {
       const C = Array.from({ length: n }, () => new Array(n).fill(0));
       for (let i = 0; i < n; i++)
         for (let k = 0; k < n; k++) {
-          const a = A[i][k];
-          if (a === 0) continue;
-          for (let j = 0; j < n; j++) C[i][j] += a * B[k][j];
+          const c = X[i][k];
+          if (c === 0) continue;
+          for (let j = 0; j < n; j++) C[i][j] += c * Y[k][j];
         }
       return C;
     };

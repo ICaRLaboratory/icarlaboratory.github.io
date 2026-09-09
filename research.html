@@ -67,7 +67,7 @@
       <!-- Where each slider acts. Inline rather than an <img> so it inherits
            the page's own type and ink. -->
       <svg class="sim__loop" viewBox="0 0 780 116" role="img"
-           aria-label="The loop being tuned: the error enters a controller holding the two gains, which drives the two joints; the angle returns through a sampler and a delay">
+           aria-label="The loop being tuned: the joint error enters a PD controller holding the two gains, whose torque drives the arm's own dynamics; the measured angles return through a sampler and a delay">
         <defs>
           <marker id="sa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
             <path d="M0 1 L10 5 L0 9 Z" fill="currentColor"/>
@@ -85,20 +85,21 @@
 
         <path class="sl-wire" marker-end="url(#sa)" d="M81 44 H112"/>
         <rect class="sl-box" x="114" y="22" width="150" height="44" rx="3"/>
-        <text class="sl-tag" x="189" y="16">Controller</text>
+        <text class="sl-tag" x="189" y="16">PD, per joint</text>
         <text class="sl-gain" x="160" y="50">K<tspan class="sl-sub" dy="3">p</tspan></text>
         <text class="sl-gain" x="218" y="50">K<tspan class="sl-sub" dy="3">d</tspan></text>
 
-        <path class="sl-wire" marker-end="url(#sa)" d="M264 44 H300"/>
-        <rect class="sl-box" x="302" y="22" width="132" height="44" rx="3"/>
-        <text class="sl-tag" x="368" y="16">Two joints</text>
-        <text class="sl-name" x="368" y="50">q&#8221; = u</text>
+        <path class="sl-wire" marker-end="url(#sa)" d="M264 44 H310"/>
+        <text class="sl-sig sl-mid" x="287" y="34">&#964;</text>
+        <rect class="sl-box" x="312" y="18" width="176" height="52" rx="3"/>
+        <text class="sl-tag" x="400" y="12">Arm</text>
+        <text class="sl-eq" x="400" y="49">M(q) q&#8243; + c(q, q&#8242;) = &#964;</text>
 
-        <path class="sl-wire" d="M434 44 H556"/>
-        <text class="sl-sig" x="586" y="48">Angle</text>
-        <circle cx="500" cy="44" r="3.2" fill="currentColor"/>
+        <path class="sl-wire" d="M488 44 H592"/>
+        <text class="sl-sig" x="620" y="48">q</text>
+        <circle cx="540" cy="44" r="3.2" fill="currentColor"/>
 
-        <path class="sl-wire" d="M500 44 V96 H452"/>
+        <path class="sl-wire" d="M540 44 V96 H452"/>
         <rect class="sl-box" x="320" y="74" width="132" height="42" rx="3"/>
         <text class="sl-name" x="386" y="100">Delay</text>
         <path class="sl-wire" marker-end="url(#sa)" d="M320 96 H286"/>
@@ -112,22 +113,22 @@
       <div class="sim__ctrl">
         <label for="sim-kp">Proportional gain <i>K</i><sub>p</sub></label>
         <output id="sim-kp-val" for="sim-kp"></output>
-        <input id="sim-kp" type="range" min="0.5" max="16" step="0.1" value="6">
+        <input id="sim-kp" type="range" min="10" max="200" step="5" value="40">
       </div>
       <div class="sim__ctrl">
         <label for="sim-kd">Derivative gain <i>K</i><sub>d</sub></label>
         <output id="sim-kd-val" for="sim-kd"></output>
-        <input id="sim-kd" type="range" min="0" max="8" step="0.1" value="3">
+        <input id="sim-kd" type="range" min="0.5" max="12" step="0.25" value="5">
       </div>
       <div class="sim__ctrl">
         <label for="sim-h">Sampling period <i>h</i></label>
         <output id="sim-h-val" for="sim-h"></output>
-        <input id="sim-h" type="range" min="10" max="200" step="5" value="50">
+        <input id="sim-h" type="range" min="5" max="100" step="5" value="40">
       </div>
       <div class="sim__ctrl">
         <label for="sim-m">Feedback delay</label>
         <output id="sim-m-val" for="sim-m"></output>
-        <input id="sim-m" type="range" min="0" max="4" step="1" value="0">
+        <input id="sim-m" type="range" min="0" max="3" step="1" value="0">
       </div>
 
       <div class="sim__out" aria-live="polite">
@@ -143,9 +144,9 @@
           <span id="sim-settle" class="sim__rho-val sim__rho-val--sm">&mdash;</span>
         </div>
       </div>
-      <p class="sim__foot">The loop is stable exactly when the radius stays under one, and the run
-        ends when both joints hold a 2% band, so a well tuned pair finishes in about a second and
-        a badly tuned one rings across the whole axis.</p>
+      <p class="sim__foot">The radius is the loop linearised about the target pose: under one and it
+        settles, over one and it does not. The run ends when both joints hold a 2% band, so a well
+        tuned pair is done in a few seconds and a poorly damped one rings across the whole axis.</p>
     </div>
   </div>
 </section>
