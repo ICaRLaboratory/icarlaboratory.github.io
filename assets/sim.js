@@ -24,6 +24,18 @@ const SIM = (function () {
   const defs = [];
   const INK = (a) => `rgba(10,10,10,${a})`;
 
+  /* Two hues and ink. Ink carries everything that is a reference -- axes,
+     targets, the surface, the wall's own line -- and the two hues carry the
+     things being compared, so a legend is a colour and not a shade of grey.
+     Teal and amber stay apart for the common colour deficiencies, and the
+     line weights and dashes still differ, so colour is never the only cue. */
+  const HUE = {
+    one: "#0f766e",                      /* shoulder, and what was measured */
+    two: "#b45309",                      /* elbow, and what was predicted */
+    onePale: "rgba(15,118,110,0.34)",
+    twoPale: "rgba(180,83,9,0.34)",
+  };
+
   /* one shape wide, another stacked; a module lays its own blocks out
      inside whichever it is handed */
   const WIDE = { w: 780, h: 620 };
@@ -112,6 +124,49 @@ const SIM = (function () {
     /* names a wire the way tau and q are named on the horizontal ones */
     g.signal = (letter, x, yTop, yBot) =>
       g.maths(letter, x, (yTop + yBot) / 2 + 5, 15, "left");
+
+    /* a name turned on its side, for the axis that runs up the page */
+    g.vcap = (text, x, y, size = 9, alpha = 0.45) => {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(-Math.PI / 2);
+      g.cap(text, 0, 0, size, "center", alpha);
+      ctx.restore();
+    };
+
+    /* A key, laid across the top of a panel: each name behind a short piece
+       of the line it belongs to, drawn in that line's own weight and dash, so
+       nothing has to be matched up by memory. */
+    g.keyRow = (items, x, y) => {
+      const LINE = 15, GAP = 5, PAD = 15;
+      const width = (label) => {
+        ctx.font = '500 9px "JetBrains Mono", ui-monospace, monospace';
+        if ("letterSpacing" in ctx) ctx.letterSpacing = "1.5px";
+        const w = ctx.measureText(label).width;
+        if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
+        return w;
+      };
+      let at = x;
+      for (const it of items) {
+        if (it.dot) {
+          ctx.fillStyle = it.stroke;
+          ctx.beginPath();
+          ctx.arc(at + LINE / 2, y - 3, 3.2, 0, 7);
+          ctx.fill();
+        } else {
+          ctx.strokeStyle = it.stroke;
+          ctx.lineWidth = it.width || 1.5;
+          ctx.setLineDash(it.dash || []);
+          ctx.beginPath();
+          ctx.moveTo(at, y - 3);
+          ctx.lineTo(at + LINE, y - 3);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        g.cap(it.label, at + LINE + GAP, y, 9, "left", 0.5);
+        at += LINE + GAP + width(it.label) + PAD;
+      }
+    };
 
     g.frameBox = (p, title) => {
       ctx.strokeStyle = INK(0.13);
@@ -517,6 +572,7 @@ const SIM = (function () {
 
   return {
     register: (def) => defs.push(def),
+    hue: HUE,
     radiusByPowers,
     rightmostPole,
     boot,

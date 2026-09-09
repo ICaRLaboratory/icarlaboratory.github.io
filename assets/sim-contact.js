@@ -123,7 +123,7 @@ SIM.register((function () {
     ctx.beginPath();
     ctx.moveTo(sx, sy + sh); ctx.lineTo(sx + sw, sy + sh);
     ctx.stroke();
-    ctx.strokeStyle = "#0f766e";
+    ctx.strokeStyle = SIM.hue.one;
     ctx.lineWidth = 3;
     const mid = sx + sw * (T_STEP / WINDOW);
     ctx.beginPath();
@@ -327,31 +327,55 @@ SIM.register((function () {
      the penetration axis is grown to fit rather than fixed. */
   let pTop = 0.008;
 
+  const H = SIM.hue;
+
   function drawForce(g, P, p) {
     const { ctx } = g;
-    const x0 = p.x + 34, x1 = p.x + p.w - 12;
-    const yTop = p.y + 36, yBot = p.y + p.h - 26;
+    const x0 = p.x + 48, x1 = p.x + p.w - 14;
+    const yTop = p.y + 52, yBot = p.y + p.h - 42;
     const px = (t) => x0 + (t / WINDOW) * (x1 - x0);
     const py = (f) => yBot - (Math.min(f, fTop) / fTop) * (yBot - yTop);
 
+    g.keyRow([
+      { label: "MEASURED", stroke: H.one, width: 1.7 },
+      { label: "ASKED FOR", stroke: g.ink(0.4), width: 1.2, dash: [4, 4] },
+      { label: "WILL BE HELD", stroke: H.two, width: 1.3, dash: [2, 3] },
+    ], p.x + 12, p.y + 34);
+
     g.seconds(p, px, yTop, yBot, WINDOW, 1);
-    ctx.strokeStyle = g.ink(0.13);
+    ctx.strokeStyle = g.ink(0.16);
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(x0, yBot); ctx.lineTo(x1, yBot);
+    ctx.moveTo(x0, yTop); ctx.lineTo(x0, yBot);
     ctx.stroke();
     for (const frac of [0.5, 1]) {
       const yy = yBot - frac * (yBot - yTop);
       ctx.strokeStyle = g.ink(0.07);
       ctx.beginPath(); ctx.moveTo(x0, yy); ctx.lineTo(x1, yy); ctx.stroke();
-      g.cap(Math.round(fTop * frac) + "", x0 - 6, yy + 3, 9, "right", 0.4);
+      g.cap(Math.round(fTop * frac) + "", x0 - 6, yy + 3, 9, "right", 0.45);
     }
+    g.cap("0", x0 - 6, yBot + 3, 9, "right", 0.45);
+    g.vcap("FORCE  (N)", p.x + 15, (yTop + yBot) / 2, 9, 0.5);
+    g.cap("TIME  (S)", (x0 + x1) / 2, p.y + p.h - 11, 9, "center", 0.5);
 
-    /* what was asked for, and what the loop will actually hold */
-    for (const [alpha, dash, value] of [[0.34, [4, 4], (fd) => fd],
-                                        [0.5, [1, 3], (fd) => settledForce(fd, P)]]) {
-      ctx.strokeStyle = g.ink(alpha);
-      ctx.lineWidth = 1.2;
+    ctx.strokeStyle = H.one;
+    ctx.lineWidth = 1.7;
+    ctx.beginPath();
+    let started = false;
+    for (const row of hist) {
+      const X = px(row[0]), Y = py(row[3]);
+      started ? ctx.lineTo(X, Y) : (ctx.moveTo(X, Y), (started = true));
+    }
+    ctx.stroke();
+
+    /* What was asked for, and what the loop will actually hold. Drawn over
+       the trace rather than under it: a settled run sits exactly on the
+       second of them, and underneath it would simply be invisible. */
+    for (const [stroke, dash, value] of [[g.ink(0.4), [4, 4], (fd) => fd],
+                                         [H.two, [2, 3], (fd) => settledForce(fd, P)]]) {
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = 1.3;
       ctx.setLineDash(dash);
       ctx.beginPath();
       ctx.moveTo(x0, py(value(DEMAND[0])));
@@ -361,18 +385,6 @@ SIM.register((function () {
       ctx.stroke();
       ctx.setLineDash([]);
     }
-
-    ctx.strokeStyle = g.ink(0.95);
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    let started = false;
-    for (const row of hist) {
-      const X = px(row[0]), Y = py(row[3]);
-      started ? ctx.lineTo(X, Y) : (ctx.moveTo(X, Y), (started = true));
-    }
-    ctx.stroke();
-    g.cap("ASKED FOR", x1 - 4, yTop + 11, 9, "right", 0.4);
-    g.cap("HELD", x1 - 4, yTop + 23, 9, "right", 0.55);
   }
 
   /* Force against how far the tool has pushed into the surface. Everything
@@ -383,21 +395,34 @@ SIM.register((function () {
      free space. */
   function drawContactPlane(g, P, p) {
     const { ctx } = g;
-    const x0 = p.x + 38, x1 = p.x + p.w - 14;
-    const yTop = p.y + 40, yBot = p.y + p.h - 28;
+    const x0 = p.x + 48, x1 = p.x + p.w - 16;
+    const yTop = p.y + 52, yBot = p.y + p.h - 42;
     /* just enough free space to show the trace arriving at zero force; the
        twenty millimetres before that are a flat line and not worth the width */
     const LEFT = -0.008;
     const px = (X) => x0 + ((Math.max(LEFT, X) - LEFT) / (pTop - LEFT)) * (x1 - x0);
     const py = (f) => yBot - (Math.min(f, fTop) / fTop) * (yBot - yTop);
 
-    /* the axes: force up, penetration across, the surface at zero */
-    ctx.strokeStyle = g.ink(0.13);
+    g.keyRow([
+      { label: "MEASURED", stroke: H.one, width: 1.6 },
+      { label: "WALL", stroke: g.ink(0.4), width: 1.4, dash: [5, 3] },
+      { label: "ASKED FOR", stroke: H.two, width: 1.3, dash: [2, 3] },
+    ], p.x + 12, p.y + 34);
+
+    ctx.strokeStyle = g.ink(0.16);
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(x0, yBot); ctx.lineTo(x1, yBot);
     ctx.moveTo(x0, yTop); ctx.lineTo(x0, yBot);
     ctx.stroke();
+    g.cap(Math.round(fTop) + "", x0 - 6, yTop + 4, 9, "right", 0.45);
+    g.cap("0", x0 - 6, yBot + 3, 9, "right", 0.45);
+    g.cap(Math.round(LEFT * 1000) + "", x0, yBot + 15, 9, "center", 0.45);
+    g.cap(Math.round(pTop * 1000) + "", x1, yBot + 15, 9, "center", 0.45);
+    g.vcap("FORCE  (N)", p.x + 15, (yTop + yBot) / 2, 9, 0.5);
+    g.cap("PENETRATION  (MM)", (x0 + x1) / 2, p.y + p.h - 11, 9, "center", 0.5);
+
+    /* the surface, where the penetration is zero */
     ctx.strokeStyle = g.ink(0.28);
     ctx.setLineDash([3, 3]);
     ctx.beginPath();
@@ -405,37 +430,9 @@ SIM.register((function () {
     ctx.stroke();
     ctx.setLineDash([]);
     g.cap("SURFACE", px(WALL.x) + 5, yTop + 11, 9, "left", 0.45);
-    g.cap(Math.round(fTop) + "", x0 - 6, yTop + 4, 9, "right", 0.4);
-    g.cap("N", x0 - 6, yTop - 10, 9, "right", 0.35);
-    g.cap("0", x0 - 6, yBot + 3, 9, "right", 0.4);
-    g.cap(Math.round(pTop * 1000) + " mm", x1, yBot + 15, 9, "right", 0.4);
-    g.cap(Math.round(LEFT * 1000) + "", x0, yBot + 15, 9, "center", 0.4);
 
-    /* the wall itself: f = k_e x, the line the loop has to work along */
-    const reach = Math.min(pTop, fTop / P.ke);
-    ctx.strokeStyle = g.ink(0.3);
-    ctx.lineWidth = 1.4;
-    ctx.setLineDash([5, 3]);
-    ctx.beginPath();
-    ctx.moveTo(px(WALL.x), py(0));
-    ctx.lineTo(px(reach), py(P.ke * reach));
-    ctx.stroke();
-    ctx.setLineDash([]);
-    g.labelled("k", "e", "", px(reach) - 10, py(P.ke * reach) + 16, 12, 0.5);
-
-    /* what it was asked to hold, so the point it lands on can be read off */
-    const fd = demand(simT);
-    ctx.strokeStyle = g.ink(0.22);
-    ctx.lineWidth = 1;
-    ctx.setLineDash([2, 3]);
-    ctx.beginPath();
-    ctx.moveTo(x0, py(fd)); ctx.lineTo(x1, py(fd));
-    ctx.stroke();
-    ctx.setLineDash([]);
-    g.cap("ASKED FOR", x1 - 2, py(fd) - 5, 9, "right", 0.4);
-
-    ctx.strokeStyle = g.ink(0.9);
-    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = H.one;
+    ctx.lineWidth = 1.6;
     ctx.beginPath();
     let started = false;
     for (const row of hist) {
@@ -443,11 +440,34 @@ SIM.register((function () {
       started ? ctx.lineTo(X, Y) : (ctx.moveTo(X, Y), (started = true));
     }
     ctx.stroke();
+
+    /* the wall itself: f = k_e x, the line the loop has to work along */
+    const reach = Math.min(pTop, fTop / P.ke);
+    ctx.strokeStyle = g.ink(0.4);
+    ctx.lineWidth = 1.4;
+    ctx.setLineDash([5, 3]);
+    ctx.beginPath();
+    ctx.moveTo(px(WALL.x), py(0));
+    ctx.lineTo(px(reach), py(P.ke * reach));
+    ctx.stroke();
+    ctx.setLineDash([]);
+    g.labelled("k", "e", "", px(reach) - 12, py(P.ke * reach) + 16, 12, 0.55);
+
+    /* what it was asked to hold, so the point it lands on can be read off */
+    const fd = demand(simT);
+    ctx.strokeStyle = H.two;
+    ctx.lineWidth = 1.3;
+    ctx.setLineDash([2, 3]);
+    ctx.beginPath();
+    ctx.moveTo(x0, py(fd)); ctx.lineTo(x1, py(fd));
+    ctx.stroke();
+    ctx.setLineDash([]);
+
     if (hist.length) {
       const last = hist[hist.length - 1];
-      ctx.fillStyle = "#0f766e";
+      ctx.fillStyle = H.one;
       ctx.beginPath();
-      ctx.arc(px(last[1]), py(last[3]), 3.4, 0, 7);
+      ctx.arc(px(last[1]), py(last[3]), 4, 0, 7);
       ctx.fill();
     }
   }
@@ -530,7 +550,7 @@ SIM.register((function () {
     draw(g, P, D) {
       const b = boxes(D);
       drawLoop(g, P, b.loop);
-      g.panel(b.left, "CONTACT FORCE (N)", () => drawForce(g, P, b.left));
+      g.panel(b.left, "CONTACT FORCE", () => drawForce(g, P, b.left));
       g.panel(b.right, "FORCE AGAINST PENETRATION", () => drawContactPlane(g, P, b.right));
     },
   };

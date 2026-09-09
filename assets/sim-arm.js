@@ -259,13 +259,13 @@ SIM.register((function () {
     /* the path it is asked to follow, drawn as the path it is */
     const cy = y + h * 0.155, rad = Math.min(h * 0.078, colW * 0.30);
     g.words("Target", colMid, y + h * 0.045, 13);
-    ctx.strokeStyle = "#0f766e";
+    ctx.strokeStyle = SIM.hue.one;
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(colMid, cy, rad, 0, 7);
     ctx.stroke();
     const a = (2 * Math.PI * simT) / CIRCLE.T + CIRCLE.phase;
-    ctx.fillStyle = "#0f766e";
+    ctx.fillStyle = SIM.hue.one;
     ctx.beginPath();
     ctx.arc(colMid + Math.cos(a) * rad, cy + Math.sin(a) * rad, 3.6, 0, 7);
     ctx.fill();
@@ -391,7 +391,7 @@ SIM.register((function () {
       ctx.stroke();
     };
     path(0, T_LOAD, g.ink(0.26));
-    path(Math.max(T_LOAD, cut), Infinity, "#0f766e");
+    path(Math.max(T_LOAD, cut), Infinity, SIM.hue.one);
 
     const j1 = at({ x: ARM.l1 * Math.cos(q[0]), y: ARM.l1 * Math.sin(q[0]) });
     const tip = at(fk(q));
@@ -436,32 +436,50 @@ SIM.register((function () {
   /* radians and radians a second, grown to fit the run */
   let eTop = 0.04, dTop = 0.4;
 
+  const H = SIM.hue;
+  const JOINT = [
+    { name: "SHOULDER", on: H.one, off: H.onePale, w: 1.7 },
+    { name: "ELBOW", on: H.two, off: H.twoPale, w: 1.4 },
+  ];
+
   /* Each joint's tracking error against how fast that error is changing. A
      loop that is following draws a small orbit near the origin; the payload
      opens it out, and an unstable one spirals away from it. */
   function drawPhase(g, p) {
     const { ctx } = g;
-    const cx = p.x + p.w / 2, cy = p.y + p.h / 2 + 10;
-    const sx = (p.w / 2 - 30) / eTop;
-    const sy = (p.h / 2 - 44) / dTop;
+    const left = p.x + 48, right = p.x + p.w - 16;
+    const top = p.y + 52, bottom = p.y + p.h - 42;
+    const cx = (left + right) / 2, cy = (top + bottom) / 2;
+    const sx = (right - left) / 2 / eTop;
+    const sy = (bottom - top) / 2 / dTop;
 
-    ctx.strokeStyle = g.ink(0.1);
+    g.keyRow([
+      { label: JOINT[0].name, stroke: JOINT[0].on, width: 1.7 },
+      { label: JOINT[1].name, stroke: JOINT[1].on, width: 1.4 },
+      { label: "BEFORE " + KG, stroke: JOINT[0].off, width: 1.7 },
+    ], p.x + 12, p.y + 34);
+
+    /* the axes, named and scaled */
+    ctx.strokeStyle = g.ink(0.16);
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(p.x + 10, cy); ctx.lineTo(p.x + p.w - 10, cy);
-    ctx.moveTo(cx, p.y + 28); ctx.lineTo(cx, p.y + p.h - 10);
+    ctx.moveTo(left, cy); ctx.lineTo(right, cy);
+    ctx.moveTo(cx, top); ctx.lineTo(cx, bottom);
     ctx.stroke();
-    g.cap("error \u2192", p.x + p.w - 12, p.y + p.h - 24, 9, "right", 0.4);
-    g.cap("rate \u2191", cx + 8, p.y + 38, 9, "left", 0.4);
-    g.cap(eTop.toFixed(2) + " rad", p.x + p.w - 12, p.y + p.h - 12, 9, "right", 0.35);
+    g.cap("+" + eTop.toFixed(2), right, cy + 13, 9, "right", 0.45);
+    g.cap("-" + eTop.toFixed(2), left, cy + 13, 9, "left", 0.45);
+    g.cap("+" + dTop.toFixed(1), cx + 7, top + 8, 9, "left", 0.45);
+    g.cap("-" + dTop.toFixed(1), cx + 7, bottom, 9, "left", 0.45);
+    g.cap("ERROR  (RAD)", cx, p.y + p.h - 11, 9, "center", 0.5);
+    g.vcap("ERROR RATE  (RAD/S)", p.x + 15, cy, 9, 0.5);
 
     const cut = hist.length > TRAIL ? hist[hist.length - TRAIL][0] : 0;
-    for (let j = 0; j < 2; j++) {
-      const X = (row) => cx + row[4 + j] * sx;
-      const Y = (row) => cy - row[6 + j] * sy;
+    JOINT.forEach((j, i) => {
+      const X = (row) => cx + row[4 + i] * sx;
+      const Y = (row) => cy - row[6 + i] * sy;
       const path = (from, to, stroke) => {
         ctx.strokeStyle = stroke;
-        ctx.lineWidth = j === 0 ? 1.5 : 1.1;
+        ctx.lineWidth = j.w;
         ctx.beginPath();
         let started = false;
         for (const row of hist) {
@@ -470,29 +488,33 @@ SIM.register((function () {
         }
         ctx.stroke();
       };
-      path(0, T_LOAD, g.ink(j === 0 ? 0.34 : 0.22));
-      path(Math.max(T_LOAD, cut), Infinity, j === 0 ? "#0f766e" : "#4b9b93");
+      path(0, T_LOAD, j.off);
+      path(Math.max(T_LOAD, cut), Infinity, j.on);
       if (hist.length) {
         const last = hist[hist.length - 1];
-        ctx.fillStyle = j === 0 ? g.ink(1) : g.ink(0.5);
+        ctx.fillStyle = j.on;
         ctx.beginPath();
-        ctx.arc(X(last), Y(last), j === 0 ? 3.2 : 2.4, 0, 7);
+        ctx.arc(X(last), Y(last), 3.2, 0, 7);
         ctx.fill();
       }
-    }
-    g.cap("SHOULDER", p.x + 12, p.y + p.h - 24, 9, "left", 0.55);
-    g.cap("ELBOW", p.x + 12, p.y + p.h - 12, 9, "left", 0.32);
+    });
   }
 
   /* The same error against time, with the staircase the controller actually
      saw laid over the continuous one it did not. */
   function drawErrors(g, p) {
     const { ctx } = g;
-    const x0 = p.x + 38, x1 = p.x + p.w - 12;
-    const yTop = p.y + 34, yBot = p.y + p.h - 26;
+    const x0 = p.x + 48, x1 = p.x + p.w - 14;
+    const yTop = p.y + 52, yBot = p.y + p.h - 42;
     const px = (t) => x0 + (t / WINDOW) * (x1 - x0);
     const mid = (yTop + yBot) / 2;
     const py = (e) => mid - (e / eTop) * ((yBot - yTop) / 2);
+
+    g.keyRow([
+      { label: JOINT[0].name, stroke: JOINT[0].on, width: 1.7 },
+      { label: JOINT[1].name, stroke: JOINT[1].on, width: 1.4 },
+      { label: "BETWEEN SAMPLES", stroke: g.ink(0.3), width: 1 },
+    ], p.x + 12, p.y + 34);
 
     g.seconds(p, px, yTop, yBot, WINDOW, 5);
     ctx.strokeStyle = g.ink(0.22);
@@ -500,38 +522,38 @@ SIM.register((function () {
     ctx.beginPath();
     ctx.moveTo(x0, mid); ctx.lineTo(x1, mid);
     ctx.stroke();
-    for (const v of [-eTop, eTop]) {
-      g.cap(v.toFixed(2), x0 - 6, py(v) + 3, 9, "right", 0.4);
-    }
-    g.cap("rad", x0 - 6, mid + 3, 9, "right", 0.35);
+    g.cap("+" + eTop.toFixed(2), x0 - 6, yTop + 3, 9, "right", 0.45);
+    g.cap("0", x0 - 6, mid + 3, 9, "right", 0.45);
+    g.cap("-" + eTop.toFixed(2), x0 - 6, yBot + 3, 9, "right", 0.45);
+    g.vcap("ERROR  (RAD)", p.x + 15, mid, 9, 0.5);
+    g.cap("TIME  (S)", (x0 + x1) / 2, p.y + p.h - 11, 9, "center", 0.5);
 
     if (simT >= T_LOAD) g.event(px(T_LOAD), yTop, yBot, KG);
 
-    for (let j = 0; j < 2; j++) {
-      ctx.strokeStyle = g.ink(j === 0 ? 0.3 : 0.2);
+    JOINT.forEach((j, i) => {
+      /* what happened between the samples, which the loop never saw */
+      ctx.strokeStyle = g.ink(0.3);
       ctx.lineWidth = 1;
       ctx.beginPath();
       let started = false;
       for (const row of hist) {
-        const X = px(row[0]), Y = py(row[4 + j]);
+        const X = px(row[0]), Y = py(row[4 + i]);
         started ? ctx.lineTo(X, Y) : (ctx.moveTo(X, Y), (started = true));
       }
       ctx.stroke();
 
-      ctx.strokeStyle = g.ink(j === 0 ? 0.95 : 0.55);
-      ctx.lineWidth = j === 0 ? 1.6 : 1.3;
+      /* and the held staircase it acted on */
+      ctx.strokeStyle = j.on;
+      ctx.lineWidth = j.w;
       ctx.beginPath();
-      for (let i = 0; i < marks.length; i++) {
-        const X = px(marks[i][0]), Y = py(marks[i][1 + j]);
-        const Xn = i + 1 < marks.length ? px(marks[i + 1][0]) : px(Math.min(simT, WINDOW));
-        i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y);
+      for (let k = 0; k < marks.length; k++) {
+        const X = px(marks[k][0]), Y = py(marks[k][1 + i]);
+        const Xn = k + 1 < marks.length ? px(marks[k + 1][0]) : px(Math.min(simT, WINDOW));
+        k ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y);
         ctx.lineTo(Xn, Y);
       }
       ctx.stroke();
-    }
-    /* out of the corner, which the bottom scale mark already has */
-    g.cap("SHOULDER", x1 - 4, yTop + 11, 9, "right", 0.55);
-    g.cap("ELBOW", x1 - 4, yTop + 23, 9, "right", 0.32);
+    });
   }
 
   /* ---------- the module ---------- */
