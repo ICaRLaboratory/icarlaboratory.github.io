@@ -46,9 +46,17 @@
 
   const P = { kp: 6, kd: 3, h: 0.05, m: 0 };
 
+  /* One run is ten seconds long, drawn left to right on a fixed axis. Nothing
+     scrolls and nothing loops: the run plays once and the finished record
+     stays on screen until a slider asks for another one. */
+  const WINDOW = 10;
+
   /* ---------- the sampled-data loop ---------- */
 
-  let x, v, held, queue, simT, nextT, hist, marks, diverged, settleT;
+  let x, v, held, queue, simT, nextT, hist, marks, diverged;
+
+  /* the run is over once it fills the window or leaves the frame */
+  const done = () => diverged || simT >= WINDOW;
 
   function reset() {
     const a = Math.random() * Math.PI * 2;
@@ -61,7 +69,6 @@
     hist = [];
     marks = [];
     diverged = false;
-    settleT = 0;
   }
 
   /* Exact between samples: with u held constant the double integrator
@@ -79,7 +86,7 @@
     held = i >= 0 ? queue[i] : 0;
     if (queue.length > 64) queue.shift();
     marks.push([simT, x]);
-    if (marks.length > 240) marks.shift();
+    if (marks.length > 1200) marks.shift();
   }
 
   function advance(dt) {
@@ -97,17 +104,8 @@
     hist.push([simT, x, v]);
     if (hist.length > 1400) hist.shift();
 
+    /* a diverging run has made its point once it leaves the frame */
     if (!Number.isFinite(x) || Math.abs(x) > 8 || Math.abs(v) > 60) diverged = true;
-    /* settled or blown up: start again so the figure keeps its life */
-    if (diverged) {
-      settleT += dt;
-      if (settleT > 1.1) reset();
-    } else if (Math.hypot(x, v * 0.5) < 0.02) {
-      settleT += dt;
-      if (settleT > 1.0) reset();
-    } else {
-      settleT = 0;
-    }
   }
 
   /* ---------- stability of the loop, not of the picture ----------
@@ -208,7 +206,6 @@
     verdict.textContent = bad ? "Unstable" : "Stable";
     verdict.classList.toggle("is-bad", bad);
     reset();
-    if (reduced.matches) draw();
   }
 
   /* ---------- drawing ---------- */
@@ -262,7 +259,7 @@
     ctx.moveTo(cx, p.y + 26); ctx.lineTo(cx, p.y + p.h - 8);
     ctx.stroke();
 
-    const pts = hist.slice(-520);
+    const pts = hist;
     ctx.lineWidth = 1.3;
     for (let i = 1; i < pts.length; i++) {
       const a = i / pts.length;
@@ -315,29 +312,27 @@
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(x0, cy); ctx.lineTo(x1, cy); ctx.stroke();
 
-    const span = 3.2;                      /* seconds shown */
-    const t1 = simT, t0 = t1 - span;
-    const px = (t) => x0 + ((t - t0) / span) * (x1 - x0);
+    /* fixed axis: the trace grows into it instead of sliding through it */
+    const px = (t) => x0 + (t / WINDOW) * (x1 - x0);
 
     ctx.strokeStyle = INK(0.26);
     ctx.lineWidth = 1;
     ctx.beginPath();
     let started = false;
     for (const [t, xx] of hist) {
-      if (t < t0) continue;
       const X = px(t), Y = cy - xx * s;
       started ? ctx.lineTo(X, Y) : (ctx.moveTo(X, Y), (started = true));
     }
     ctx.stroke();
 
     /* zero-order hold: what the controller is actually handed */
-    const vis = marks.filter(([t]) => t >= t0);
+    const vis = marks;
     ctx.strokeStyle = INK(0.95);
     ctx.lineWidth = 1.6;
     ctx.beginPath();
     for (let i = 0; i < vis.length; i++) {
       const X = px(vis[i][0]), Y = cy - vis[i][1] * s;
-      const Xn = i + 1 < vis.length ? px(vis[i + 1][0]) : px(t1);
+      const Xn = i + 1 < vis.length ? px(vis[i + 1][0]) : px(Math.min(simT, WINDOW));
       if (i === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y);
       ctx.lineTo(Xn, Y);
     }
@@ -370,26 +365,44 @@
   /* ---------- run ---------- */
 
   let raf = null;
+
+  function stop() {
+    if (raf) cancelAnimationFrame(raf);
+    raf = null;
+  }
+
+  /* the loop retires itself the moment the run finishes, so a settled figure
+     costs nothing to leave on the page */
   function loop() {
-    advance(1 / 60);
+    if (!done()) advance(1 / 60);
     draw();
+    if (done()) { raf = null; return; }
     raf = requestAnimationFrame(loop);
   }
 
+  /* Reduced motion still gets the whole answer, just not the animation of it:
+     the ten seconds are computed at once and the finished record drawn. */
+  function runToEnd() {
+    let guard = 0;
+    while (!done() && guard++ < 5000) advance(1 / 60);
+  }
+
+  function start() {
+    if (reduced.matches) { runToEnd(); draw(); return; }
+    if (done()) { draw(); return; }
+    if (raf === null) raf = requestAnimationFrame(loop);
+  }
+
   for (const el of Object.values(inputs)) {
-    el.addEventListener("input", readParams);
+    el.addEventListener("input", () => { readParams(); start(); });
   }
   readParams();
+  start();
 
-  if (reduced.matches) draw();
-  else raf = requestAnimationFrame(loop);
-
-  reduced.addEventListener("change", () => {
-    if (reduced.matches) { if (raf) cancelAnimationFrame(raf); raf = null; draw(); }
-    else if (!raf) raf = requestAnimationFrame(loop);
-  });
+  reduced.addEventListener("change", () => { stop(); start(); });
+  window.addEventListener("resize", () => { if (raf === null) draw(); });
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden) { if (raf) cancelAnimationFrame(raf); raf = null; }
-    else if (!raf && !reduced.matches) raf = requestAnimationFrame(loop);
+    if (document.hidden) stop();
+    else start();
   });
 })();
