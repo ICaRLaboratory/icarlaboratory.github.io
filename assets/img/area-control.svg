@@ -8,9 +8,12 @@
   <style>
     .paper { fill: #f5f5f3 }
     .wire  { fill: none; stroke: #0a0a0a; stroke-width: 2; stroke-linecap: butt }
-    .trace { fill: none; stroke: #0a0a0a; stroke-width: 2.2; stroke-linejoin: round }
+    /* Black carries the structure; one accent carries the signals, so the two
+       research figures read as different families at a glance. */
+    .trace { fill: none; stroke: #0f766e; stroke-width: 2.4; stroke-linejoin: round }
+    .held  { fill: none; stroke: #0f766e; stroke-width: 2 }
     .thin  { fill: none; stroke: rgba(10,10,10,.42); stroke-width: 1.4 }
-    .box   { fill: #ffffff; stroke: #0a0a0a; stroke-width: 1.9 }
+    .box   { fill: #eef6f5; stroke: #0a0a0a; stroke-width: 1.9 }
     .name  { font: 500 14px "Pretendard Variable", Pretendard, -apple-system, "Segoe UI", sans-serif;
              fill: #0a0a0a; text-anchor: middle }
     .small { font: 400 12px "Pretendard Variable", Pretendard, -apple-system, "Segoe UI", sans-serif;
@@ -78,7 +81,7 @@
   <text class="name" x="286" y="204">Sensing</text>
   <path class="wire" d="M372 126 V246 H330"/>
   <rect class="box" x="242" y="214" width="88" height="52" rx="3"/>
-  <path class="thin" d="M254 254 h11 v-10 h11 v-12 h11 v7 h11 v-9 h11"/>
+  <path class="held" d="M254 254 h11 v-10 h11 v-12 h11 v7 h11 v-9 h11"/>
   <!-- one wire, one arrowhead, and it lands on the junction it feeds -->
   <path class="wire" marker-end="url(#ca)" d="M242 246 H116 V139"/>
   <text class="small" x="188" y="238">Feedback</text>
