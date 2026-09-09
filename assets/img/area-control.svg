@@ -17,6 +17,8 @@
              fill: rgba(10,10,10,.62); text-anchor: middle }
     .op    { font: 400 16px "Pretendard Variable", Pretendard, -apple-system, "Segoe UI", sans-serif;
              fill: rgba(10,10,10,.75); text-anchor: middle }
+    .gain  { font: italic 15px Georgia, "Times New Roman", serif; fill: #0a0a0a; text-anchor: middle }
+    .sub   { font: italic 10px Georgia, "Times New Roman", serif }
   </style>
 
   <rect class="paper" width="480" height="300"/>
@@ -42,6 +44,9 @@
   <text class="name" x="196" y="90">Controller</text>
   <path class="wire" marker-end="url(#ca)" d="M131 126 H150"/>
   <rect class="box" x="152" y="100" width="88" height="52" rx="3"/>
+  <!-- the two gains the research-page simulator puts on sliders -->
+  <text class="gain" x="196" y="122">K<tspan class="sub" dy="3">p</tspan></text>
+  <text class="gain" x="196" y="144">K<tspan class="sub" dy="3">d</tspan></text>
 
   <!-- the plant, drawn as the arm it is -->
   <text class="name" x="316" y="76">Dynamic system</text>
@@ -74,8 +79,7 @@
   <path class="wire" d="M372 126 V246 H330"/>
   <rect class="box" x="242" y="214" width="88" height="52" rx="3"/>
   <path class="thin" d="M254 254 h11 v-10 h11 v-12 h11 v7 h11 v-9 h11"/>
-  <path class="wire" marker-end="url(#ca)" d="M242 246 H150"/>
+  <!-- one wire, one arrowhead, and it lands on the junction it feeds -->
+  <path class="wire" marker-end="url(#ca)" d="M242 246 H116 V139"/>
   <text class="small" x="188" y="238">Feedback</text>
-  <path class="wire" d="M150 246 H116 V141"/>
-  <path class="wire" marker-end="url(#ca)" d="M116 158 V139"/>
 </svg>
