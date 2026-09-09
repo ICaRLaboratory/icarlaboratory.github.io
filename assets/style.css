@@ -1347,6 +1347,10 @@ main:focus { outline: none; }
 .sim__pick { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 0.4rem; }
 .sim__pick .chip { padding: 0.4rem 0.8rem; }
 .sim__pick .chip:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+/* A control that belongs to another mode is gone, not dimmed. The row sets
+   its own display, which beats the [hidden] rule the browser supplies, so it
+   has to be said here. */
+.sim__ctrl[hidden] { display: none; }
 /* a slider the current mode cannot use: still readable, plainly not in play */
 .sim__ctrl.is-off { opacity: 0.42; }
 .sim__ctrl.is-off input[type="range"] { cursor: not-allowed; }

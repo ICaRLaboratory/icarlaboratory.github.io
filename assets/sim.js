@@ -343,6 +343,8 @@ const SIM = (function () {
     /* --- the panel: sliders, readouts, footnote --- */
 
     const panel = host.querySelector(".sim__panel");
+    const noteEl = host.querySelector("[data-sim-note]");
+    const footEl = host.querySelector("[data-sim-foot]");
     panel.innerHTML =
       def.controls.map((c) => (c.choices ? `
         <div class="sim__ctrl sim__ctrl--pick">
@@ -366,7 +368,7 @@ const SIM = (function () {
       def.readouts.map((r, i) => `
         <div class="sim__out${i ? " sim__out--tight" : ""}" aria-live="polite">
           <div class="sim__rho">
-            <span class="sim__rho-label">${r.label}</span>
+            <span class="sim__rho-label" id="sim-${def.id}-lab-${r.id}"></span>
             <span id="sim-${def.id}-out-${r.id}"
                   class="sim__rho-val${i ? " sim__rho-val--sm" : ""}">&mdash;</span>
           </div>
@@ -378,8 +380,10 @@ const SIM = (function () {
       inputs[c.id] = panel.querySelector(`#sim-${def.id}-${c.id}`);
       outs[c.id] = panel.querySelector(`#sim-${def.id}-${c.id}-val`);
     }
+    const labels = {};
     for (const r of def.readouts) {
       readouts[r.id] = panel.querySelector(`#sim-${def.id}-out-${r.id}`);
+      labels[r.id] = panel.querySelector(`#sim-${def.id}-lab-${r.id}`);
     }
     verdictEl = panel.querySelector(`#sim-${def.id}-verdict`);
     const playBtn = panel.querySelector(`#sim-${def.id}-play`);
@@ -402,11 +406,23 @@ const SIM = (function () {
          off and dimmed rather than quietly ignored. */
       for (const c of def.controls) {
         if (c.choices) continue;
+        const row = inputs[c.id].closest(".sim__ctrl");
+        /* A slider can belong to another mode entirely, in which case it goes
+           away; or it can belong to this one and have nothing to say -- a
+           virtual mass to a controller with no way to render one -- in which
+           case it stays, switched off, so the reader can see that it is
+           beside the point rather than missing. */
+        row.hidden = c.hide ? c.hide(P) : false;
         const applies = c.applies ? c.applies(P) : true;
         inputs[c.id].disabled = !applies;
-        inputs[c.id].closest(".sim__ctrl").classList.toggle("is-off", !applies);
+        row.classList.toggle("is-off", !applies);
         outs[c.id].textContent = !applies ? (c.off || "—")
           : c.show ? c.show(P[c.id], P) : String(P[c.id]);
+      }
+      for (const r of def.readouts) {
+        if (labels[r.id]) {
+          labels[r.id].textContent = typeof r.label === "function" ? r.label(P) : r.label;
+        }
       }
     }
 
@@ -423,8 +439,20 @@ const SIM = (function () {
       }
     }
 
+    /* Each mode can have its own note and footnote, kept in data/site.js
+       under SITE.sims[id].modes; a simulation with one mode just uses the
+       block itself. */
+    function words() {
+      const all = (typeof SITE !== "undefined" && SITE.sims && SITE.sims[def.id]) || {};
+      const key = def.words ? def.words(P) : null;
+      const w = (key && all.modes && all.modes[key]) || all;
+      if (noteEl && w.note) setProse(noteEl, w.note);
+      if (footEl && w.foot) setProse(footEl, w.foot);
+    }
+
     function retune() {
       readParams();
+      words();
       def.reset(P);
       show(def.tune ? def.tune(P) : null);
       show(def.live ? def.live(P) : null);
@@ -555,7 +583,7 @@ const SIM = (function () {
       pause() { stop(); syncPlay(); },
       resume: start,
       redraw() { if (raf === null) draw(); },
-      foot: host.querySelector("[data-sim-foot]"),
+      words,
     };
   }
 
@@ -593,13 +621,10 @@ const SIM = (function () {
        the language toggle fires */
     function fillWords() {
       defs.forEach((d, i) => {
-        const w = words(d.id);
-        const host = document.getElementById("simpanel-" + d.id);
-        const note = host.querySelector("[data-sim-note]");
-        if (note && w.note) setProse(note, w.note);
-        if (running[i] && running[i].foot && w.foot) setProse(running[i].foot, w.foot);
         const tab = document.getElementById("simtab-" + d.id);
+        const w = words(d.id);
         if (tab && w.tab) tab.textContent = w.tab;
+        if (running[i]) running[i].words();
       });
     }
     fillWords();

@@ -37,30 +37,36 @@ const SITE = {
      One line each: the figure is the explanation, and on a phone every line
      here is a line of it pushed off the screen. */
   sims: {
-    arm: {
-      tab: "Sampled-data PD",
-      note: {
-        en: "A two-link arm tracing a circle under sampled PD feedback, with six kilogrammes landing on it at five seconds — past a spectral radius of one, the loop diverges.",
-        ko: "샘플드데이터 PD 제어로 원 궤적을 따라 움직이는 2관절 로봇 팔입니다. 시작 5초 후 6 kg의 하중이 추가됩니다. 스펙트럼 반경이 1을 넘으면 제어계가 불안정해집니다.",
-      },
-      foot: {
-        en: "The radius is taken at the worst pose on the circle and at whatever the arm is carrying, so it moves when the payload lands.",
-        ko: "스펙트럼 반경은 원 궤적에서 안정성에 가장 불리한 자세와 현재 하중을 기준으로 계산합니다. 하중이 추가되면 이 값도 달라집니다.",
-      },
-    },
-    smc: {
-      tab: "Sampled-data SMC",
-      note: {
-        en: "The same arm and the same six kilogrammes, driven onto the surface s = e′ + λe instead of towards a point: sliding mode shrugs the load off, and pays for it by straddling that surface in a band that opens as the sampling period grows.",
-        ko: "같은 로봇 팔에 6 kg의 하중을 추가하고, 슬라이딩 모드 제어로 s = e′ + λe = 0인 슬라이딩 면에 수렴하도록 합니다. 하중 변화에 대응하는 과정에서 슬라이딩 면 주변에 진동이 나타나며, 샘플링 주기가 길어질수록 진동 폭이 커집니다.",
-      },
-      foot: {
-        en: "The band is the largest |s| over the run once the surface has been reached: inside the boundary layer Φ the law is continuous, and outside it the torque is hard over one way or the other and flipping every sample.",
-        ko: "표시된 진동 폭은 슬라이딩 면에 도달한 이후 |s|의 최댓값입니다. 경계층 Φ 안에서는 제어 입력이 연속적으로 변하고, 밖에서는 불연속 제어 성분의 부호가 s에 따라 전환됩니다.",
+    /* One tab, two control laws, and a note and a footnote for each of
+       them: the module reports which is selected and the shell reads the
+       matching block out of modes. */
+    track: {
+      tab: "Trajectory tracking",
+      modes: {
+        pd: {
+          note: {
+            en: "A two-link arm tracing a circle under sampled PD feedback, with six kilogrammes landing on it at five seconds — past a spectral radius of one, the loop diverges.",
+            ko: "샘플드데이터 PD 제어로 원 궤적을 따라 움직이는 2관절 로봇 팔입니다. 시작 5초 후 6 kg의 하중이 추가됩니다. 스펙트럼 반경이 1을 넘으면 제어계가 불안정해집니다.",
+          },
+          foot: {
+            en: "The radius is taken at the worst pose on the circle and at whatever the arm is carrying, so it moves when the payload lands.",
+            ko: "스펙트럼 반경은 원 궤적에서 안정성에 가장 불리한 자세와 현재 하중을 기준으로 계산합니다. 하중이 추가되면 이 값도 달라집니다.",
+          },
+        },
+        smc: {
+          note: {
+            en: "The same arm and the same six kilogrammes, driven onto the surface s = e′ + λe instead of towards a point: sliding mode shrugs the load off, and pays for it by straddling that surface in a band that opens as the sampling period grows.",
+            ko: "같은 로봇 팔에 6 kg의 하중을 추가하고, 슬라이딩 모드 제어로 s = e′ + λe = 0인 슬라이딩 면에 수렴하도록 합니다. 하중 변화에 대응하는 과정에서 슬라이딩 면 주변에 진동이 나타나며, 샘플링 주기가 길어질수록 진동 폭이 커집니다.",
+          },
+          foot: {
+            en: "The band is the largest |s| over the run once the surface has been reached: inside the boundary layer Φ the law is continuous, and outside it the torque is hard over one way or the other and flipping every sample.",
+            ko: "표시된 진동 폭은 슬라이딩 면에 도달한 이후 |s|의 최댓값입니다. 경계층 Φ 안에서는 제어 입력이 연속적으로 변하고, 밖에서는 불연속 제어 성분의 부호가 s에 따라 전환됩니다.",
+          },
+        },
       },
     },
     contact: {
-      tab: "Admittance contact",
+      tab: "Interaction control",
       note: {
         en: "One machine pressed on a wall, wired both ways round: admittance measures the force and commands a motion, and gives way on a hard contact; impedance measures the motion and commands a force, and gives way as the sampling period grows.",
         ko: "같은 장치를 벽에 접촉시켜 두 제어 방식을 비교합니다. 어드미턴스 제어는 측정한 힘을 바탕으로 목표 위치를 정하고, 임피던스 제어는 측정한 위치를 바탕으로 힘을 정합니다. 이 모델에서는 접촉 강성이 높을 때 어드미턴스 제어가, 샘플링 주기가 길 때 임피던스 제어가 불안정해질 수 있습니다.",
