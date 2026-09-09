@@ -450,6 +450,11 @@
     ctx.fillText(text, x, y);
   }
 
+  /* names a vertical wire, the way tau and q are named on the horizontal ones */
+  function signal(letter, x, yTop, yBot) {
+    maths(letter, x, (yTop + yBot) / 2 + 5, 15, "left");
+  }
+
   /* The arm keeps the whole right side, because it is the only block with
      something moving in it. Down the left: the target step, the junction, the
      controller, and then the sampler and the delay side by side in one row --
@@ -476,6 +481,7 @@
     ctx.bezierCurveTo(sx + sw * 0.42, sy + sh, sx + sw * 0.42, sy, sx + sw * 0.58, sy);
     ctx.lineTo(sx + sw - 2, sy);
     ctx.stroke();
+    maths("r", sx + sw + 6, sy + 5, 15, "left");
 
     /* summing junction */
     const jy = y + h * 0.32, jr = Math.min(h * 0.055, 15);
@@ -499,6 +505,7 @@
     /* the controller, with the gains as they stand */
     const pdY = y + h * 0.46, pdH = Math.min(h * 0.19, 66);
     arrow(colMid, jy + jr + 2, colMid, pdY - 2);
+    signal("e", colMid + 9, jy + jr + 2, pdY - 2);
     roundBox(colX, pdY, colW, pdH);
     cap("PD", colX, pdY - 9, 10, "left");
     maths("K", colX + colW * 0.30, pdY + pdH * 0.42, 15, "right");
