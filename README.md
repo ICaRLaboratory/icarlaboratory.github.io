@@ -23,6 +23,7 @@ assets/
   hero.js           The live hero figure (see below).
   favicon.png
   img/              Logo, portraits, research-area images.
+  fonts/            Self-hosted Pretendard and JetBrains Mono (see Notes).
 
 data/
   site.js           Lab identity, contact, advisor CV, research areas
@@ -31,6 +32,11 @@ data/
   projects.js       Funded projects
   courses.js        Teaching
   gallery.js        Photo albums
+  news.js           Short-lived announcements for the home page
+
+publish.sh          The daily update helper (see Publishing).
+tests/, tools/      Automated checks; see tests/README.md.
+.github/workflows/  The same checks, run on every push.
 ```
 
 ## Updating content
@@ -65,6 +71,12 @@ and GPS coordinates included. What goes on the site is a web copy in
 `assets/img/gallery/` — graded at full size, resized to 1400px last so the
 image is resampled and JPEG-encoded only once, with the metadata dropped. Then
 list it in `data/gallery.js`, newest album first.
+
+**Post a short announcement** — add an entry to `NEWS` in `data/news.js` and a
+band appears at the top of the home page. Each item disappears on its own after
+`NEWS_WINDOW_DAYS` (14), and the band hides itself once nothing is current, so
+nothing has to be deleted by hand. An item dated in the future stays hidden
+until that day, so something can be queued in advance.
 
 **Advisor CV, contact, research areas** — `data/site.js`.
 
@@ -101,13 +113,20 @@ are relative.
 
 - The site is black-on-white with black bands for the nav, hero and footer. There
   is no light/dark toggle — one design, matching the lab's own palette.
-- The site is in English. Korean appears only where it identifies something:
-  member names, the official Korean titles of projects and courses, and the
-  address in the footer.
-- Two type families: Pretendard (jsDelivr) for everything from the headlines
-  down — it covers Latin and the Korean that remains — and JetBrains Mono
-  (Google Fonts) for the small uppercase labels. Offline, the site falls back
-  to system fonts and still reads correctly.
+- Korean is the default, with a 한국어 / EN toggle in the nav. Only the
+  descriptive prose is translated: those strings carry an `{ en, ko }` pair in
+  `data/`. Headings, technical terms, keywords, the hero figure and everything
+  else stay English on both sides, so a plain string is shown as-is in both.
+  `<html lang>` stays `en` and the Korean runs are tagged individually, which is
+  what a screen reader needs to switch voices mid-page.
+- Two type families, both self-hosted in `assets/fonts/` with no third-party
+  request: Pretendard for everything from the headlines down, and JetBrains Mono
+  for the small uppercase labels. Pretendard is the official v1.3.9 dynamic
+  subset — 92 chunks split by Unicode range, so a page fetches only the chunks
+  its own text needs (about 350 KB for a Korean page instead of the 2 MB full
+  font) while every modern Hangul syllable stays available. Provenance, licence
+  and checksums are in `assets/fonts/README.md`. Offline, the site falls back to
+  system fonts and still reads correctly.
 - Images in `assets/img/` came from the old Google Sites page.
 
 ## Day-to-day updates
@@ -165,3 +184,9 @@ Publishing tests use disposable Git repositories, test identities and local bare
 remotes only; they never push the real origin. To run the browser checks, serve
 the repository root with `python3 -m http.server 8000`, then open
 `http://localhost:8000/tests/browser-checks.html`.
+
+`.github/workflows/checks.yml` runs all of these on every push, plus the font
+coverage and checksum checks and the browser harness in headless Chromium. The
+font checks need `fonttools` and the browser harness needs Playwright, neither of
+which is required for daily publishing — `tests/README.md` has the commands and
+what each one covers.
