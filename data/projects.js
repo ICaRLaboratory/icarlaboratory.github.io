@@ -11,8 +11,8 @@ const PROJECTS = [
     status: "ongoing",
     titleEn: "An integrated data- and network-based resilient and robust control framework for reassembly systems using modular heterogeneous manipulators",
     titleKo: "모듈형 이종 매니퓰레이터 기반 재조립 시스템을 위한 데이터·네트워크 기반 회복탄력·강인 제어 통합 프레임워크 연구",
-    agency: "National Research Foundation of Korea",
-    agencyKo: "한국연구재단",
+    agency: "National Research Foundation of Korea (Young Researcher Program, Type B)",
+    agencyKo: "한국연구재단 (신진연구, 유형 B)",
     period: "2026.03 – 2031.02",
     role: "Principal Investigator",
   },
@@ -57,9 +57,9 @@ const PROJECTS = [
     titleEn: "Robust sampled-data control for networked systems with uncertainties",
     titleKo: "불확실성을 지닌 네트워크 시스템에서의 표본 데이터 강인 제어",
     agency: "National Research Foundation of Korea (First Research Grant)",
-    /* The professor's first grant, and it is the 생애첫연구 programme, which is
-       not 신진연구 -- the original data had the Korean wrong and the English
-       right. The 신진연구 grant is a separate one and is not on this list. */
+    /* The two NRF grants are different programmes and both are on this list:
+       생애첫연구 here, their first, and 신진연구 유형 B above. The original data had
+       this one's Korean naming the wrong one of the two. */
     agencyKo: "한국연구재단 (생애첫연구사업)",
     period: "2020.03 – 2023.02",
     role: "Principal Investigator",
