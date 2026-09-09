@@ -24,7 +24,7 @@
    the payload with it, which is the point of the method and the death
    of the picture.
 
-   At five seconds -- one full lap in -- two kilogrammes arrive at the
+   At five seconds -- one full lap in -- six kilogrammes arrive at the
    end effector. Nothing about the controller changes. The arm is
    simply heavier than the gains were chosen for, and the error it was
    holding to a few millimetres opens up: the laden laps are drawn
@@ -49,13 +49,11 @@ SIM.register((function () {
   /* point masses at the end of each link: the smallest model that still
      has a varying inertia and real Coriolis terms */
   const ARM = { m1: 1, m2: 0.7, l1: 1, l2: 0.85 };
-  const PAYLOAD = 2;            /* kg, at the end effector */
+  const PAYLOAD = 6;            /* kg, at the end effector */
   const T_LOAD = 5;             /* s, one lap in */
   const WINDOW = 20;            /* s, four laps */
   const CIRCLE = { x: 0.9, y: -0.4, r: 0.35, T: 5, phase: Math.PI };
 
-  /* the joint angles the circle covers, so one scale serves the record */
-  const A_TOP = 2.95, A_BOT = -2.35;
   /* the arm's reach over the whole task, padded for the pedestal and the
      payload marker, so the drawing never has to rescale mid-run */
   const REACH = { x0: -0.30, x1: 1.40, y0: -1.15, y1: 0.18 };
@@ -66,6 +64,7 @@ SIM.register((function () {
   let q, v, held, queue, simT, nextT, hist, marks, diverged;
   let rhoFree = 0, rhoLoad = 0;
 
+  const KG = "+" + PAYLOAD + " KG";
   const loaded = () => simT >= T_LOAD;
   const tipMass = () => (loaded() ? ARM.m2 + PAYLOAD : ARM.m2);
 
@@ -156,7 +155,8 @@ SIM.register((function () {
       held[i] = k >= 0 ? queue[i][k] : 0;
       if (queue[i].length > 64) queue[i].shift();
     }
-    marks.push([simT, q[0], q[1]]);
+    /* the error as the controller saw it, which is the one it acted on */
+    marks.push([simT, r.q[0] - q[0], r.q[1] - q[1]]);
     if (marks.length > 1600) marks.shift();
   }
 
@@ -307,7 +307,7 @@ SIM.register((function () {
     const px0 = x + w * 0.40, pw = w * 0.585;
     const py0 = y + h * 0.03, ph = h * 0.94;
     g.roundBox(px0, py0, pw, ph, 5);
-    g.cap(loaded() ? "ARM  +2 KG" : "ARM", px0 + pw / 2, py0 - 9);
+    g.cap(loaded() ? "ARM  " + KG : "ARM", px0 + pw / 2, py0 - 9);
     drawArm(g, { x: px0, y: py0, w: pw, h: ph });
     g.maths("τ", (colX + colW + px0) / 2, pdY + pdH * 0.45 - 10, 15);
     g.arrow(colX + colW + 2, pdY + pdH * 0.5, px0 - 2, pdY + pdH * 0.5);
@@ -423,7 +423,7 @@ SIM.register((function () {
     if (loaded()) {
       ctx.fillStyle = "#0a0a0a";
       ctx.beginPath(); ctx.arc(tip.x, tip.y, 9, 0, 7); ctx.fill();
-      g.cap("+2 KG", tip.x + 13, tip.y + 4, 9, "left", 0.75);
+      g.cap(KG, tip.x + 13, tip.y + 4, 9, "left", 0.75);
     } else {
       ctx.fillStyle = "#0a0a0a";
       ctx.beginPath(); ctx.arc(tip.x, tip.y, 4.6, 0, 7); ctx.fill(); ctx.stroke();
@@ -433,71 +433,91 @@ SIM.register((function () {
 
   /* ---------- the two records ---------- */
 
-  /* how far the tip is from where it was asked to be, over the whole run */
-  let errTop = 30;              /* mm; grows to fit, never shrinks mid-run */
+  /* radians and radians a second, grown to fit the run */
+  let eTop = 0.04, dTop = 0.4;
 
-  function drawError(g, p) {
+  /* Each joint's tracking error against how fast that error is changing. A
+     loop that is following draws a small orbit near the origin; the payload
+     opens it out, and an unstable one spirals away from it. */
+  function drawPhase(g, p) {
     const { ctx } = g;
-    const x0 = p.x + 34, x1 = p.x + p.w - 12;
-    const yTop = p.y + 36, yBot = p.y + p.h - 26;
-    const px = (t) => x0 + (t / WINDOW) * (x1 - x0);
-    const py = (e) => yBot - Math.min(e, errTop) / errTop * (yBot - yTop);
+    const cx = p.x + p.w / 2, cy = p.y + p.h / 2 + 10;
+    const sx = (p.w / 2 - 30) / eTop;
+    const sy = (p.h / 2 - 44) / dTop;
 
-    g.seconds(p, px, yTop, yBot, WINDOW, 5);
-    ctx.strokeStyle = g.ink(0.13);
+    ctx.strokeStyle = g.ink(0.1);
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(x0, yBot); ctx.lineTo(x1, yBot);
+    ctx.moveTo(p.x + 10, cy); ctx.lineTo(p.x + p.w - 10, cy);
+    ctx.moveTo(cx, p.y + 28); ctx.lineTo(cx, p.y + p.h - 10);
     ctx.stroke();
-    for (const frac of [0.5, 1]) {
-      const yy = yBot - frac * (yBot - yTop);
-      ctx.strokeStyle = g.ink(0.07);
-      ctx.beginPath(); ctx.moveTo(x0, yy); ctx.lineTo(x1, yy); ctx.stroke();
-      g.cap(Math.round(errTop * frac) + "", x0 - 6, yy + 3, 9, "right", 0.4);
-    }
+    g.cap("error \u2192", p.x + p.w - 12, p.y + p.h - 24, 9, "right", 0.4);
+    g.cap("rate \u2191", cx + 8, p.y + 38, 9, "left", 0.4);
+    g.cap(eTop.toFixed(2) + " rad", p.x + p.w - 12, p.y + p.h - 12, 9, "right", 0.35);
 
-    if (simT >= T_LOAD) g.event(px(T_LOAD), yTop, yBot, "+2 KG");
-
-    ctx.strokeStyle = g.ink(0.9);
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    let started = false;
-    for (const row of hist) {
-      const X = px(row[0]), Y = py(row[3] * 1000);
-      started ? ctx.lineTo(X, Y) : (ctx.moveTo(X, Y), (started = true));
+    const cut = hist.length > TRAIL ? hist[hist.length - TRAIL][0] : 0;
+    for (let j = 0; j < 2; j++) {
+      const X = (row) => cx + row[4 + j] * sx;
+      const Y = (row) => cy - row[6 + j] * sy;
+      const path = (from, to, stroke) => {
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = j === 0 ? 1.5 : 1.1;
+        ctx.beginPath();
+        let started = false;
+        for (const row of hist) {
+          if (row[0] < from || row[0] > to) { started = false; continue; }
+          started ? ctx.lineTo(X(row), Y(row)) : (ctx.moveTo(X(row), Y(row)), (started = true));
+        }
+        ctx.stroke();
+      };
+      path(0, T_LOAD, g.ink(j === 0 ? 0.34 : 0.22));
+      path(Math.max(T_LOAD, cut), Infinity, j === 0 ? "#0f766e" : "#4b9b93");
+      if (hist.length) {
+        const last = hist[hist.length - 1];
+        ctx.fillStyle = j === 0 ? g.ink(1) : g.ink(0.5);
+        ctx.beginPath();
+        ctx.arc(X(last), Y(last), j === 0 ? 3.2 : 2.4, 0, 7);
+        ctx.fill();
+      }
     }
-    ctx.stroke();
+    g.cap("SHOULDER", p.x + 12, p.y + p.h - 24, 9, "left", 0.55);
+    g.cap("ELBOW", p.x + 12, p.y + p.h - 12, 9, "left", 0.32);
   }
 
-  /* Both joints on one angle scale rather than each normalised to its own
-     swing: normalised, the two would draw nearly the same curve twice. */
-  function drawSampled(g, p) {
+  /* The same error against time, with the staircase the controller actually
+     saw laid over the continuous one it did not. */
+  function drawErrors(g, p) {
     const { ctx } = g;
-    const x0 = p.x + 12, x1 = p.x + p.w - 12;
+    const x0 = p.x + 38, x1 = p.x + p.w - 12;
     const yTop = p.y + 34, yBot = p.y + p.h - 26;
     const px = (t) => x0 + (t / WINDOW) * (x1 - x0);
-    const py = (a) => yTop + ((A_TOP - a) / (A_TOP - A_BOT)) * (yBot - yTop);
+    const mid = (yTop + yBot) / 2;
+    const py = (e) => mid - (e / eTop) * ((yBot - yTop) / 2);
 
     g.seconds(p, px, yTop, yBot, WINDOW, 5);
+    ctx.strokeStyle = g.ink(0.22);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x0, mid); ctx.lineTo(x1, mid);
+    ctx.stroke();
+    for (const v of [-eTop, eTop]) {
+      g.cap(v.toFixed(2), x0 - 6, py(v) + 3, 9, "right", 0.4);
+    }
+    g.cap("rad", x0 - 6, mid + 3, 9, "right", 0.35);
 
-    /* the angles asked for, drawn once across the whole record */
-    ctx.strokeStyle = g.ink(0.3);
-    ctx.lineWidth = 1.2;
-    ctx.setLineDash([4, 4]);
+    if (simT >= T_LOAD) g.event(px(T_LOAD), yTop, yBot, KG);
+
     for (let j = 0; j < 2; j++) {
+      ctx.strokeStyle = g.ink(j === 0 ? 0.3 : 0.2);
+      ctx.lineWidth = 1;
       ctx.beginPath();
-      for (let i = 0; i <= 240; i++) {
-        const t = (i / 240) * WINDOW, a = ik(ref(t))[j];
-        i ? ctx.lineTo(px(t), py(a)) : ctx.moveTo(px(t), py(a));
+      let started = false;
+      for (const row of hist) {
+        const X = px(row[0]), Y = py(row[4 + j]);
+        started ? ctx.lineTo(X, Y) : (ctx.moveTo(X, Y), (started = true));
       }
       ctx.stroke();
-    }
-    ctx.setLineDash([]);
 
-    if (simT >= T_LOAD) g.event(px(T_LOAD), yTop, yBot, "+2 KG");
-
-    for (let j = 0; j < 2; j++) {
-      /* the sampled measurement, held: what the controller was handed */
       ctx.strokeStyle = g.ink(j === 0 ? 0.95 : 0.55);
       ctx.lineWidth = j === 0 ? 1.6 : 1.3;
       ctx.beginPath();
@@ -509,8 +529,9 @@ SIM.register((function () {
       }
       ctx.stroke();
     }
-    g.cap("SHOULDER", p.x + 12, p.y + p.h - 24, 9, "left", 0.55);
-    g.cap("ELBOW", p.x + 12, p.y + p.h - 12, 9, "left", 0.32);
+    /* out of the corner, which the bottom scale mark already has */
+    g.cap("SHOULDER", x1 - 4, yTop + 11, 9, "right", 0.55);
+    g.cap("ELBOW", x1 - 4, yTop + 23, 9, "right", 0.32);
   }
 
   /* ---------- the module ---------- */
@@ -518,8 +539,8 @@ SIM.register((function () {
   return {
     id: "arm",
     canvasLabel: "Three live panels driven by one sampled-data control loop: " +
-      "a two-link arm tracing a circle with a payload added partway, the tip " +
-      "error over time, and the sampled joint angles against the angles asked for",
+      "a two-link arm tracing a circle with a payload added partway, the joint " +
+      "tracking errors against their rates, and those errors over time",
 
     controls: [
       { id: "kp", label: "Proportional gain <i>K</i><sub>p</sub>",
@@ -554,7 +575,8 @@ SIM.register((function () {
       hist = [];
       marks = [];
       diverged = false;
-      errTop = 30;
+      eTop = 0.04;
+      dTop = 0.4;
     },
 
     done: () => diverged || simT >= WINDOW,
@@ -574,12 +596,17 @@ SIM.register((function () {
 
       const want = ref(simT), got = fk(q);
       const err = Math.hypot(got.x - want.x, got.y - want.y);
-      hist.push([simT, q[0], q[1], err]);
+      const r = refJoints(simT);
+      const e = [r.q[0] - q[0], r.q[1] - q[1]];
+      const de = [r.dq[0] - v[0], r.dq[1] - v[1]];
+      hist.push([simT, q[0], q[1], err, e[0], e[1], de[0], de[1]]);
       if (hist.length > 1600) hist.shift();
-      /* the error scale grows to fit the run and never shrinks inside it, so
-         the trace does not jump about while it is being drawn */
-      const mm = err * 1000;
-      if (mm > errTop) errTop = Math.ceil(mm / 30) * 30;
+      /* the scales grow to fit the run and never shrink inside it, so nothing
+         jumps about while it is being drawn */
+      for (let i = 0; i < 2; i++) {
+        if (Math.abs(e[i]) > eTop) eTop = Math.ceil(Math.abs(e[i]) / 0.02) * 0.02;
+        if (Math.abs(de[i]) > dTop) dTop = Math.ceil(Math.abs(de[i]) / 0.2) * 0.2;
+      }
 
       const wild = !Number.isFinite(err) || err > 3
         || v.some((s) => Math.abs(s) > 120);
@@ -613,8 +640,8 @@ SIM.register((function () {
     draw(g, P, D) {
       const b = boxes(D);
       drawLoop(g, P, b.loop);
-      g.panel(b.left, "TIP ERROR (MM)", () => drawError(g, b.left));
-      g.panel(b.right, "JOINT ANGLES OVER TIME (RAD)", () => drawSampled(g, b.right));
+      g.panel(b.left, "JOINT ERROR, PHASE PORTRAIT", () => drawPhase(g, b.left));
+      g.panel(b.right, "JOINT ERROR OVER TIME", () => drawErrors(g, b.right));
     },
   };
 })());

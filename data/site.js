@@ -33,28 +33,30 @@ const SITE = {
     ko: "제어 이론과 알고리즘, 로봇의 운동과 협업, 임베디드 연산과 신호처리를 연구합니다. 지연과 불확실성을 갖는 동적 시스템, 환경과 상호작용하는 로봇, 제한된 자원에서 실시간 처리와 추론을 수행하는 장치가 주요 연구 대상입니다. 각 분야의 독립적인 연구를 수행하며, 주제에 따라 분야를 연결하는 공동 연구도 진행합니다.",
   },
   /* The two loops on the research page. Each block is keyed by the id its
-     module in assets/ registers, so the physics and the words stay apart. */
+     module in assets/ registers, so the physics and the words stay apart.
+     One line each: the figure is the explanation, and on a phone every line
+     here is a line of it pushed off the screen. */
   sims: {
     arm: {
       tab: "Sampled-data PD",
       note: {
-        en: "A two-link arm traces a circle under proportional-derivative feedback, measured on a clock instead of continuously and acted on a few samples late. One lap in, two kilogrammes arrive at the end effector, and nothing about the controller changes: the arm is simply heavier than the gains were chosen for, so it lags, and the laden laps swing wider than the first one. With no sampling period and no delay, any positive pair of gains would hold it. Give the loop a clock and a delay and that stops being true, which is what our work is about: the readout is the spectral radius of the sampled-data loop, and the figure diverges exactly when it passes one.",
-        ko: "2관절 팔이 비례-미분 피드백으로 원을 그립니다. 다만 연속이 아니라 일정한 주기로 측정하고, 몇 샘플 뒤늦게 작용합니다. 한 바퀴를 돈 5초에 2 kg이 엔드이펙터에 실리지만 제어기는 그대로입니다. 이득을 정할 때 가정한 것보다 팔이 무거워졌을 뿐인데, 그만큼 뒤처지고, 이후의 궤적은 첫 바퀴보다 바깥으로 부풉니다. 샘플링 주기와 지연이 없다면 양의 이득 조합은 언제나 안정하지만, 클럭과 지연이 끼어들면 그렇지 않습니다. 이 지점이 연구실의 주제입니다. 위 수치는 샘플드데이터 루프의 스펙트럼 반경이며, 그 값이 1을 넘는 순간 그림도 발산합니다.",
+        en: "A two-link arm tracing a circle under sampled PD feedback, with six kilogrammes landing on it at five seconds — past a spectral radius of one, the loop diverges.",
+        ko: "샘플드데이터 PD로 원을 그리는 2관절 팔 — 5초에 6 kg이 실리고, 스펙트럼 반경이 1을 넘으면 발산합니다.",
       },
       foot: {
-        en: "The radius is the loop linearised about the pose being tracked, taken at the worst point of the circle and at whatever the arm is carrying — which is why it moves when the payload lands. More inertia makes a sampled loop better damped for the same gains, so a load can carry the radius down at the same time as it makes the tracking worse. The two numbers measure different things.",
-        ko: "반경은 추종 중인 자세에서 선형화한 루프의 값이며, 원 위에서 가장 나쁜 지점과 그 순간 팔이 들고 있는 질량을 기준으로 계산합니다. 페이로드가 실릴 때 값이 움직이는 이유입니다. 같은 이득이라면 관성이 클수록 샘플드데이터 루프의 감쇠는 좋아지므로, 하중이 추종 오차를 키우면서 반경은 오히려 낮출 수 있습니다. 두 수치는 서로 다른 것을 재고 있습니다.",
+        en: "The radius is taken at the worst pose on the circle and at whatever the arm is carrying, so it moves when the payload lands.",
+        ko: "반경은 원 위에서 가장 나쁜 자세와 그 순간의 적재 질량 기준이라, 페이로드가 실릴 때 함께 움직입니다.",
       },
     },
     contact: {
       tab: "Admittance contact",
       note: {
-        en: "Here the tool is asked for a force, not a position: against a stiff surface a millimetre either way is the difference between no contact and far too much. So the force error drives a virtual mass, spring and damper, and wherever that settles is where the robot is sent. Two things are worth finding on the sliders. The virtual spring has to be held somewhere, and holding it costs force, so the loop settles short of what was asked for — wind the stiffness down to zero and the offset goes with it. Then make the wall hard and the virtual mass and damping light, and the tool starts chattering against the surface: contact instability, which is why this is a research problem and not a formula.",
-        ko: "여기서 도구에 지시하는 것은 위치가 아니라 힘입니다. 단단한 표면에서는 1 mm 차이가 접촉하지 않음과 지나치게 누름을 가르기 때문입니다. 그래서 힘 오차가 가상의 질량-스프링-감쇠기를 구동하고, 그 결과로 정해지는 위치를 로봇에게 지령합니다. 슬라이더로 확인할 것이 두 가지입니다. 가상 스프링을 눌러 두려면 힘이 들기 때문에 루프는 요구한 값에 못 미치는 지점에서 멈춥니다. 가상 강성을 0으로 내리면 그 오차도 함께 사라집니다. 다음으로 벽을 단단하게 하고 가상 질량과 감쇠를 작게 하면 도구가 표면을 두드리기 시작합니다. 접촉 불안정이며, 이것이 이 주제가 공식이 아니라 연구 문제인 이유입니다.",
+        en: "Admittance control against a wall: the force error drives a virtual mass, spring and damper — the virtual stiffness leaves the force short, and a hard enough wall makes the contact chatter.",
+        ko: "힘 오차로 가상의 질량-스프링-감쇠기를 움직여 벽을 누르는 어드미턴스 제어 — 가상 강성은 힘을 모자라게 하고, 단단한 벽은 접촉을 떨게 합니다.",
       },
       foot: {
-        en: "The pole is the rightmost eigenvalue of the loop while it is in contact, where the wall closes a path from the tool straight back into the admittance; out of contact the two halves come apart and the question does not arise. The force beside it is where the loop settles, which is the target only when the virtual stiffness is zero.",
-        ko: "극점은 접촉 중인 루프의 가장 오른쪽 고윳값입니다. 접촉 상태에서는 벽이 도구에서 어드미턴스로 되돌아가는 경로를 닫아 주며, 접촉이 없으면 두 부분이 분리되어 이 문제가 성립하지 않습니다. 옆의 힘은 루프가 실제로 머무는 값이고, 가상 강성이 0일 때에만 목표값과 일치합니다.",
+        en: "The pole is the rightmost eigenvalue of the loop in contact, and the force beside it reaches the target only at zero virtual stiffness.",
+        ko: "극점은 접촉 중인 루프의 가장 오른쪽 고윳값이고, 옆의 힘은 가상 강성이 0일 때만 목표에 닿습니다.",
       },
     },
   },

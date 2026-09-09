@@ -194,91 +194,128 @@ SIM.register((function () {
     g.arrow(feedX, jy, colMid - jr - 2, jy);
   }
 
-  /* ---------- the tool against the wall ---------- */
+  /* ---------- the machine against the wall ----------
+
+     One controlled axis, drawn as one: a fixed mount, a linear guide, the
+     carriage the servo moves along it, a force sensor at the end of the rod
+     and the tool face that meets the surface. A jointed arm would be the
+     livelier picture and the wrong one -- the stroke here is a couple of
+     centimetres against a millimetre of contact, and any elbow drawn to that
+     scale would be flailing through ninety degrees while the tool creeps
+     forward. The normal direction is what is modelled, so the normal
+     direction is what is drawn. */
 
   function drawContact(g, P, box) {
     const { ctx } = g;
     /* Millimetres of penetration beside centimetres of approach would be
        invisible, so the axis is drawn at a scale that makes the contact
-       readable and the record below carries the honest numbers. */
+       readable and the records below carry the honest numbers. */
     const LEFT = -0.030, RIGHT = 0.055;
-    const px = (X) => box.x + box.w * 0.12 +
-      ((X - LEFT) / (RIGHT - LEFT)) * (box.w * 0.66);
+    /* the stroke starts far enough in that a fully retracted carriage still
+       clears the mount it slides away from */
+    const px = (X) => box.x + box.w * 0.34 +
+      ((X - LEFT) / (RIGHT - LEFT)) * (box.w * 0.58);
     const mid = box.y + box.h * 0.52;
+    const f = force(x, v, P.ke);
 
     ctx.save();
     ctx.beginPath();
     ctx.rect(box.x + 1.5, box.y + 1.5, box.w - 3, box.h - 3);
     ctx.clip();
 
-    const f = force(x, v, P.ke);
-    const face = px(WALL.x + Math.max(0, x - WALL.x));    /* the surface, pushed in */
+    const face = px(WALL.x + Math.max(0, x - WALL.x));    /* pushed in */
     const wallEnd = box.x + box.w - 6;
+    const tipX = px(x);
+    const rail = box.h * 0.15;
+    const mountX = box.x + box.w * 0.04;
 
-    /* the wall: a face and hatching behind it */
-    ctx.fillStyle = g.ink(0.06);
-    ctx.fillRect(face, box.y + box.h * 0.16, wallEnd - face, box.h * 0.72);
-    ctx.strokeStyle = g.ink(0.22);
+    /* the wall: a face, and hatching behind it */
+    ctx.fillStyle = g.ink(0.05);
+    ctx.fillRect(face, box.y + box.h * 0.12, wallEnd - face, box.h * 0.76);
+    ctx.strokeStyle = g.ink(0.2);
     ctx.lineWidth = 1;
-    for (let hx = face + 7; hx < wallEnd; hx += 9) {
+    for (let hx = face + 8; hx < wallEnd; hx += 10) {
       ctx.beginPath();
-      ctx.moveTo(hx, box.y + box.h * 0.16);
-      ctx.lineTo(hx - 9, box.y + box.h * 0.88);
+      ctx.moveTo(hx, box.y + box.h * 0.12);
+      ctx.lineTo(hx - 10, box.y + box.h * 0.88);
       ctx.stroke();
     }
     ctx.strokeStyle = g.ink(f > 0 ? 0.9 : 0.45);
-    ctx.lineWidth = f > 0 ? 2.4 : 1.6;
+    ctx.lineWidth = f > 0 ? 2.6 : 1.6;
     ctx.beginPath();
-    ctx.moveTo(face, box.y + box.h * 0.16);
+    ctx.moveTo(face, box.y + box.h * 0.12);
     ctx.lineTo(face, box.y + box.h * 0.88);
     ctx.stroke();
     /* where the surface sits with nothing pressing on it */
-    ctx.strokeStyle = g.ink(0.2);
+    ctx.strokeStyle = g.ink(0.22);
     ctx.lineWidth = 1;
     ctx.setLineDash([3, 3]);
     ctx.beginPath();
-    ctx.moveTo(px(WALL.x), box.y + box.h * 0.12);
+    ctx.moveTo(px(WALL.x), box.y + box.h * 0.08);
     ctx.lineTo(px(WALL.x), box.y + box.h * 0.92);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    /* the rail the tool runs on */
-    ctx.strokeStyle = g.ink(0.14);
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.moveTo(box.x + 12, mid + 26); ctx.lineTo(face, mid + 26);
-    ctx.stroke();
+    /* the mount the axis is bolted to */
+    ctx.strokeStyle = g.ink(0.2);
+    ctx.lineWidth = 1;
+    for (let k = 0; k < 5; k++) {
+      const yy = mid - rail * 1.5 + k * rail * 0.75;
+      ctx.beginPath();
+      ctx.moveTo(mountX - 12, yy + 8); ctx.lineTo(mountX, yy);
+      ctx.stroke();
+    }
+    ctx.fillStyle = "#0a0a0a";
+    ctx.fillRect(mountX, mid - rail * 1.5, 7, rail * 3);
 
-    /* where the admittance is telling it to be */
+    /* the guide it runs on */
+    ctx.strokeStyle = g.ink(0.3);
+    ctx.lineWidth = 2.4;
+    for (const dy of [-rail, rail]) {
+      ctx.beginPath();
+      ctx.moveTo(mountX + 7, mid + dy); ctx.lineTo(px(WALL.x) - 2, mid + dy);
+      ctx.stroke();
+    }
+
+    /* where the admittance is telling the carriage to go */
     const xr = px(WALL.x + e);
-    ctx.strokeStyle = g.ink(0.35);
-    ctx.lineWidth = 1.4;
-    ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = g.ink(0.6);
+    ctx.lineWidth = 1.6;
+    ctx.setLineDash([4, 3]);
     ctx.beginPath();
-    ctx.moveTo(xr, mid - 30); ctx.lineTo(xr, mid + 26);
+    ctx.moveTo(xr, mid - rail * 2.1); ctx.lineTo(xr, mid + rail * 1.9);
     ctx.stroke();
     ctx.setLineDash([]);
-    g.labelled("x", "r", "", xr, mid - 34, 12, 0.5);
+    g.labelled("x", "r", "", xr, mid - rail * 2.4, 12, 0.5);
 
-    /* the tool */
-    const tw = box.w * 0.13, th = box.h * 0.26;
-    const tx = px(x) - tw;
-    ctx.fillStyle = "#fff";
+    /* the carriage, the rod, the sensor and the tool face */
+    const rod = box.w * 0.085, puck = box.w * 0.05;
+    const carW = box.w * 0.115, carH = rail * 1.9;
+    const carRight = tipX - rod - puck;
+    g.roundBox(carRight - carW, mid - carH / 2, carW, carH, 3);
+    ctx.fillStyle = g.ink(0.75);
+    for (const dy of [-rail, rail]) ctx.fillRect(carRight - carW * 0.8, mid + dy - 2.5, carW * 0.6, 5);
+
     ctx.strokeStyle = g.ink(1);
-    ctx.lineWidth = 2;
+    ctx.lineWidth = Math.max(4, box.h * 0.035);
+    ctx.lineCap = "butt";
     ctx.beginPath();
-    ctx.rect(tx, mid - th / 2, tw, th);
-    ctx.fill(); ctx.stroke();
+    ctx.moveTo(carRight, mid); ctx.lineTo(carRight + rod, mid);
+    ctx.stroke();
+
+    g.roundBox(carRight + rod, mid - carH * 0.28, puck, carH * 0.56, 2);
+    g.maths("f", carRight + rod + puck / 2, mid + 5, 13, "center", 0.85);
+
     ctx.fillStyle = "#0a0a0a";
-    ctx.fillRect(px(x) - 5, mid - 5, 5, 10);
+    ctx.fillRect(tipX - 6, mid - carH * 0.42, 6, carH * 0.84);
 
     /* what it is pressing with */
     if (f > 0.05) {
-      const len = Math.min(box.w * 0.22, 8 + (f / 30) * box.w * 0.18);
-      g.arrow(px(x) - len - 8, mid - th * 0.62, px(x) - 6, mid - th * 0.62);
-      g.words(f.toFixed(1) + " N", px(x) - len - 12, mid - th * 0.62 + 4, 12, "right");
+      const len = Math.min(box.w * 0.2, 10 + (f / 30) * box.w * 0.16);
+      g.arrow(tipX - len - 10, mid - carH * 0.85, tipX - 8, mid - carH * 0.85);
+      g.words(f.toFixed(1) + " N", tipX - len - 14, mid - carH * 0.85 + 4, 12, "right");
     } else {
-      g.cap("NO CONTACT", box.x + box.w * 0.12, mid - th * 0.62 + 4, 9, "left", 0.4);
+      g.cap("NO CONTACT", tipX - 10, mid - carH * 0.85 + 4, 9, "right", 0.4);
     }
     ctx.restore();
   }
@@ -286,10 +323,9 @@ SIM.register((function () {
   /* ---------- the two records ---------- */
 
   let fTop = 40;                /* N; grows to fit the run */
-  /* The commanded position sits inside the surface -- that is what produces
-     the force -- and how far inside depends on the wall, so the travel scale
-     is grown to fit rather than fixed. */
-  let xTop = 0.02;
+  /* How far the tool actually gets into the surface depends on the wall, so
+     the penetration axis is grown to fit rather than fixed. */
+  let pTop = 0.008;
 
   function drawForce(g, P, p) {
     const { ctx } = g;
@@ -339,52 +375,81 @@ SIM.register((function () {
     g.cap("HELD", x1 - 4, yTop + 23, 9, "right", 0.55);
   }
 
-  function drawTravel(g, P, p) {
+  /* Force against how far the tool has pushed into the surface. Everything
+     the sliders do is legible here: in free space the trace runs along the
+     bottom at zero force; on contact it climbs the wall's own line, whose
+     slope is the stiffness set on the slider; a settled loop is a point on
+     that line, and a chattering one runs up and down it and off the end into
+     free space. */
+  function drawContactPlane(g, P, p) {
     const { ctx } = g;
-    const x0 = p.x + 40, x1 = p.x + p.w - 12;
-    const yTop = p.y + 36, yBot = p.y + p.h - 26;
-    const TOP = xTop, BOT = -0.026;
-    const px = (t) => x0 + (t / WINDOW) * (x1 - x0);
-    const py = (X) => yBot - ((Math.max(BOT, Math.min(TOP, X)) - BOT) / (TOP - BOT)) * (yBot - yTop);
+    const x0 = p.x + 38, x1 = p.x + p.w - 14;
+    const yTop = p.y + 40, yBot = p.y + p.h - 28;
+    /* just enough free space to show the trace arriving at zero force; the
+       twenty millimetres before that are a flat line and not worth the width */
+    const LEFT = -0.008;
+    const px = (X) => x0 + ((Math.max(LEFT, X) - LEFT) / (pTop - LEFT)) * (x1 - x0);
+    const py = (f) => yBot - (Math.min(f, fTop) / fTop) * (yBot - yTop);
 
-    g.seconds(p, px, yTop, yBot, WINDOW, 1);
+    /* the axes: force up, penetration across, the surface at zero */
+    ctx.strokeStyle = g.ink(0.13);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x0, yBot); ctx.lineTo(x1, yBot);
+    ctx.moveTo(x0, yTop); ctx.lineTo(x0, yBot);
+    ctx.stroke();
+    ctx.strokeStyle = g.ink(0.28);
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(px(WALL.x), yTop); ctx.lineTo(px(WALL.x), yBot);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    g.cap("SURFACE", px(WALL.x) + 5, yTop + 11, 9, "left", 0.45);
+    g.cap(Math.round(fTop) + "", x0 - 6, yTop + 4, 9, "right", 0.4);
+    g.cap("N", x0 - 6, yTop - 10, 9, "right", 0.35);
+    g.cap("0", x0 - 6, yBot + 3, 9, "right", 0.4);
+    g.cap(Math.round(pTop * 1000) + " mm", x1, yBot + 15, 9, "right", 0.4);
+    g.cap(Math.round(LEFT * 1000) + "", x0, yBot + 15, 9, "center", 0.4);
 
-    /* everything past the surface is inside the wall */
-    ctx.fillStyle = g.ink(0.07);
-    ctx.fillRect(x0, yTop, x1 - x0, py(WALL.x) - yTop);
+    /* the wall itself: f = k_e x, the line the loop has to work along */
+    const reach = Math.min(pTop, fTop / P.ke);
     ctx.strokeStyle = g.ink(0.3);
-    ctx.lineWidth = 1.2;
+    ctx.lineWidth = 1.4;
+    ctx.setLineDash([5, 3]);
     ctx.beginPath();
-    ctx.moveTo(x0, py(WALL.x)); ctx.lineTo(x1, py(WALL.x));
+    ctx.moveTo(px(WALL.x), py(0));
+    ctx.lineTo(px(reach), py(P.ke * reach));
     ctx.stroke();
-    g.cap("WALL", x1 - 4, py(WALL.x) - 6, 9, "right", 0.45);
-    for (let mm = -20; mm <= TOP * 1000 + 0.5; mm += 10) {
-      if (mm === 0) continue;                 /* the surface carries that one */
-      g.cap(mm + "", x0 - 6, py(mm / 1000) + 3, 9, "right", 0.4);
-    }
+    ctx.setLineDash([]);
+    g.labelled("k", "e", "", px(reach) - 10, py(P.ke * reach) + 16, 12, 0.5);
 
-    /* where it was told to go, and where it went */
-    ctx.strokeStyle = g.ink(0.35);
-    ctx.lineWidth = 1.2;
+    /* what it was asked to hold, so the point it lands on can be read off */
+    const fd = demand(simT);
+    ctx.strokeStyle = g.ink(0.22);
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 3]);
     ctx.beginPath();
-    let on = false;
-    for (const row of hist) {
-      const X = px(row[0]), Y = py(row[2]);
-      on ? ctx.lineTo(X, Y) : (ctx.moveTo(X, Y), (on = true));
-    }
+    ctx.moveTo(x0, py(fd)); ctx.lineTo(x1, py(fd));
     ctx.stroke();
+    ctx.setLineDash([]);
+    g.cap("ASKED FOR", x1 - 2, py(fd) - 5, 9, "right", 0.4);
 
-    ctx.strokeStyle = g.ink(0.95);
-    ctx.lineWidth = 1.6;
+    ctx.strokeStyle = g.ink(0.9);
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    on = false;
+    let started = false;
     for (const row of hist) {
-      const X = px(row[0]), Y = py(row[1]);
-      on ? ctx.lineTo(X, Y) : (ctx.moveTo(X, Y), (on = true));
+      const X = px(row[1]), Y = py(row[3]);
+      started ? ctx.lineTo(X, Y) : (ctx.moveTo(X, Y), (started = true));
     }
     ctx.stroke();
-    g.cap("COMMANDED", p.x + 44, p.y + p.h - 24, 9, "left", 0.35);
-    g.cap("TOOL", p.x + 44, p.y + p.h - 12, 9, "left", 0.6);
+    if (hist.length) {
+      const last = hist[hist.length - 1];
+      ctx.fillStyle = "#0f766e";
+      ctx.beginPath();
+      ctx.arc(px(last[1]), py(last[3]), 3.4, 0, 7);
+      ctx.fill();
+    }
   }
 
   /* ---------- the module ---------- */
@@ -392,8 +457,8 @@ SIM.register((function () {
   return {
     id: "contact",
     canvasLabel: "A tool pressed against a compliant wall under admittance " +
-      "control, with the contact force it holds and the travel of the tool " +
-      "against the surface plotted over time",
+      "control, with the force it holds over time and that force plotted " +
+      "against how far the tool has pushed into the surface",
 
     controls: [
       { id: "md", label: "Virtual mass <i>M</i><sub>d</sub>",
@@ -421,7 +486,7 @@ SIM.register((function () {
       hist = [];
       diverged = false;
       fTop = 40;
-      xTop = 0.02;
+      pTop = 0.008;
     },
 
     done: () => diverged || simT >= WINDOW,
@@ -437,8 +502,7 @@ SIM.register((function () {
       hist.push([simT, x, e, f]);
       if (hist.length > 600) hist.shift();
       if (f > fTop) fTop = Math.ceil(f / 40) * 40;
-      const far = Math.max(x, e);
-      if (far > xTop) xTop = Math.ceil(far / 0.02) * 0.02;
+      if (x > pTop) pTop = Math.ceil(x / 0.004) * 0.004;
       if (!Number.isFinite(x) || Math.abs(x) > 0.5 || Math.abs(v) > 40) diverged = true;
     },
 
@@ -467,7 +531,7 @@ SIM.register((function () {
       const b = boxes(D);
       drawLoop(g, P, b.loop);
       g.panel(b.left, "CONTACT FORCE (N)", () => drawForce(g, P, b.left));
-      g.panel(b.right, "TRAVEL INTO THE SURFACE (MM)", () => drawTravel(g, P, b.right));
+      g.panel(b.right, "FORCE AGAINST PENETRATION", () => drawContactPlane(g, P, b.right));
     },
   };
 })());
