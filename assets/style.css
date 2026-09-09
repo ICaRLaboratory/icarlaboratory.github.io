@@ -1255,9 +1255,9 @@ main:focus { outline: none; }
   display: grid;
   align-content: center;
 }
-.sim__fig canvas { display: block; width: 100%; aspect-ratio: 78 / 34; }
+.sim__fig canvas { display: block; width: 100%; aspect-ratio: 78 / 62; }
 /* stacked, the three panels read better one above the other */
-@media (max-width: 620px) { .sim__fig canvas { aspect-ratio: 34 / 54; } }
+@media (max-width: 620px) { .sim__fig canvas { aspect-ratio: 38 / 101; } }
 
 .sim__panel { display: flex; flex-direction: column; gap: 1.05rem; }
 
@@ -1317,6 +1317,9 @@ main:focus { outline: none; }
 }
 .card__zoom:focus-visible { outline: 2px solid var(--text); outline-offset: -4px; }
 .lightbox img[src$=".svg"] { width: min(94vw, 1100px); height: auto; }
+
+.sim__out--tight { border-top: 0; padding-top: 0; }
+.sim__rho-val--sm { font-size: 1.15rem; }
 
 .sim__out--tight { border-top: 0; padding-top: 0; }
 .sim__rho-val--sm { font-size: 1.15rem; }

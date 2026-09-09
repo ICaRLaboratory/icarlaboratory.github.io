@@ -67,7 +67,7 @@
 
   const P = { kp: 40, kd: 5, h: 0.04, m: 0 };
 
-  const WINDOW = 10;          /* the cap on one run, in seconds */
+  const WINDOW = 20;          /* the cap on one run, in seconds */
   const HOLD = 0.45;          /* how long it has to stay inside the band */
   /* shoulder and elbow, in radians: where they start and where they are sent */
   const JOINTS = [
@@ -302,7 +302,10 @@
     outs.kp.textContent = P.kp.toFixed(1);
     outs.kd.textContent = P.kd.toFixed(1);
     outs.h.textContent = inputs.h.value + " ms";
-    outs.m.textContent = P.m === 0 ? "none" : P.m + (P.m > 1 ? " samples" : " sample");
+    /* the delay is a whole number of samples, so name it and say what that is
+       in milliseconds -- the sampling period already carries its own symbol */
+    outs.m.textContent = P.m === 0 ? "0"
+      : P.m + (P.m > 1 ? " samples" : " sample") + "  \u00b7  " + Math.round(P.m * P.h * 1000) + " ms";
 
     const rho = spectralRadius();
     /* Three places is enough to read, but near the boundary show as many as it
@@ -329,31 +332,32 @@
       : "—";
   }
 
-  /* ---------- drawing ---------- */
+  /* ---------- drawing ----------
+
+     The loop sits across the top with the arm living inside its plant block,
+     rather than as a separate diagram underneath saying the same thing twice.
+     The two records go side by side below it. */
+
+  /* how much of the record the two trails draw: everything for a run that
+     settles, and only the recent past for one that never does */
+  const TRAIL = 900;
 
   const D = { w: 0, h: 0 };
+  let loopRect = null;
   let panels = [];
 
   function layout(aspect) {
-    if (aspect >= 1.75) {
-      D.w = 780; D.h = 340;
-      const g = 22, pw = (780 - g * 2) / 3;
-      panels = [0, 1, 2].map((i) => ({ x: i * (pw + g), y: 0, w: pw, h: 340 }));
+    if (aspect >= 1.1) {
+      D.w = 780; D.h = 620;
+      loopRect = { x: 0, y: 0, w: 780, h: 300 };
+      panels = [{ x: 0, y: 330, w: 379, h: 290 },
+                { x: 401, y: 330, w: 379, h: 290 }];
     } else {
-      D.w = 340; D.h = 540;
-      const g = 18, ph = (540 - g * 2) / 3;
-      panels = [0, 1, 2].map((i) => ({ x: 0, y: i * (ph + g), w: 340, h: ph }));
+      D.w = 380; D.h = 1010;
+      loopRect = { x: 0, y: 0, w: 380, h: 430 };
+      panels = [{ x: 0, y: 460, w: 380, h: 265 },
+                { x: 0, y: 745, w: 380, h: 265 }];
     }
-  }
-
-  function inPanel(p, title, body) {
-    frameBox(p, title);
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(p.x + 1.5, p.y + 1.5, p.w - 3, p.h - 3);
-    ctx.clip();
-    body();
-    ctx.restore();
   }
 
   function frameBox(p, title) {
@@ -368,28 +372,263 @@
     if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
   }
 
-  /* both joints' errors, so two trajectories spiral into the one origin */
+  function inPanel(p, title, body) {
+    frameBox(p, title);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(p.x + 1.5, p.y + 1.5, p.w - 3, p.h - 3);
+    ctx.clip();
+    body();
+    ctx.restore();
+  }
+
+  /* ---------- the loop, with the arm inside the plant ---------- */
+
+  function roundBox(x, y, w, h, r = 4) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+    ctx.fillStyle = "#fff";
+    ctx.fill();
+    ctx.strokeStyle = INK(0.9);
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+  }
+
+  function arrow(x1, y1, x2, y2, head = true) {
+    ctx.strokeStyle = INK(0.9);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    if (!head) return;
+    const a = Math.atan2(y2 - y1, x2 - x1);
+    ctx.fillStyle = INK(0.9);
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - Math.cos(a - 0.42) * 9, y2 - Math.sin(a - 0.42) * 9);
+    ctx.lineTo(x2 - Math.cos(a + 0.42) * 9, y2 - Math.sin(a + 0.42) * 9);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function cap(text, x, y, size = 10, align = "center", alpha = 0.5) {
+    ctx.font = `500 ${size}px "JetBrains Mono", ui-monospace, monospace`;
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "1.5px";
+    ctx.fillStyle = INK(alpha);
+    ctx.textAlign = align;
+    ctx.fillText(text, x, y);
+    if ("letterSpacing" in ctx) ctx.letterSpacing = "0px";
+  }
+
+  function words(text, x, y, size = 13, align = "center", alpha = 0.9) {
+    ctx.font = `500 ${size}px "Pretendard Variable", Pretendard, system-ui, sans-serif`;
+    ctx.fillStyle = INK(alpha);
+    ctx.textAlign = align;
+    ctx.fillText(text, x, y);
+  }
+
+  function maths(text, x, y, size = 14, align = "center", alpha = 0.9) {
+    ctx.font = `italic ${size}px Georgia, "Times New Roman", serif`;
+    ctx.fillStyle = INK(alpha);
+    ctx.textAlign = align;
+    ctx.fillText(text, x, y);
+  }
+
+  function drawLoop(r) {
+    const { x, y, w, h } = r;
+    const fwd = y + h * 0.30;
+    const fbk = y + h * 0.84;
+    const jr = Math.min(h * 0.055, 15);
+    const jx = x + w * 0.115;
+
+    /* the step it is asked to follow */
+    words("Target", x + w * 0.045, fwd - jr - 16, 13);
+    ctx.strokeStyle = "#0f766e";
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.moveTo(x + w * 0.012, fwd + 10);
+    ctx.lineTo(x + w * 0.03, fwd + 10);
+    ctx.bezierCurveTo(x + w * 0.05, fwd + 10, x + w * 0.05, fwd - 8, x + w * 0.068, fwd - 8);
+    ctx.lineTo(x + w * 0.085, fwd - 8);
+    ctx.stroke();
+    arrow(x + w * 0.085, fwd, jx - jr - 2, fwd);
+
+    /* summing junction */
+    ctx.beginPath();
+    ctx.arc(jx, fwd, jr, 0, 7);
+    ctx.fillStyle = "#fff"; ctx.fill();
+    ctx.strokeStyle = INK(0.9); ctx.lineWidth = 1.8; ctx.stroke();
+    ctx.strokeStyle = INK(0.35); ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(jx - jr * 0.5, fwd); ctx.lineTo(jx + jr * 0.5, fwd);
+    ctx.moveTo(jx, fwd - jr * 0.5); ctx.lineTo(jx, fwd + jr * 0.5);
+    ctx.stroke();
+    /* the signs, drawn rather than set */
+    ctx.beginPath();
+    ctx.moveTo(jx - jr - 14, fwd - jr - 4); ctx.lineTo(jx - jr - 4, fwd - jr - 4);
+    ctx.moveTo(jx - jr - 9, fwd - jr - 9); ctx.lineTo(jx - jr - 9, fwd - jr + 1);
+    ctx.moveTo(jx - jr - 16, fwd + jr + 8); ctx.lineTo(jx - jr - 6, fwd + jr + 8);
+    ctx.stroke();
+
+    /* the controller, with the gains as they stand */
+    const cw = w * 0.145, cx0 = x + w * 0.185;
+    const chh = Math.min(h * 0.22, 74);
+    arrow(jx + jr + 2, fwd, cx0 - 2, fwd);
+    roundBox(cx0, fwd - chh / 2, cw, chh);
+    cap("PD", cx0 + cw / 2, fwd - chh / 2 - 9);
+    maths("K", cx0 + cw * 0.3, fwd - 6, 15, "center");
+    maths("p", cx0 + cw * 0.3 + 8, fwd - 2, 10, "center", 0.75);
+    words(P.kp.toFixed(0), cx0 + cw * 0.72, fwd - 6, 13);
+    maths("K", cx0 + cw * 0.3, fwd + 17, 15, "center");
+    maths("d", cx0 + cw * 0.3 + 8, fwd + 21, 10, "center", 0.75);
+    words(P.kd.toFixed(1), cx0 + cw * 0.72, fwd + 17, 13);
+
+    /* the plant: the arm itself, in its own frame */
+    const px0 = x + w * 0.40, pw = w * 0.34;
+    const py0 = y + h * 0.05, ph = h * 0.60;
+    maths("\u03c4", (cx0 + cw + px0) / 2, fwd - 8, 15);
+    arrow(cx0 + cw + 2, fwd, px0 - 2, fwd);
+    roundBox(px0, py0, pw, ph, 5);
+    cap("ARM", px0 + pw / 2, py0 - 9);
+    drawArm({ x: px0, y: py0, w: pw, h: ph });
+    maths("M(q) q\u2033 + c(q, q\u2032) = \u03c4", px0 + pw / 2, py0 + ph - 12, 13, "center", 0.62);
+
+    /* the angle out, and the tap the measurement comes from */
+    const qx = x + w * 0.945;
+    arrow(px0 + pw + 2, fwd, qx - 26, fwd);
+    maths("q", qx, fwd + 5, 16);
+    const tap = x + w * 0.855;
+    ctx.fillStyle = INK(0.9);
+    ctx.beginPath(); ctx.arc(tap, fwd, 3.4, 0, 7); ctx.fill();
+
+    /* the measurement path: a delay, then the sampler, then back */
+    const bw = w * 0.165, bh = Math.min(h * 0.16, 52);
+    const dx0 = x + w * 0.60, sx0 = x + w * 0.315;
+    ctx.strokeStyle = INK(0.9); ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(tap, fwd); ctx.lineTo(tap, fbk); ctx.lineTo(dx0 + bw + 2, fbk);
+    ctx.stroke();
+    roundBox(dx0, fbk - bh / 2, bw, bh);
+    words("Delay", dx0 + bw / 2, fbk - 2, 13);
+    if (P.m === 0) {
+      maths("m = 0", dx0 + bw / 2, fbk + 16, 12, "center", 0.6);
+    } else {
+      maths("m = " + P.m, dx0 + bw / 2 - 4, fbk + 16, 12, "right", 0.6);
+      words(" \u00b7 " + Math.round(P.m * P.h * 1000) + " ms",
+        dx0 + bw / 2 - 2, fbk + 16, 11, "left", 0.55);
+    }
+    arrow(dx0 - 2, fbk, sx0 + bw + 2, fbk);
+    roundBox(sx0, fbk - bh / 2, bw, bh);
+    words("Sample", sx0 + bw / 2, fbk - 2, 13);
+    maths("h", sx0 + bw / 2 - 16, fbk + 16, 13, "right", 0.6);
+    words(" = " + Math.round(P.h * 1000) + " ms", sx0 + bw / 2 - 14, fbk + 16, 11, "left", 0.55);
+    ctx.strokeStyle = INK(0.9); ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(sx0 - 2, fbk); ctx.lineTo(jx, fbk);
+    ctx.stroke();
+    arrow(jx, fbk, jx, fwd + jr + 2);
+  }
+
+  /* ---------- the arm, drawn wherever it is asked to sit ---------- */
+
+  function drawArm(box) {
+    const bx = box.x + box.w * 0.5, by = box.y + box.h * 0.66;
+    const L = Math.min(box.w * 0.27, box.h * 0.25);
+    const j1 = { x: bx + Math.cos(q[0]) * L, y: by + Math.sin(q[0]) * L };
+    const tip = { x: j1.x + Math.cos(q[0] + q[1]) * L, y: j1.y + Math.sin(q[0] + q[1]) * L };
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(box.x + 1.5, box.y + 1.5, box.w - 3, box.h - 3);
+    ctx.clip();
+
+    /* where it was sent */
+    const t1 = JOINTS[0].to, t2 = JOINTS[1].to;
+    const g1 = { x: bx + Math.cos(t1) * L, y: by + Math.sin(t1) * L };
+    const g2 = { x: g1.x + Math.cos(t1 + t2) * L, y: g1.y + Math.sin(t1 + t2) * L };
+    ctx.strokeStyle = INK(0.22);
+    ctx.lineWidth = 1.4;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(bx, by); ctx.lineTo(g1.x, g1.y); ctx.lineTo(g2.x, g2.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(g2.x, g2.y, 4, 0, 7); ctx.stroke();
+
+    /* the path the tip has taken, which two coupled joints make a curve */
+    const trail = hist.slice(-TRAIL);
+    if (trail.length > 1) {
+      ctx.strokeStyle = "#0f766e";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      for (let i = 0; i < trail.length; i++) {
+        const A = trail[i][1], B = trail[i][2];
+        const e = { x: bx + Math.cos(A) * L + Math.cos(A + B) * L,
+                    y: by + Math.sin(A) * L + Math.sin(A + B) * L };
+        i ? ctx.lineTo(e.x, e.y) : ctx.moveTo(e.x, e.y);
+      }
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = INK(0.16);
+    ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(bx - L * 0.5, by); ctx.lineTo(bx + L * 0.5, by); ctx.stroke();
+
+    ctx.strokeStyle = INK(1);
+    ctx.lineWidth = Math.max(4, L * 0.11);
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(bx, by); ctx.lineTo(j1.x, j1.y); ctx.lineTo(tip.x, tip.y);
+    ctx.stroke();
+    ctx.fillStyle = "#0a0a0a";
+    ctx.beginPath();
+    ctx.moveTo(bx - 9, by); ctx.lineTo(bx + 9, by);
+    ctx.lineTo(bx + 6, by + 11); ctx.lineTo(bx - 6, by + 11);
+    ctx.closePath(); ctx.fill();
+    for (const [pt, rr, solid] of [[j1, 4, false], [tip, 4.6, true]]) {
+      ctx.fillStyle = solid ? "#0a0a0a" : "#fff";
+      ctx.strokeStyle = INK(1);
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(pt.x, pt.y, rr, 0, 7); ctx.fill(); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  /* ---------- the two records ---------- */
+
+  /* each joint's error against how fast that error is closing */
   function drawPhase(p) {
-    const cx = p.x + p.w / 2, cy = p.y + p.h / 2 + 8;
-    const s = Math.min(p.w, p.h - 26) / 2 / 1.5;
+    const cx = p.x + p.w / 2, cy = p.y + p.h / 2 + 10;
+    /* wide enough for the elbow, which swings further than the shoulder */
+    const s = Math.min(p.w, p.h - 30) / 2 / 2.3;
     ctx.strokeStyle = INK(0.1);
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(p.x + 8, cy); ctx.lineTo(p.x + p.w - 8, cy);
-    ctx.moveTo(cx, p.y + 26); ctx.lineTo(cx, p.y + p.h - 8);
+    ctx.moveTo(p.x + 10, cy); ctx.lineTo(p.x + p.w - 10, cy);
+    ctx.moveTo(cx, p.y + 28); ctx.lineTo(cx, p.y + p.h - 10);
     ctx.stroke();
+    cap("error \u2192", p.x + p.w - 12, cy - 7, 9, "right", 0.4);
+    cap("rate \u2191", cx + 8, p.y + 38, 9, "left", 0.4);
 
     for (let j = 0; j < 2; j++) {
       const span = JOINTS[j].to - JOINTS[j].from;
       const ex = (row) => (1 - progress(j, row[1 + j])) * s * (span > 0 ? 1 : -1);
-      const ey = (row) => (row[3 + j] / Math.abs(span)) * s * 0.34;
+      const ey = (row) => (row[3 + j] / Math.abs(span)) * s * 0.20;
+      const pts = hist.slice(-TRAIL);
       ctx.lineWidth = j === 0 ? 1.5 : 1.1;
-      for (let i = 1; i < hist.length; i++) {
-        const a = i / hist.length;
+      for (let i = 1; i < pts.length; i++) {
+        const a = i / pts.length;
         ctx.strokeStyle = INK((j === 0 ? 0.08 : 0.05) + a * (j === 0 ? 0.7 : 0.4));
         ctx.beginPath();
-        ctx.moveTo(cx + ex(hist[i - 1]), cy - ey(hist[i - 1]));
-        ctx.lineTo(cx + ex(hist[i]), cy - ey(hist[i]));
+        ctx.moveTo(cx + ex(pts[i - 1]), cy - ey(pts[i - 1]));
+        ctx.lineTo(cx + ex(pts[i]), cy - ey(pts[i]));
         ctx.stroke();
       }
       if (hist.length) {
@@ -400,74 +639,29 @@
         ctx.fill();
       }
     }
-  }
-
-  function drawArm(p) {
-    const bx = p.x + p.w / 2, by = p.y + p.h * 0.72;
-    const L = Math.min(p.w * 0.26, p.h * 0.26);
-    const a1 = q[0], a2 = q[1];
-    const j1 = { x: bx + Math.cos(a1) * L, y: by + Math.sin(a1) * L };
-    const tip = { x: j1.x + Math.cos(a1 + a2) * L, y: j1.y + Math.sin(a1 + a2) * L };
-
-    /* where it was sent */
-    const t1 = JOINTS[0].to, t2 = JOINTS[1].to;
-    const g1 = { x: bx + Math.cos(t1) * L, y: by + Math.sin(t1) * L };
-    const g2 = { x: g1.x + Math.cos(t1 + t2) * L, y: g1.y + Math.sin(t1 + t2) * L };
-    ctx.strokeStyle = INK(0.2);
-    ctx.lineWidth = 1.4;
-    ctx.setLineDash([4, 4]);
-    ctx.beginPath();
-    ctx.moveTo(bx, by); ctx.lineTo(g1.x, g1.y); ctx.lineTo(g2.x, g2.y);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.beginPath(); ctx.arc(g2.x, g2.y, 4, 0, 7); ctx.stroke();
-
-    /* the tip's own path, which two joints make more than a swing */
-    if (hist.length > 1) {
-      ctx.strokeStyle = INK(0.28);
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      for (let i = 0; i < hist.length; i++) {
-        const A = hist[i][1], B = hist[i][2];
-        const e = { x: bx + Math.cos(A) * L + Math.cos(A + B) * L,
-                    y: by + Math.sin(A) * L + Math.sin(A + B) * L };
-        i ? ctx.lineTo(e.x, e.y) : ctx.moveTo(e.x, e.y);
-      }
-      ctx.stroke();
-    }
-
-    ctx.strokeStyle = INK(0.16);
-    ctx.lineWidth = 1.4;
-    ctx.beginPath(); ctx.moveTo(bx - 30, by); ctx.lineTo(bx + 30, by); ctx.stroke();
-
-    ctx.strokeStyle = INK(1);
-    ctx.lineWidth = 6;
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.moveTo(bx, by); ctx.lineTo(j1.x, j1.y); ctx.lineTo(tip.x, tip.y);
-    ctx.stroke();
-    ctx.fillStyle = "#0a0a0a";
-    ctx.beginPath(); ctx.moveTo(bx - 9, by); ctx.lineTo(bx + 9, by);
-    ctx.lineTo(bx + 6, by + 11); ctx.lineTo(bx - 6, by + 11); ctx.closePath(); ctx.fill();
-    for (const [pt, r, solid] of [[j1, 4, false], [tip, 4.6, true]]) {
-      ctx.fillStyle = solid ? "#0a0a0a" : "#fff";
-      ctx.strokeStyle = INK(1);
-      ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(pt.x, pt.y, r, 0, 7); ctx.fill(); ctx.stroke();
-    }
+    cap("SHOULDER", p.x + 12, p.y + p.h - 24, 9, "left", 0.55);
+    cap("ELBOW", p.x + 12, p.y + p.h - 12, 9, "left", 0.32);
   }
 
   /* Both joints on one angle scale rather than each normalised to its own
-     step: normalised, two identical loops draw the same curve twice and the
-     panel looks like it holds one trace. */
+     step: normalised, two identical loops draw the same curve twice. */
   const A_TOP = 1.95, A_BOT = -2.5;
 
   function drawSampled(p) {
-    const x0 = p.x + 10, x1 = p.x + p.w - 10;
-    const yTop = p.y + 30, yBot = p.y + p.h - 14;
+    const x0 = p.x + 12, x1 = p.x + p.w - 12;
+    const yTop = p.y + 34, yBot = p.y + p.h - 26;
     const px = (t) => x0 + (t / WINDOW) * (x1 - x0);
     const py = (a) => yTop + ((A_TOP - a) / (A_TOP - A_BOT)) * (yBot - yTop);
+
+    /* the seconds, so the length of the record can be read off it */
+    ctx.strokeStyle = INK(0.09);
+    ctx.lineWidth = 1;
+    for (let t = 5; t < WINDOW; t += 5) {
+      ctx.beginPath();
+      ctx.moveTo(px(t), yTop); ctx.lineTo(px(t), yBot);
+      ctx.stroke();
+      cap(t + "s", px(t), yBot + 14, 9, "center", 0.38);
+    }
 
     for (let j = 0; j < 2; j++) {
       const target = JOINTS[j].to;
@@ -490,7 +684,7 @@
       }
       ctx.stroke();
 
-      /* zero-order hold: what the controller was actually handed */
+      /* the sampled measurement, held: what the controller was handed */
       ctx.strokeStyle = INK(j === 0 ? 0.95 : 0.55);
       ctx.lineWidth = j === 0 ? 1.6 : 1.3;
       ctx.beginPath();
@@ -503,13 +697,13 @@
       ctx.stroke();
     }
 
-    /* where it was declared settled */
     if (settledAt !== null) {
       ctx.strokeStyle = INK(0.5);
       ctx.lineWidth = 1.2;
       ctx.beginPath();
-      ctx.moveTo(px(settledAt), p.y + 26); ctx.lineTo(px(settledAt), p.y + p.h - 10);
+      ctx.moveTo(px(settledAt), yTop); ctx.lineTo(px(settledAt), yBot);
       ctx.stroke();
+      cap("SETTLED", px(settledAt) + 5, yTop + 11, 9, "left", 0.5);
     }
   }
 
@@ -526,10 +720,11 @@
     ctx.clearRect(0, 0, rect.width, rect.height);
     ctx.translate((rect.width - D.w * scale) / 2, (rect.height - D.h * scale) / 2);
     ctx.scale(scale, scale);
+    ctx.textBaseline = "alphabetic";
 
-    inPanel(panels[0], "JOINT ERRORS", () => drawPhase(panels[0]));
-    inPanel(panels[1], "ARM", () => drawArm(panels[1]));
-    inPanel(panels[2], "MEASURED", () => drawSampled(panels[2]));
+    drawLoop(loopRect);
+    inPanel(panels[0], "TRACKING ERROR, JOINT BY JOINT", () => drawPhase(panels[0]));
+    inPanel(panels[1], "JOINT ANGLES OVER TIME", () => drawSampled(panels[1]));
   }
 
   /* ---------- run ---------- */
