@@ -49,6 +49,10 @@ const GALLERY = [
         src: "assets/img/gallery/ict4shealth-2023-1.jpg",
         alt: "Lab members outside the ICT4sHealth&Home 2023 venue in Da Nang",
       },
+      {
+        src: "assets/img/gallery/ict4shealth-2023-2.jpg",
+        alt: "Lab members at a night market in Da Nang during the conference",
+      },
     ],
   },
   {
@@ -64,6 +68,10 @@ const GALLERY = [
       {
         src: "assets/img/gallery/cics-2022-2.jpg",
         alt: "Award recipients at the Information and Control Section general meeting",
+      },
+      {
+        src: "assets/img/gallery/cics-2022-3.jpg",
+        alt: "The Young Researcher Award certificate from the Information and Control Section",
       },
     ],
   },
