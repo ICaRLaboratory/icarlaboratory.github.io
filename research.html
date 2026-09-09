@@ -62,7 +62,50 @@
 
   <div class="sim" style="margin-top:2.5rem">
     <figure class="sim__fig">
-      <canvas id="simfig" aria-label="Three live panels driven by one sampled-data control loop: the phase plane of the state, a two-link arm posed from it, and the sampled measurement held between samples"></canvas>
+      <canvas id="simfig" aria-label="Three live panels driven by one sampled-data control loop: the two joint error trajectories, the arm posed from them, and the sampled measurement held between samples"></canvas>
+
+      <!-- Where each slider acts. Inline rather than an <img> so it inherits
+           the page's own type and ink. -->
+      <svg class="sim__loop" viewBox="0 0 780 116" role="img"
+           aria-label="The loop being tuned: the error enters a controller holding the two gains, which drives the two joints; the angle returns through a sampler and a delay">
+        <defs>
+          <marker id="sa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0 1 L10 5 L0 9 Z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <text class="sl-sig" x="8" y="34">Target</text>
+        <path class="sl-wire" marker-end="url(#sa)" d="M8 44 H52"/>
+        <circle class="sl-box" cx="68" cy="44" r="13"/>
+        <path class="sl-thin" d="M61 44 H75 M68 37 V51"/>
+        <!-- drawn, not set: U+2212 is outside the font's subset, and a hyphen
+             next to a plus reads as a typo -->
+        <path class="sl-sign" d="M50 26 H62 M56 20 V32"/>
+        <path class="sl-sign" d="M44 64 H56"/>
+
+        <path class="sl-wire" marker-end="url(#sa)" d="M81 44 H112"/>
+        <rect class="sl-box" x="114" y="22" width="150" height="44" rx="3"/>
+        <text class="sl-tag" x="189" y="16">Controller</text>
+        <text class="sl-gain" x="160" y="50">K<tspan class="sl-sub" dy="3">p</tspan></text>
+        <text class="sl-gain" x="218" y="50">K<tspan class="sl-sub" dy="3">d</tspan></text>
+
+        <path class="sl-wire" marker-end="url(#sa)" d="M264 44 H300"/>
+        <rect class="sl-box" x="302" y="22" width="132" height="44" rx="3"/>
+        <text class="sl-tag" x="368" y="16">Two joints</text>
+        <text class="sl-name" x="368" y="50">q&#8221; = u</text>
+
+        <path class="sl-wire" d="M434 44 H556"/>
+        <text class="sl-sig" x="586" y="48">Angle</text>
+        <circle cx="500" cy="44" r="3.2" fill="currentColor"/>
+
+        <path class="sl-wire" d="M500 44 V96 H452"/>
+        <rect class="sl-box" x="320" y="74" width="132" height="42" rx="3"/>
+        <text class="sl-name" x="386" y="100">Delay</text>
+        <path class="sl-wire" marker-end="url(#sa)" d="M320 96 H286"/>
+        <rect class="sl-box" x="152" y="74" width="132" height="42" rx="3"/>
+        <text class="sl-name" x="218" y="100">Sample <tspan class="sl-it">h</tspan></text>
+        <path class="sl-wire" marker-end="url(#sa)" d="M152 96 H68 V59"/>
+      </svg>
     </figure>
 
     <div class="sim__panel">
@@ -94,8 +137,15 @@
         </div>
         <span id="sim-verdict" class="sim__verdict"></span>
       </div>
-      <p class="sim__foot">The loop is stable exactly when that number stays under one. Sampling
-        slower or adding delay pushes it up without touching a single gain.</p>
+      <div class="sim__out sim__out--tight" aria-live="polite">
+        <div class="sim__rho">
+          <span class="sim__rho-label">Settling time</span>
+          <span id="sim-settle" class="sim__rho-val sim__rho-val--sm">&mdash;</span>
+        </div>
+      </div>
+      <p class="sim__foot">The loop is stable exactly when the radius stays under one, and the run
+        ends when both joints hold a 2% band, so a well tuned pair finishes in about a second and
+        a badly tuned one rings across the whole axis.</p>
     </div>
   </div>
 </section>
