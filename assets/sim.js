@@ -67,7 +67,10 @@
   const settleOut = document.getElementById("sim-settle");
   if (!inputs.kp || !rhoOut) return;
 
-  const P = { kp: 50, kd: 10, h: 0.05, m: 0 };
+  /* The sliders are the source of truth; these are the same numbers, and
+     they start the loop badly damped on purpose -- it rings about eight
+     times before it holds the band, so there is something to settle. */
+  const P = { kp: 45, kd: 3.5, h: 0.05, m: 0 };
 
   const WINDOW = 20;          /* the cap on one run, in seconds */
   const HOLD = 0.45;          /* how long it has to stay inside the band */

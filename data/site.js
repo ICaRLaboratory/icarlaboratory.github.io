@@ -33,8 +33,8 @@ const SITE = {
     ko: "제어 이론과 알고리즘, 로봇의 운동과 협업, 임베디드 연산과 신호처리를 연구합니다. 지연과 불확실성을 갖는 동적 시스템, 환경과 상호작용하는 로봇, 제한된 자원에서 실시간 처리와 추론을 수행하는 장치가 주요 연구 대상입니다. 각 분야의 독립적인 연구를 수행하며, 주제에 따라 분야를 연결하는 공동 연구도 진행합니다.",
   },
   simNote: {
-    en: "A mass under proportional-derivative feedback, measured on a clock instead of continuously and acted on a few samples late. With no sampling period and no delay, any positive pair of gains holds it. Give the loop a clock and a delay and that stops being true, which is what our work is about: the readout is the spectral radius of the sampled-data loop, and the figure diverges exactly when it passes one.",
-    ko: "비례-미분 피드백으로 제어되는 질량입니다. 다만 연속이 아니라 일정한 주기로 측정하고, 몇 샘플 뒤늦게 작용합니다. 샘플링 주기와 지연이 없다면 양의 이득 조합은 언제나 안정하지만, 클럭과 지연이 끼어들면 그렇지 않습니다. 이 지점이 연구실의 주제입니다. 아래 수치는 샘플드데이터 루프의 스펙트럼 반경이며, 그 값이 1을 넘는 순간 그림도 발산합니다.",
+    en: "A two-link arm under proportional-derivative feedback, measured on a clock instead of continuously and acted on a few samples late. It starts underdamped, swinging past the pose several times before it holds: raise the derivative gain and it settles. With no sampling period and no delay, any positive pair of gains would hold it. Give the loop a clock and a delay and that stops being true, which is what our work is about: the readout is the spectral radius of the sampled-data loop, and the figure diverges exactly when it passes one.",
+    ko: "2관절 팔을 비례-미분 피드백으로 제어합니다. 다만 연속이 아니라 일정한 주기로 측정하고, 몇 샘플 뒤늦게 작용합니다. 처음 이득은 감쇠가 부족해 팔이 목표 자세를 여러 번 지나친 뒤에야 멈춥니다. 미분 이득을 올려 가라앉혀 보십시오. 샘플링 주기와 지연이 없다면 양의 이득 조합은 언제나 안정하지만, 클럭과 지연이 끼어들면 그렇지 않습니다. 이 지점이 연구실의 주제입니다. 아래 수치는 샘플드데이터 루프의 스펙트럼 반경이며, 그 값이 1을 넘는 순간 그림도 발산합니다.",
   },
 
   notFound: {
