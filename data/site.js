@@ -57,7 +57,7 @@ const SITE = {
   areas: [
     {
       key: "control",
-      image: "assets/img/area-control.png",
+      image: "assets/img/area-control.svg",
       label: "Control Algorithms",
       blurb: {
         en: "We study how dynamic systems can remain stable and achieve desired performance under uncertainty and external disturbances. Our research addresses the effects of limited sensing, communication delays and resource constraints on system behavior, and develops control theory and algorithms that account for these conditions. We seek to establish when stability and performance can be guaranteed, and to expand those guarantees.",
@@ -91,7 +91,7 @@ const SITE = {
     },
     {
       key: "embedded",
-      image: "assets/img/area-embedded.png",
+      image: "assets/img/area-embedded.svg",
       label: "Embedded Systems",
       blurb: {
         en: "We study real-time computing, sensor signal processing and on-device AI in embedded systems. Topics include learning-based estimation and classification with low-resolution sensors, on-device inference for manufacturing, motor drives and sensor interfaces. We also investigate networked and V2X platforms, accounting for quantization, limited bandwidth and sampling jitter in system design and implementation.",

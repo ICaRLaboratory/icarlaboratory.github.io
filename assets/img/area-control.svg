@@ -1,72 +1,81 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300" width="480" height="300"
-     role="img" aria-label="A feedback loop: reference, summing junction, controller, plant, and a sampled measurement returning through a delay">
-  <!-- Control Algorithms card figure. Paper, ink and hairline are the site's
-       own bg-soft, text and line colours. Signal names are serif italic and
-       block names are mono uppercase, the same split the hero canvas uses. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300"
+     role="img" aria-label="A feedback loop: a reference step into a summing junction, a controller driving a two-link arm, and the output measured by a sampling sensor that feeds back">
+  <!-- Control Algorithms card figure, drawn to be read at the size a card
+       actually shows: a card is about 334px wide, so type here is 13-15 units
+       of a 480 unit frame, which lands around 10px. That budget is why the
+       loop carries six words and not nine. Sentence case sans, because at
+       10px it beats uppercase mono; ink and paper are the site's own. -->
   <style>
     .paper { fill: #f5f5f3 }
-    .wire  { fill: none; stroke: #0a0a0a; stroke-width: 2.1; stroke-linecap: square }
-    .thin  { fill: none; stroke: rgba(10,10,10,.34); stroke-width: 1.4 }
+    .wire  { fill: none; stroke: #0a0a0a; stroke-width: 2; stroke-linecap: butt }
+    .trace { fill: none; stroke: #0a0a0a; stroke-width: 2.2; stroke-linejoin: round }
+    .thin  { fill: none; stroke: rgba(10,10,10,.42); stroke-width: 1.4 }
     .box   { fill: #ffffff; stroke: #0a0a0a; stroke-width: 1.9 }
-    .name  { font: 500 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-             letter-spacing: 1.1px; fill: #0a0a0a; text-anchor: middle }
-    .sym   { font: italic 22px Georgia, "Times New Roman", serif; fill: #0a0a0a; text-anchor: middle }
-    .sig   { font: italic 17px Georgia, "Times New Roman", serif; fill: rgba(10,10,10,.72); text-anchor: middle }
-    .op    { font: 400 15px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-             fill: rgba(10,10,10,.7); text-anchor: middle }
+    .name  { font: 500 14px "Pretendard Variable", Pretendard, -apple-system, "Segoe UI", sans-serif;
+             fill: #0a0a0a; text-anchor: middle }
+    .small { font: 400 12px "Pretendard Variable", Pretendard, -apple-system, "Segoe UI", sans-serif;
+             fill: rgba(10,10,10,.62); text-anchor: middle }
+    .op    { font: 400 16px "Pretendard Variable", Pretendard, -apple-system, "Segoe UI", sans-serif;
+             fill: rgba(10,10,10,.75); text-anchor: middle }
   </style>
 
   <rect class="paper" width="480" height="300"/>
 
   <defs>
-    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M0 0.6 L10 5 L0 9.4 Z" fill="#0a0a0a"/>
+    <marker id="ca" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0 0.8 L10 5 L0 9.2 Z" fill="#0a0a0a"/>
     </marker>
   </defs>
 
-  <!-- reference in -->
-  <path class="wire" marker-end="url(#a)" d="M26 118 H74"/>
-  <text class="sig" x="36" y="105">r</text>
+  <!-- the reference: a step, so the figure says what is being asked of the loop -->
+  <text class="name" x="41" y="98">Reference</text>
+  <path class="trace" d="M14 134 H26 C33 134 33 112 41 112 H68"/>
+  <path class="wire" marker-end="url(#ca)" d="M68 126 H100"/>
 
   <!-- summing junction -->
-  <circle cx="90" cy="118" r="15" fill="#fff" stroke="#0a0a0a" stroke-width="1.9"/>
-  <path class="thin" d="M83 118 H97 M90 111 V125"/>
-  <text class="op" x="80" y="100">+</text>
-  <text class="op" x="72" y="141">&#8722;</text>
-
-  <!-- error -->
-  <path class="wire" marker-end="url(#a)" d="M105 118 H136"/>
-  <text class="sig" x="120" y="105">e</text>
+  <circle cx="116" cy="126" r="15" fill="#fff" stroke="#0a0a0a" stroke-width="1.9"/>
+  <path class="thin" d="M108 126 H124 M116 118 V134"/>
+  <text class="op" x="103" y="108">+</text>
+  <text class="op" x="97" y="153">&#8722;</text>
 
   <!-- controller -->
-  <rect class="box" x="138" y="92" width="88" height="52"/>
-  <text class="sym" x="182" y="126">K</text>
-  <text class="name" x="182" y="78">CONTROLLER</text>
+  <text class="name" x="196" y="90">Controller</text>
+  <path class="wire" marker-end="url(#ca)" d="M131 126 H150"/>
+  <rect class="box" x="152" y="100" width="88" height="52" rx="3"/>
 
-  <!-- control input -->
-  <path class="wire" marker-end="url(#a)" d="M226 118 H266"/>
-  <text class="sig" x="246" y="105">u</text>
+  <!-- the plant, drawn as the arm it is -->
+  <text class="name" x="316" y="76">Dynamic system</text>
+  <path class="wire" marker-end="url(#ca)" d="M240 126 H284"/>
+  <g>
+    <!-- Links at stroke 7, which is about 5px once a card scales this down;
+         anything thinner reads as a bent wire rather than an arm. -->
+    <path d="M302 168 L302 132 L348 114" fill="none" stroke="#0a0a0a" stroke-width="7"
+          stroke-linejoin="round" stroke-linecap="round"/>
+    <!-- pedestal and floor -->
+    <path d="M292 168 H312 L316 180 H288 Z" fill="#0a0a0a"/>
+    <path d="M280 180 H324" stroke="#0a0a0a" stroke-width="2" fill="none"/>
+    <path class="thin" d="M286 180 l-6 8 M298 180 l-6 8 M310 180 l-6 8 M322 180 l-6 8"/>
+    <circle cx="302" cy="132" r="5" fill="#fff" stroke="#0a0a0a" stroke-width="2.2"/>
+    <circle cx="348" cy="114" r="5.4" fill="#0a0a0a"/>
+    <!-- the direction it is being driven -->
+    <path d="M322 100 A 32 32 0 0 1 352 96" fill="none" stroke="rgba(10,10,10,.5)"
+          stroke-width="2" marker-end="url(#ca)"/>
+  </g>
 
-  <!-- plant, with the disturbance the lab's work accounts for -->
-  <rect class="box" x="268" y="92" width="88" height="52"/>
-  <text class="sym" x="312" y="126">G</text>
-  <text class="name" x="312" y="78">PLANT</text>
-  <path class="thin" marker-end="url(#a)" d="M312 40 V90"/>
-  <text class="sig" x="326" y="52">d</text>
+  <!-- the output, and the response it settles into -->
+  <text class="name" x="428" y="82">Output</text>
+  <path class="wire" d="M356 126 H392"/>
+  <!-- overshoot, then settle -->
+  <path class="trace" d="M392 126 C 400 126 400 96 410 96 C 418 96 418 118 426 118 C 433 118 433 108 440 108 H466"/>
+  <circle cx="372" cy="126" r="3.6" fill="#0a0a0a"/>
 
-  <!-- output -->
-  <path class="wire" marker-end="url(#a)" d="M356 118 H452"/>
-  <text class="sig" x="428" y="105">y</text>
-  <circle cx="396" cy="118" r="3.4" fill="#0a0a0a"/>
-
-  <!-- measurement path: sampled, and delayed on its way back -->
-  <path class="wire" d="M396 118 V222 H322"/>
-  <rect class="box" x="212" y="196" width="110" height="52"/>
-  <path class="wire" marker-end="url(#a)" d="M212 222 H105"/>
-  <path class="wire" d="M90 222 V133"/>
-  <path class="wire" marker-end="url(#a)" d="M90 145 V131"/>
-  <text class="name" x="267" y="217">SAMPLED</text>
-  <!-- a zero-order hold staircase, drawn small inside the block -->
-  <path class="thin" d="M232 238 h13 v-9 h13 v-11 h13 v6 h13 v-8 h13"/>
-  <text class="sig" x="160" y="212">h</text>
+  <!-- measurement: sampled, and returned to the junction -->
+  <text class="name" x="286" y="204">Sensing</text>
+  <path class="wire" d="M372 126 V246 H330"/>
+  <rect class="box" x="242" y="214" width="88" height="52" rx="3"/>
+  <path class="thin" d="M254 254 h11 v-10 h11 v-12 h11 v7 h11 v-9 h11"/>
+  <path class="wire" marker-end="url(#ca)" d="M242 246 H150"/>
+  <text class="small" x="188" y="238">Feedback</text>
+  <path class="wire" d="M150 246 H116 V141"/>
+  <path class="wire" marker-end="url(#ca)" d="M116 158 V139"/>
 </svg>
