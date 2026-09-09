@@ -55,8 +55,8 @@ const SITE = {
         ko: "힘 오차로 가상의 질량-스프링-감쇠기를 움직여 벽을 누르는 어드미턴스 제어 — 가상 강성은 힘을 모자라게 하고, 단단한 벽은 접촉을 떨게 합니다.",
       },
       foot: {
-        en: "The pole is the rightmost eigenvalue of the loop in contact, and the force beside it reaches the target only at zero virtual stiffness.",
-        ko: "극점은 접촉 중인 루프의 가장 오른쪽 고윳값이고, 옆의 힘은 가상 강성이 0일 때만 목표에 닿습니다.",
+        en: "The rightmost of the loop's poles while it is in contact: below zero the contact settles, and the further below the faster; above zero it chatters.",
+        ko: "접촉 중인 루프의 극점 가운데 가장 오른쪽 값입니다. 0보다 작으면 접촉이 가라앉고 작을수록 빨리 가라앉으며, 0을 넘으면 떨립니다.",
       },
     },
   },
