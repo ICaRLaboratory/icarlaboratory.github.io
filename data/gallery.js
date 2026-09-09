@@ -61,6 +61,10 @@ const GALLERY = [
         src: "assets/img/gallery/cics-2022-1.jpg",
         alt: "Lab members outside the conference venue in Pyeongchang",
       },
+      {
+        src: "assets/img/gallery/cics-2022-2.jpg",
+        alt: "Award recipients at the Information and Control Section general meeting",
+      },
     ],
   },
 ];
