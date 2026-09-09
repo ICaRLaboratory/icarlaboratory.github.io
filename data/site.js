@@ -48,11 +48,22 @@ const SITE = {
         ko: "반경은 원 위에서 가장 나쁜 자세와 그 순간의 적재 질량 기준이라, 페이로드가 실릴 때 함께 움직입니다.",
       },
     },
+    smc: {
+      tab: "Sampled-data SMC",
+      note: {
+        en: "The same arm and the same six kilogrammes, driven onto the surface s = e′ + λe instead of towards a point: sliding mode shrugs the load off, and pays for it by straddling that surface in a band that opens as the clock slows.",
+        ko: "같은 팔에 같은 6 kg을, 한 점이 아니라 면 s = e′ + λe 위로 몰아붙입니다. 슬라이딩 모드는 하중을 무시하는 대신 그 면을 사이에 두고 떨며, 클럭이 느려질수록 그 띠가 벌어집니다.",
+      },
+      foot: {
+        en: "The band is the largest |s| over the run once the surface has been reached: inside the boundary layer Φ the law is continuous, and outside it the torque is hard over one way or the other and flipping every sample.",
+        ko: "띠는 면에 도달한 뒤 실행 전체에서 |s|의 최댓값입니다. 경계층 Φ 안이면 제어가 연속이고, 벗어나면 토크가 양극단을 오가며 매 샘플 부호가 뒤집힙니다.",
+      },
+    },
     contact: {
       tab: "Admittance contact",
       note: {
-        en: "One machine pressed on a wall, wired both ways round: measure force and command motion, or measure motion and command force — a hard enough contact breaks the first, a slow enough clock the second.",
-        ko: "같은 기계를 벽에 누르되 인과만 뒤집습니다 — 힘을 재서 위치를 지령하거나(어드미턴스), 위치를 재서 힘을 지령하거나(임피던스). 딱딱한 접촉은 앞쪽을, 느린 클럭은 뒤쪽을 먼저 무너뜨립니다.",
+        en: "One machine pressed on a wall, wired both ways round: admittance measures the force and commands a motion, and gives way on a hard contact; impedance measures the motion and commands a force, and gives way on a slow clock.",
+        ko: "같은 기계를 벽에 누르되 인과만 뒤집습니다. 힘을 재서 위치를 지령하는 어드미턴스는 딱딱한 접촉에서 무너지고, 위치를 재서 힘을 지령하는 임피던스는 느린 클럭에서 무너집니다.",
       },
       foot: {
         en: "The radius is the selected loop taken in contact, and past one it chatters; the stiffness that matters is not the wall's own but that of the sensor and the tool in series with it.",

@@ -1,36 +1,18 @@
 /* ===============================================================
    The loop, with the gains exposed.
 
-   The plant is a two-link planar arm in the horizontal plane, with
-   its real dynamics rather than a stand-in for them:
-
-       M(q) q'' + c(q, q') = tau
-
-   M is the inertia matrix, which changes with the elbow angle, and c
-   collects the Coriolis and centripetal terms. The joints are
-   therefore coupled: swinging the shoulder throws the elbow, and the
-   inertia the controller is pushing against is different on one side
-   of the circle than on the other.
-
-   The task is a circle, traced by the tip once every five seconds,
-   and the joint angles that draw it come from the inverse kinematics
-   of the arm. The controller is plain sampled PD on each joint,
-   tracking those angles with no attempt to cancel any of the
-   dynamics:
+   The plant, the circle it is tracing and the six kilogrammes that
+   land on it at five seconds all live in assets/sim-arm-plant.js,
+   because assets/sim-smc.js is handed exactly the same ones. What is
+   here is the controller: plain sampled PD on each joint, tracking
+   the reference with no attempt to cancel any of the dynamics.
 
        tau[k] = Kp (q_r - q[k-m]) + Kd (q_r' - q'[k-m]),  held until k+1
 
    Deliberately plain. Computed torque would cancel the coupling and
    the payload with it, which is the point of the method and the death
-   of the picture.
-
-   At five seconds -- one full lap in -- six kilogrammes arrive at the
-   end effector. Nothing about the controller changes. The arm is
-   simply heavier than the gains were chosen for, and the error it was
-   holding to a few millimetres opens up: the laden laps are drawn
-   wider than the first, because a plain PD loop lags a load it does
-   not know about and the tip carries out past the circle it was
-   given.
+   of the picture -- and the sliding mode tab next door is the honest
+   way to show a controller that shrugs the load off.
 
    The stability readout is the loop linearised about the pose it is
    passing through, discretised with the hold and the delay: at the
@@ -46,117 +28,23 @@
    =============================================================== */
 
 SIM.register((function () {
-  /* point masses at the end of each link: the smallest model that still
-     has a varying inertia and real Coriolis terms */
-  const ARM = { m1: 1, m2: 0.7, l1: 1, l2: 0.85 };
-  const PAYLOAD = 6;            /* kg, at the end effector */
-  const T_LOAD = 5;             /* s, one lap in */
-  const WINDOW = 20;            /* s, four laps */
-  const CIRCLE = { x: 0.9, y: -0.4, r: 0.35, T: 5, phase: Math.PI };
+  const A = ARMPLANT;
+  const { T_LOAD, WINDOW, KG } = A;
 
-  /* the arm's reach over the whole task, padded for the pedestal and the
-     payload marker, so the drawing never has to rescale mid-run */
-  const REACH = { x0: -0.30, x1: 1.40, y0: -1.15, y1: 0.18 };
-
-  const SUB = 1 / 600;          /* integration step, well under any h */
-  const TRAIL = 620;            /* how much of the tip path is drawn */
-
-  let q, v, held, queue, simT, nextT, hist, marks, diverged;
+  const S = { q: [0, 0], v: [0, 0], simT: 0, hist: [] };
+  let held, queue, nextT, marks, diverged;
   let rhoFree = 0, rhoLoad = 0;
 
-  const KG = "+" + PAYLOAD + " KG";
-  const loaded = () => simT >= T_LOAD;
-  const tipMass = () => (loaded() ? ARM.m2 + PAYLOAD : ARM.m2);
-
-  /* ---------- the task ---------- */
-
-  function ref(t) {
-    const w = (2 * Math.PI) / CIRCLE.T, a = w * t + CIRCLE.phase;
-    return { x: CIRCLE.x + CIRCLE.r * Math.cos(a),
-             y: CIRCLE.y + CIRCLE.r * Math.sin(a) };
-  }
-
-  /* elbow up, the branch that keeps both links clear of the pedestal */
-  function ik(p) {
-    const { l1, l2 } = ARM;
-    const c2 = Math.max(-1, Math.min(1,
-      (p.x * p.x + p.y * p.y - l1 * l1 - l2 * l2) / (2 * l1 * l2)));
-    const q2 = Math.acos(c2);
-    return [Math.atan2(p.y, p.x) - Math.atan2(l2 * Math.sin(q2), l1 + l2 * Math.cos(q2)), q2];
-  }
-
-  const fk = (a) => ({
-    x: ARM.l1 * Math.cos(a[0]) + ARM.l2 * Math.cos(a[0] + a[1]),
-    y: ARM.l1 * Math.sin(a[0]) + ARM.l2 * Math.sin(a[0] + a[1]),
-  });
-
-  /* the reference joint velocity, differenced rather than derived: the
-     Jacobian inverse says the same thing and this cannot disagree with the
-     angles the same call produced */
-  function refJoints(t) {
-    const e = 1e-4;
-    const a = ik(ref(t - e)), b = ik(ref(t + e));
-    return { q: ik(ref(t)), dq: [(b[0] - a[0]) / (2 * e), (b[1] - a[1]) / (2 * e)] };
-  }
-
-  /* ---------- the arm ---------- */
-
-  function inertia(q2, m2) {
-    const { m1, l1, l2 } = ARM;
-    const off = m2 * l2 * l2 + m2 * l1 * l2 * Math.cos(q2);
-    return [(m1 + m2) * l1 * l1 + m2 * l2 * l2 + 2 * m2 * l1 * l2 * Math.cos(q2),
-            off, off, m2 * l2 * l2];                       /* [a, b, b, d] */
-  }
-
-  function coriolis(q2, d1, d2, m2) {
-    const k = m2 * ARM.l1 * ARM.l2 * Math.sin(q2);
-    return [-k * (2 * d1 * d2 + d2 * d2), k * d1 * d1];
-  }
-
-  function solve2(Mv, r0, r1) {
-    const [a, b, , d] = Mv;
-    const det = a * d - b * b;
-    return [(d * r0 - b * r1) / det, (a * r1 - b * r0) / det];
-  }
-
-  function deriv(y) {
-    const m2 = tipMass();
-    const c = coriolis(y[1], y[2], y[3], m2);
-    const a = solve2(inertia(y[1], m2), held[0] - c[0], held[1] - c[1]);
-    return [y[2], y[3], a[0], a[1]];
-  }
-
-  function rk4(dt) {
-    let y = [q[0], q[1], v[0], v[1]];
-    const k1 = deriv(y);
-    const k2 = deriv(y.map((c, i) => c + (dt / 2) * k1[i]));
-    const k3 = deriv(y.map((c, i) => c + (dt / 2) * k2[i]));
-    const k4 = deriv(y.map((c, i) => c + dt * k3[i]));
-    y = y.map((c, i) => c + (dt / 6) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]));
-    q = [y[0], y[1]];
-    v = [y[2], y[3]];
-    simT += dt;
-  }
-
-  function coast(dt) {
-    let left = dt;
-    while (left > 1e-12) {
-      const step = Math.min(SUB, left);
-      rk4(step);
-      left -= step;
-    }
-  }
-
   function sample(P) {
-    const r = refJoints(simT);
+    const r = A.refJoints(S.simT);
     for (let i = 0; i < 2; i++) {
-      queue[i].push(P.kp * (r.q[i] - q[i]) + P.kd * (r.dq[i] - v[i]));
+      queue[i].push(P.kp * (r.q[i] - S.q[i]) + P.kd * (r.dq[i] - S.v[i]));
       const k = queue[i].length - 1 - P.m;
       held[i] = k >= 0 ? queue[i][k] : 0;
       if (queue[i].length > 64) queue[i].shift();
     }
     /* the error as the controller saw it, which is the one it acted on */
-    marks.push([simT, r.q[0] - q[0], r.q[1] - q[1]]);
+    marks.push([S.simT, r.q[0] - S.q[0], r.q[1] - S.q[1]]);
     if (marks.length > 1600) marks.shift();
   }
 
@@ -172,50 +60,50 @@ SIM.register((function () {
 
   function radiusAt(q2, m2, P) {
     const h = P.h, m = P.m;
-    const [a, b, , d] = inertia(q2, m2);
+    const [a, b, , d] = A.inertia(q2, m2);
     const det = a * d - b * b;
     const Mi = [d / det, -b / det, -b / det, a / det];
 
     const n = 4 + 2 * m;
-    const A = Array.from({ length: n }, () => new Array(n).fill(0));
+    const M = Array.from({ length: n }, () => new Array(n).fill(0));
     /* dq(k+1) = dq + h dq' + (h^2/2) M^-1 tau,  dq'(k+1) = dq' + h M^-1 tau */
-    A[0][0] = 1; A[1][1] = 1;
-    A[0][2] = h; A[1][3] = h;
-    A[2][2] = 1; A[3][3] = 1;
+    M[0][0] = 1; M[1][1] = 1;
+    M[0][2] = h; M[1][3] = h;
+    M[2][2] = 1; M[3][3] = 1;
     const applied = m === 0 ? null : n - 2;                /* the oldest torque */
     for (let i = 0; i < 2; i++) {
       for (let j = 0; j < 2; j++) {
         const g = Mi[i * 2 + j];
         if (applied === null) {
           /* tau(k) = -Kp dq - Kd dq', substituted straight in */
-          A[i][j] += -0.5 * h * h * g * P.kp;
-          A[i][2 + j] += -0.5 * h * h * g * P.kd;
-          A[2 + i][j] += -h * g * P.kp;
-          A[2 + i][2 + j] += -h * g * P.kd;
+          M[i][j] += -0.5 * h * h * g * P.kp;
+          M[i][2 + j] += -0.5 * h * h * g * P.kd;
+          M[2 + i][j] += -h * g * P.kp;
+          M[2 + i][2 + j] += -h * g * P.kd;
         } else {
-          A[i][applied + j] += 0.5 * h * h * g;
-          A[2 + i][applied + j] += h * g;
+          M[i][applied + j] += 0.5 * h * h * g;
+          M[2 + i][applied + j] += h * g;
         }
       }
     }
     if (applied !== null) {
       for (let i = 0; i < 2; i++) {
-        A[4 + i][i] = -P.kp;                               /* the new torque */
-        A[4 + i][2 + i] = -P.kd;
+        M[4 + i][i] = -P.kp;                               /* the new torque */
+        M[4 + i][2 + i] = -P.kd;
       }
       for (let k = 1; k < m; k++) {                        /* and the queue shifts */
-        A[4 + 2 * k][2 + 2 * k] = 1;
-        A[5 + 2 * k][3 + 2 * k] = 1;
+        M[4 + 2 * k][2 + 2 * k] = 1;
+        M[5 + 2 * k][3 + 2 * k] = 1;
       }
     }
-    return SIM.radiusByPowers(A, n);
+    return SIM.radiusByPowers(M, n);
   }
 
   /* the worst pose on the circle: the arm passes through all of them */
   function worstRadius(m2, P) {
     let worst = 0;
     for (let i = 0; i < 36; i++) {
-      const r = radiusAt(ik(ref((i / 36) * CIRCLE.T))[1], m2, P);
+      const r = radiusAt(A.ik(A.ref((i / 36) * A.CIRCLE.T))[1], m2, P);
       if (r > worst) worst = r;
       if (!Number.isFinite(worst)) return Infinity;
     }
@@ -234,16 +122,6 @@ SIM.register((function () {
   }
 
   /* ---------- drawing ---------- */
-
-  function boxes(D) {
-    return D.w >= 700
-      ? { loop: { x: 0, y: 18, w: 780, h: 282 },
-          left: { x: 0, y: 330, w: 379, h: 290 },
-          right: { x: 401, y: 330, w: 379, h: 290 } }
-      : { loop: { x: 0, y: 18, w: 380, h: 412 },
-          left: { x: 0, y: 460, w: 380, h: 265 },
-          right: { x: 0, y: 745, w: 380, h: 265 } };
-  }
 
   /* The arm keeps the whole right side, because it is the only block with
      something moving in it. Down the left: the circle it is asked to trace,
@@ -264,7 +142,7 @@ SIM.register((function () {
     ctx.beginPath();
     ctx.arc(colMid, cy, rad, 0, 7);
     ctx.stroke();
-    const a = (2 * Math.PI * simT) / CIRCLE.T + CIRCLE.phase;
+    const a = (2 * Math.PI * S.simT) / A.CIRCLE.T + A.CIRCLE.phase;
     ctx.fillStyle = SIM.hue.one;
     ctx.beginPath();
     ctx.arc(colMid + Math.cos(a) * rad, cy + Math.sin(a) * rad, 3.6, 0, 7);
@@ -307,8 +185,8 @@ SIM.register((function () {
     const px0 = x + w * 0.40, pw = w * 0.585;
     const py0 = y + h * 0.03, ph = h * 0.94;
     g.roundBox(px0, py0, pw, ph, 5);
-    g.cap(loaded() ? "ARM  " + KG : "ARM", px0 + pw / 2, py0 - 9);
-    drawArm(g, { x: px0, y: py0, w: pw, h: ph });
+    g.cap(A.loaded(S.simT) ? "ARM  " + KG : "ARM", px0 + pw / 2, py0 - 9);
+    A.drawArm(g, { x: px0, y: py0, w: pw, h: ph }, S);
     g.maths("τ", (colX + colW + px0) / 2, pdY + pdH * 0.45 - 10, 15);
     g.arrow(colX + colW + 2, pdY + pdH * 0.5, px0 - 2, pdY + pdH * 0.5);
 
@@ -341,96 +219,6 @@ SIM.register((function () {
     g.arrow(feedX, jy, colMid - jr - 2, jy);
   }
 
-  /* ---------- the arm, drawn wherever it is asked to sit ---------- */
-
-  function drawArm(g, box) {
-    const { ctx } = g;
-    const span = { w: REACH.x1 - REACH.x0, h: REACH.y1 - REACH.y0 };
-    const s = Math.min((box.w * 0.92) / span.w, (box.h * 0.92) / span.h);
-    /* the base sits where the origin falls once the reach is centred */
-    const bx = box.x + (box.w - span.w * s) / 2 - REACH.x0 * s;
-    const by = box.y + (box.h - span.h * s) / 2 - REACH.y0 * s;
-    const at = (p) => ({ x: bx + p.x * s, y: by + p.y * s });
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(box.x + 1.5, box.y + 1.5, box.w - 3, box.h - 3);
-    ctx.clip();
-
-    /* the circle it was asked for */
-    ctx.strokeStyle = g.ink(0.22);
-    ctx.lineWidth = 1.4;
-    ctx.setLineDash([4, 4]);
-    ctx.beginPath();
-    ctx.arc(bx + CIRCLE.x * s, by + CIRCLE.y * s, CIRCLE.r * s, 0, 7);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    /* where on it the tip is being asked to be, right now */
-    const want = at(ref(simT));
-    ctx.strokeStyle = g.ink(0.4);
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.arc(want.x, want.y, 4.5, 0, 7);
-    ctx.stroke();
-
-    /* The path the tip has actually taken. The first lap is kept on the
-       picture for the whole run rather than scrolling away, because the
-       laden laps are only worth looking at beside it. */
-    const cut = hist.length > TRAIL ? hist[hist.length - TRAIL][0] : 0;
-    const path = (from, to, stroke) => {
-      ctx.strokeStyle = stroke;
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      let started = false;
-      for (const row of hist) {
-        if (row[0] < from || row[0] > to) { started = false; continue; }
-        const e = at(fk([row[1], row[2]]));
-        started ? ctx.lineTo(e.x, e.y) : (ctx.moveTo(e.x, e.y), (started = true));
-      }
-      ctx.stroke();
-    };
-    path(0, T_LOAD, g.ink(0.26));
-    path(Math.max(T_LOAD, cut), Infinity, SIM.hue.one);
-
-    const j1 = at({ x: ARM.l1 * Math.cos(q[0]), y: ARM.l1 * Math.sin(q[0]) });
-    const tip = at(fk(q));
-
-    ctx.strokeStyle = g.ink(0.16);
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.moveTo(bx - s * 0.16, by); ctx.lineTo(bx + s * 0.16, by);
-    ctx.stroke();
-
-    ctx.strokeStyle = g.ink(1);
-    ctx.lineWidth = Math.max(4, s * 0.055);
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.moveTo(bx, by); ctx.lineTo(j1.x, j1.y); ctx.lineTo(tip.x, tip.y);
-    ctx.stroke();
-    ctx.fillStyle = "#0a0a0a";
-    ctx.beginPath();
-    ctx.moveTo(bx - 9, by); ctx.lineTo(bx + 9, by);
-    ctx.lineTo(bx + 6, by + 11); ctx.lineTo(bx - 6, by + 11);
-    ctx.closePath(); ctx.fill();
-    ctx.fillStyle = "#fff";
-    ctx.strokeStyle = g.ink(1);
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(j1.x, j1.y, 4, 0, 7); ctx.fill(); ctx.stroke();
-
-    /* the load, when it is there: a mass at the tip, and said in words */
-    if (loaded()) {
-      ctx.fillStyle = "#0a0a0a";
-      ctx.beginPath(); ctx.arc(tip.x, tip.y, 9, 0, 7); ctx.fill();
-      g.cap(KG, tip.x + 13, tip.y + 4, 9, "left", 0.75);
-    } else {
-      ctx.fillStyle = "#0a0a0a";
-      ctx.beginPath(); ctx.arc(tip.x, tip.y, 4.6, 0, 7); ctx.fill(); ctx.stroke();
-    }
-    ctx.restore();
-  }
-
   /* ---------- the two records ---------- */
 
   /* radians and radians a second, grown to fit the run */
@@ -459,7 +247,6 @@ SIM.register((function () {
       { label: "BEFORE " + KG, stroke: JOINT[0].off, width: 2.1 },
     ], p.x + 12, p.y + 34);
 
-    /* the axes, named and scaled */
     ctx.strokeStyle = g.ink(0.16);
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -473,7 +260,8 @@ SIM.register((function () {
     g.cap("ERROR  (RAD)", cx, p.y + p.h - 11, 9, "center", 0.5);
     g.vcap("ERROR RATE  (RAD/S)", p.x + 15, cy, 9, 0.5);
 
-    const cut = hist.length > TRAIL ? hist[hist.length - TRAIL][0] : 0;
+    const hist = S.hist;
+    const cut = hist.length > A.TRAIL ? hist[hist.length - A.TRAIL][0] : 0;
     JOINT.forEach((j, i) => {
       const X = (row) => cx + row[4 + i] * sx;
       const Y = (row) => cy - row[6 + i] * sy;
@@ -528,7 +316,7 @@ SIM.register((function () {
     g.vcap("ERROR  (RAD)", p.x + 15, mid, 9, 0.5);
     g.cap("TIME  (S)", (x0 + x1) / 2, p.y + p.h - 11, 9, "center", 0.5);
 
-    if (simT >= T_LOAD) g.event(px(T_LOAD), yTop, yBot, KG);
+    if (S.simT >= T_LOAD) g.event(px(T_LOAD), yTop, yBot, KG);
 
     JOINT.forEach((j, i) => {
       /* what happened between the samples, which the loop never saw */
@@ -536,7 +324,7 @@ SIM.register((function () {
       ctx.lineWidth = 1;
       ctx.beginPath();
       let started = false;
-      for (const row of hist) {
+      for (const row of S.hist) {
         const X = px(row[0]), Y = py(row[4 + i]);
         started ? ctx.lineTo(X, Y) : (ctx.moveTo(X, Y), (started = true));
       }
@@ -548,7 +336,7 @@ SIM.register((function () {
       ctx.beginPath();
       for (let k = 0; k < marks.length; k++) {
         const X = px(marks[k][0]), Y = py(marks[k][1 + i]);
-        const Xn = k + 1 < marks.length ? px(marks[k + 1][0]) : px(Math.min(simT, WINDOW));
+        const Xn = k + 1 < marks.length ? px(marks[k + 1][0]) : px(Math.min(S.simT, WINDOW));
         k ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y);
         ctx.lineTo(Xn, Y);
       }
@@ -587,42 +375,42 @@ SIM.register((function () {
     ],
     verdict: true,
 
-    reset(P) {
-      q = ik(ref(0));
-      v = refJoints(0).dq;       /* moving with the reference, not from rest */
+    reset() {
+      S.q = A.ik(A.ref(0));
+      S.v = A.refJoints(0).dq;   /* moving with the reference, not from rest */
+      S.simT = 0;
+      S.hist = [];
       held = [0, 0];
       queue = [[], []];
-      simT = 0;
       nextT = 0;
-      hist = [];
       marks = [];
       diverged = false;
       eTop = 0.04;
       dTop = 0.4;
     },
 
-    done: () => diverged || simT >= WINDOW,
+    done: () => diverged || S.simT >= WINDOW,
 
     advance(P, dt) {
       let left = dt;
       let guard = 0;
       while (left > 1e-9 && guard++ < 400) {
-        if (simT >= nextT - 1e-12) {
+        if (S.simT >= nextT - 1e-12) {
           sample(P);
-          nextT = simT + P.h;
+          nextT = S.simT + P.h;
         }
-        const stepTo = Math.min(left, Math.max(nextT - simT, 1e-9));
-        coast(stepTo);
+        const stepTo = Math.min(left, Math.max(nextT - S.simT, 1e-9));
+        A.integrate(S, stepTo, held);
         left -= stepTo;
       }
 
-      const want = ref(simT), got = fk(q);
+      const want = A.ref(S.simT), got = A.fk(S.q);
       const err = Math.hypot(got.x - want.x, got.y - want.y);
-      const r = refJoints(simT);
-      const e = [r.q[0] - q[0], r.q[1] - q[1]];
-      const de = [r.dq[0] - v[0], r.dq[1] - v[1]];
-      hist.push([simT, q[0], q[1], err, e[0], e[1], de[0], de[1]]);
-      if (hist.length > 1600) hist.shift();
+      const r = A.refJoints(S.simT);
+      const e = [r.q[0] - S.q[0], r.q[1] - S.q[1]];
+      const de = [r.dq[0] - S.v[0], r.dq[1] - S.v[1]];
+      S.hist.push([S.simT, S.q[0], S.q[1], err, e[0], e[1], de[0], de[1]]);
+      if (S.hist.length > 1600) S.hist.shift();
       /* the scales grow to fit the run and never shrink inside it, so nothing
          jumps about while it is being drawn */
       for (let i = 0; i < 2; i++) {
@@ -631,23 +419,23 @@ SIM.register((function () {
       }
 
       const wild = !Number.isFinite(err) || err > 3
-        || v.some((s) => Math.abs(s) > 120);
+        || S.v.some((s) => Math.abs(s) > 120);
       if (wild) diverged = true;
     },
 
     tune(P) {
-      rhoFree = worstRadius(ARM.m2, P);
-      rhoLoad = worstRadius(ARM.m2 + PAYLOAD, P);
+      rhoFree = worstRadius(A.ARM.m2, P);
+      rhoLoad = worstRadius(A.ARM.m2 + A.PAYLOAD, P);
       return null;
     },
 
-    live(P) {
-      const rho = loaded() ? rhoLoad : rhoFree;
+    live() {
+      const rho = A.loaded(S.simT) ? rhoLoad : rhoFree;
       const bad = !(rho < 1);
       /* the error the tip is holding, over the last second of the record */
       let sum = 0, n = 0;
-      for (let i = hist.length - 1; i >= 0 && hist[i][0] > simT - 1; i--) {
-        sum += hist[i][3] * hist[i][3];
+      for (let i = S.hist.length - 1; i >= 0 && S.hist[i][0] > S.simT - 1; i--) {
+        sum += S.hist[i][3] * S.hist[i][3];
         n++;
       }
       return {
@@ -660,7 +448,7 @@ SIM.register((function () {
     },
 
     draw(g, P, D) {
-      const b = boxes(D);
+      const b = A.boxes(D);
       drawLoop(g, P, b.loop);
       g.panel(b.left, "JOINT ERROR, PHASE PORTRAIT", () => drawPhase(g, b.left));
       g.panel(b.right, "JOINT ERROR OVER TIME", () => drawErrors(g, b.right));
