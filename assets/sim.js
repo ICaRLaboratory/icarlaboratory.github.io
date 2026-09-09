@@ -34,8 +34,10 @@
    than "never", and both are telling the truth: unstable about the
    pose, and never settling on it.
 
-   A run ends when both joints hold a 2% band, so its length is the
-   answer. Ten seconds is only the cap.
+   Every run plays the full twenty seconds. The moment both joints
+   first hold a 2% band is recorded and marked, so a well tuned pair
+   shows an early mark with a flat line after it, and a poorly damped
+   one rings on past where that mark would have been.
    =============================================================== */
 
 (function () {
@@ -65,14 +67,18 @@
   const settleOut = document.getElementById("sim-settle");
   if (!inputs.kp || !rhoOut) return;
 
-  const P = { kp: 40, kd: 5, h: 0.04, m: 0 };
+  const P = { kp: 50, kd: 10, h: 0.05, m: 0 };
 
   const WINDOW = 20;          /* the cap on one run, in seconds */
   const HOLD = 0.45;          /* how long it has to stay inside the band */
-  /* shoulder and elbow, in radians: where they start and where they are sent */
+  /* Shoulder and elbow, in radians. Chosen so the tip swings about ninety
+     degrees around the base -- with equal links the tip sits at angle
+     q1 + q2/2 and radius 2L cos(q2/2), so the pair below carries it from
+     -150 to -60 degrees -- while both links stay above the pedestal and the
+     elbow stays bent at each end. */
   const JOINTS = [
-    { from: -2.16, to: -1.24 },
-    { from: 1.62, to: 0.54 },
+    { from: -3.068, to: -1.798 },
+    { from: 0.900, to: 1.500 },
   ];
   const BAND = 0.02;          /* of each joint's own step */
 
@@ -109,7 +115,10 @@
 
   let q, v, held, queue, simT, nextT, hist, marks, diverged, inBand, settledAt;
 
-  const done = () => diverged || settledAt !== null || simT >= WINDOW;
+  /* A run plays the full window whether it settles early or not, so you can
+     see that it stays settled; only leaving the frame cuts it short. The
+     moment it first held the band is kept and marked on the record. */
+  const done = () => diverged || simT >= WINDOW;
 
   function reset() {
     q = JOINTS.map((j) => j.from);
@@ -349,12 +358,13 @@
   function layout(aspect) {
     if (aspect >= 1.1) {
       D.w = 780; D.h = 620;
-      loopRect = { x: 0, y: 0, w: 780, h: 300 };
+      /* inset at the top so the Target label has room above the step */
+      loopRect = { x: 0, y: 18, w: 780, h: 282 };
       panels = [{ x: 0, y: 330, w: 379, h: 290 },
                 { x: 401, y: 330, w: 379, h: 290 }];
     } else {
       D.w = 380; D.h = 1010;
-      loopRect = { x: 0, y: 0, w: 380, h: 430 };
+      loopRect = { x: 0, y: 18, w: 380, h: 412 };
       panels = [{ x: 0, y: 460, w: 380, h: 265 },
                 { x: 0, y: 745, w: 380, h: 265 }];
     }
@@ -440,106 +450,104 @@
     ctx.fillText(text, x, y);
   }
 
+  /* The controller and the two measurement blocks stack in a column down the
+     left, which leaves the whole right side to the arm. That is the block
+     worth the space: it is the only one with something moving in it. */
   function drawLoop(r) {
     const { x, y, w, h } = r;
-    const fwd = y + h * 0.30;
-    const fbk = y + h * 0.84;
-    const jr = Math.min(h * 0.055, 15);
-    const jx = x + w * 0.115;
+    const colX = x + w * 0.05, colW = w * 0.26;
+    const colMid = colX + colW / 2;
+    const jy = y + h * 0.135, jr = Math.min(h * 0.055, 15);
+    const feedX = x + w * 0.013;
 
-    /* the step it is asked to follow */
-    words("Target", x + w * 0.045, fwd - jr - 16, 13);
+    /* the step it is asked to follow, coming straight down into the junction */
+    words("Target", colMid, y + h * 0.028, 13);
     ctx.strokeStyle = "#0f766e";
     ctx.lineWidth = 2.4;
     ctx.beginPath();
-    ctx.moveTo(x + w * 0.012, fwd + 10);
-    ctx.lineTo(x + w * 0.03, fwd + 10);
-    ctx.bezierCurveTo(x + w * 0.05, fwd + 10, x + w * 0.05, fwd - 8, x + w * 0.068, fwd - 8);
-    ctx.lineTo(x + w * 0.085, fwd - 8);
+    ctx.moveTo(colMid - 32, y + h * 0.072);
+    ctx.lineTo(colMid - 18, y + h * 0.072);
+    ctx.bezierCurveTo(colMid - 6, y + h * 0.072, colMid - 6, y + h * 0.05, colMid + 6, y + h * 0.05);
+    ctx.lineTo(colMid + 32, y + h * 0.05);
     ctx.stroke();
-    arrow(x + w * 0.085, fwd, jx - jr - 2, fwd);
+    arrow(colMid, y + h * 0.082, colMid, jy - jr - 2);
 
     /* summing junction */
     ctx.beginPath();
-    ctx.arc(jx, fwd, jr, 0, 7);
+    ctx.arc(colMid, jy, jr, 0, 7);
     ctx.fillStyle = "#fff"; ctx.fill();
     ctx.strokeStyle = INK(0.9); ctx.lineWidth = 1.8; ctx.stroke();
     ctx.strokeStyle = INK(0.35); ctx.lineWidth = 1.4;
     ctx.beginPath();
-    ctx.moveTo(jx - jr * 0.5, fwd); ctx.lineTo(jx + jr * 0.5, fwd);
-    ctx.moveTo(jx, fwd - jr * 0.5); ctx.lineTo(jx, fwd + jr * 0.5);
+    ctx.moveTo(colMid - jr * 0.5, jy); ctx.lineTo(colMid + jr * 0.5, jy);
+    ctx.moveTo(colMid, jy - jr * 0.5); ctx.lineTo(colMid, jy + jr * 0.5);
     ctx.stroke();
-    /* the signs, drawn rather than set */
+    /* the signs, drawn rather than set, and kept clear of both wires */
     ctx.beginPath();
-    ctx.moveTo(jx - jr - 14, fwd - jr - 4); ctx.lineTo(jx - jr - 4, fwd - jr - 4);
-    ctx.moveTo(jx - jr - 9, fwd - jr - 9); ctx.lineTo(jx - jr - 9, fwd - jr + 1);
-    ctx.moveTo(jx - jr - 16, fwd + jr + 8); ctx.lineTo(jx - jr - 6, fwd + jr + 8);
+    ctx.moveTo(colMid + jr + 8, jy - jr + 2); ctx.lineTo(colMid + jr + 18, jy - jr + 2);
+    ctx.moveTo(colMid + jr + 13, jy - jr - 3); ctx.lineTo(colMid + jr + 13, jy - jr + 7);
+    ctx.moveTo(colMid - jr - 20, jy + jr + 4); ctx.lineTo(colMid - jr - 10, jy + jr + 4);
     ctx.stroke();
 
-    /* the controller, with the gains as they stand */
-    const cw = w * 0.145, cx0 = x + w * 0.185;
-    const chh = Math.min(h * 0.22, 74);
-    arrow(jx + jr + 2, fwd, cx0 - 2, fwd);
-    roundBox(cx0, fwd - chh / 2, cw, chh);
-    cap("PD", cx0 + cw / 2, fwd - chh / 2 - 9);
-    maths("K", cx0 + cw * 0.3, fwd - 6, 15, "center");
-    maths("p", cx0 + cw * 0.3 + 8, fwd - 2, 10, "center", 0.75);
-    words(P.kp.toFixed(0), cx0 + cw * 0.72, fwd - 6, 13);
-    maths("K", cx0 + cw * 0.3, fwd + 17, 15, "center");
-    maths("d", cx0 + cw * 0.3 + 8, fwd + 21, 10, "center", 0.75);
-    words(P.kd.toFixed(1), cx0 + cw * 0.72, fwd + 17, 13);
+    /* down the column: the controller, with the gains as they stand */
+    const bh = Math.min(h * 0.17, 62);
+    const pdY = y + h * 0.26;
+    arrow(colMid, jy + jr + 2, colMid, pdY - 2);
+    roundBox(colX, pdY, colW, bh);
+    cap("PD", colX, pdY - 9, 10, "left");
+    maths("K", colX + colW * 0.30, pdY + bh * 0.42, 15, "right");
+    maths("p", colX + colW * 0.30 + 2, pdY + bh * 0.42 + 4, 10, "left", 0.8);
+    words(P.kp.toFixed(0), colX + colW * 0.76, pdY + bh * 0.42, 13);
+    maths("K", colX + colW * 0.30, pdY + bh * 0.84, 15, "right");
+    maths("d", colX + colW * 0.30 + 2, pdY + bh * 0.84 + 4, 10, "left", 0.8);
+    words(P.kd.toFixed(1), colX + colW * 0.76, pdY + bh * 0.84, 13);
 
-    /* the plant: the arm itself, in its own frame */
-    const px0 = x + w * 0.40, pw = w * 0.34;
-    const py0 = y + h * 0.05, ph = h * 0.60;
-    maths("\u03c4", (cx0 + cw + px0) / 2, fwd - 8, 15);
-    arrow(cx0 + cw + 2, fwd, px0 - 2, fwd);
+    /* the plant: the whole right side, because the arm lives in it */
+    const px0 = x + w * 0.38, pw = w * 0.60;
+    const py0 = y + h * 0.03, ph = h * 0.94;
     roundBox(px0, py0, pw, ph, 5);
     cap("ARM", px0 + pw / 2, py0 - 9);
     drawArm({ x: px0, y: py0, w: pw, h: ph });
-    maths("M(q) q\u2033 + c(q, q\u2032) = \u03c4", px0 + pw / 2, py0 + ph - 12, 13, "center", 0.62);
+    maths("\u03c4", (colX + colW + px0) / 2, pdY + bh * 0.45 - 10, 15);
+    arrow(colX + colW + 2, pdY + bh * 0.5, px0 - 2, pdY + bh * 0.5);
 
-    /* the angle out, and the tap the measurement comes from */
-    const qx = x + w * 0.945;
-    arrow(px0 + pw + 2, fwd, qx - 26, fwd);
-    maths("q", qx, fwd + 5, 16);
-    const tap = x + w * 0.855;
-    ctx.fillStyle = INK(0.9);
-    ctx.beginPath(); ctx.arc(tap, fwd, 3.4, 0, 7); ctx.fill();
-
-    /* the measurement path: a delay, then the sampler, then back */
-    const bw = w * 0.165, bh = Math.min(h * 0.16, 52);
-    const dx0 = x + w * 0.60, sx0 = x + w * 0.315;
-    ctx.strokeStyle = INK(0.9); ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(tap, fwd); ctx.lineTo(tap, fbk); ctx.lineTo(dx0 + bw + 2, fbk);
-    ctx.stroke();
-    roundBox(dx0, fbk - bh / 2, bw, bh);
-    words("Delay", dx0 + bw / 2, fbk - 2, 13);
+    /* the measured angle leaves the arm and comes back down the column */
+    const delY = y + h * 0.52, samY = y + h * 0.78;
+    maths("q", (colX + colW + px0) / 2, delY + bh * 0.45 - 10, 16);
+    arrow(px0 - 2, delY + bh * 0.5, colX + colW + 2, delY + bh * 0.5);
+    roundBox(colX, delY, colW, bh);
+    words("Delay", colMid, delY + bh * 0.4, 13);
     if (P.m === 0) {
-      maths("m = 0", dx0 + bw / 2, fbk + 16, 12, "center", 0.6);
+      maths("m = 0", colMid, delY + bh * 0.82, 12, "center", 0.6);
     } else {
-      maths("m = " + P.m, dx0 + bw / 2 - 4, fbk + 16, 12, "right", 0.6);
+      maths("m = " + P.m, colMid - 4, delY + bh * 0.82, 12, "right", 0.6);
       words(" \u00b7 " + Math.round(P.m * P.h * 1000) + " ms",
-        dx0 + bw / 2 - 2, fbk + 16, 11, "left", 0.55);
+        colMid - 2, delY + bh * 0.82, 11, "left", 0.55);
     }
-    arrow(dx0 - 2, fbk, sx0 + bw + 2, fbk);
-    roundBox(sx0, fbk - bh / 2, bw, bh);
-    words("Sample", sx0 + bw / 2, fbk - 2, 13);
-    maths("h", sx0 + bw / 2 - 16, fbk + 16, 13, "right", 0.6);
-    words(" = " + Math.round(P.h * 1000) + " ms", sx0 + bw / 2 - 14, fbk + 16, 11, "left", 0.55);
+
+    arrow(colMid, delY + bh + 2, colMid, samY - 2);
+    roundBox(colX, samY, colW, bh);
+    words("Sample", colMid, samY + bh * 0.4, 13);
+    maths("h", colMid - 16, samY + bh * 0.82, 13, "right", 0.6);
+    words(" = " + Math.round(P.h * 1000) + " ms", colMid - 14, samY + bh * 0.82, 11, "left", 0.55);
+
+    /* and up the outside, back to the junction */
     ctx.strokeStyle = INK(0.9); ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(sx0 - 2, fbk); ctx.lineTo(jx, fbk);
+    ctx.moveTo(colX - 2, samY + bh * 0.5);
+    ctx.lineTo(feedX, samY + bh * 0.5);
+    ctx.lineTo(feedX, jy);
     ctx.stroke();
-    arrow(jx, fbk, jx, fwd + jr + 2);
+    arrow(feedX, jy, colMid - jr - 2, jy);
   }
 
   /* ---------- the arm, drawn wherever it is asked to sit ---------- */
 
   function drawArm(box) {
-    const bx = box.x + box.w * 0.5, by = box.y + box.h * 0.66;
-    const L = Math.min(box.w * 0.27, box.h * 0.25);
+    /* the equation used to sit under the arm; with that gone it can drop and
+       grow into the space, and still clear the frame at full reach */
+    const bx = box.x + box.w * 0.5, by = box.y + box.h * 0.72;
+    const L = Math.min(box.w * 0.28, box.h * 0.28);
     const j1 = { x: bx + Math.cos(q[0]) * L, y: by + Math.sin(q[0]) * L };
     const tip = { x: j1.x + Math.cos(q[0] + q[1]) * L, y: j1.y + Math.sin(q[0] + q[1]) * L };
 
@@ -606,8 +614,8 @@
   /* each joint's error against how fast that error is closing */
   function drawPhase(p) {
     const cx = p.x + p.w / 2, cy = p.y + p.h / 2 + 10;
-    /* wide enough for the elbow, which swings further than the shoulder */
-    const s = Math.min(p.w, p.h - 30) / 2 / 2.3;
+    /* enough room for the overshoot without leaving the trajectory small */
+    const s = Math.min(p.w, p.h - 30) / 2 / 1.7;
     ctx.strokeStyle = INK(0.1);
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -645,7 +653,7 @@
 
   /* Both joints on one angle scale rather than each normalised to its own
      step: normalised, two identical loops draw the same curve twice. */
-  const A_TOP = 1.95, A_BOT = -2.5;
+  const A_TOP = 1.85, A_BOT = -3.4;
 
   function drawSampled(p) {
     const x0 = p.x + 12, x1 = p.x + p.w - 12;
