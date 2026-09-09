@@ -1,27 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 300"
-     role="img" aria-label="A feedback loop: a reference step into a summing junction, a controller driving a two-link arm, and the output measured by a sampling sensor that feeds back">
+     role="img" aria-label="A feedback loop: a reference step into a summing junction, a PD controller whose error splits into a proportional and a derivative branch and rejoins, driving a two-link arm, with the output measured by a sampling sensor that feeds back">
   <!-- Control Algorithms card figure, drawn to be read at the size a card
        actually shows: a card is about 334px wide, so type here is 13-15 units
-       of a 480 unit frame, which lands around 10px. That budget is why the
-       loop carries six words and not nine. Sentence case sans, because at
-       10px it beats uppercase mono; ink and paper are the site's own. -->
+       of a 480 unit frame, which lands around 10px.
+
+       The controller is opened up rather than labelled: the error splits into
+       a proportional branch and a derivative one and the two rejoin, which is
+       the whole of what PD does and is worth more than two gain names.
+
+       Black holds the structure and the arm; one teal carries the signals. -->
   <style>
     .paper { fill: #f5f5f3 }
-    .wire  { fill: none; stroke: #0a0a0a; stroke-width: 2; stroke-linecap: butt }
-    /* Black carries the structure; one accent carries the signals, so the two
-       research figures read as different families at a glance. */
+    .wire  { fill: none; stroke: #0a0a0a; stroke-width: 2 }
+    .inner { fill: none; stroke: #0a0a0a; stroke-width: 1.6 }
     .trace { fill: none; stroke: #0f766e; stroke-width: 2.4; stroke-linejoin: round }
     .held  { fill: none; stroke: #0f766e; stroke-width: 2 }
     .thin  { fill: none; stroke: rgba(10,10,10,.42); stroke-width: 1.4 }
     .box   { fill: #eef6f5; stroke: #0a0a0a; stroke-width: 1.9 }
     .name  { font: 500 14px "Pretendard Variable", Pretendard, -apple-system, "Segoe UI", sans-serif;
              fill: #0a0a0a; text-anchor: middle }
+    .term  { font: italic 14px Georgia, "Times New Roman", serif; fill: #0a0a0a; text-anchor: middle }
+    .sub   { font: italic 10px Georgia, "Times New Roman", serif }
     .small { font: 400 12px "Pretendard Variable", Pretendard, -apple-system, "Segoe UI", sans-serif;
              fill: rgba(10,10,10,.62); text-anchor: middle }
-    .op    { font: 400 16px "Pretendard Variable", Pretendard, -apple-system, "Segoe UI", sans-serif;
-             fill: rgba(10,10,10,.75); text-anchor: middle }
-    .gain  { font: italic 15px Georgia, "Times New Roman", serif; fill: #0a0a0a; text-anchor: middle }
-    .sub   { font: italic 10px Georgia, "Times New Roman", serif }
   </style>
 
   <rect class="paper" width="480" height="300"/>
@@ -33,56 +34,79 @@
   </defs>
 
   <!-- the reference: a step, so the figure says what is being asked of the loop -->
-  <text class="name" x="41" y="98">Reference</text>
-  <path class="trace" d="M14 134 H26 C33 134 33 112 41 112 H68"/>
-  <path class="wire" marker-end="url(#ca)" d="M68 126 H100"/>
+  <text class="name" x="34" y="94">Reference</text>
+  <path class="trace" d="M10 132 H22 C29 132 29 110 36 110 H62"/>
+  <path class="wire" marker-end="url(#ca)" d="M62 126 H74"/>
 
   <!-- summing junction -->
-  <circle cx="116" cy="126" r="15" fill="#fff" stroke="#0a0a0a" stroke-width="1.9"/>
-  <path class="thin" d="M108 126 H124 M116 118 V134"/>
-  <text class="op" x="103" y="108">+</text>
-  <text class="op" x="97" y="153">&#8722;</text>
+  <circle cx="90" cy="126" r="13" fill="#fff" stroke="#0a0a0a" stroke-width="1.9"/>
+  <path class="thin" d="M83 126 H97 M90 119 V133"/>
+  <path class="thin" d="M74 104 H86 M80 98 V110"/>
+  <path class="thin" d="M68 148 H80"/>
 
-  <!-- controller -->
-  <text class="name" x="196" y="90">Controller</text>
-  <path class="wire" marker-end="url(#ca)" d="M131 126 H150"/>
-  <rect class="box" x="152" y="100" width="88" height="52" rx="3"/>
-  <!-- the two gains the research-page simulator puts on sliders -->
-  <text class="gain" x="196" y="122">K<tspan class="sub" dy="3">p</tspan></text>
-  <text class="gain" x="196" y="144">K<tspan class="sub" dy="3">d</tspan></text>
+  <!-- the controller, opened up -->
+  <text class="name" x="180" y="78">Controller</text>
+  <path class="wire" marker-end="url(#ca)" d="M103 126 H114"/>
+  <rect class="box" x="116" y="86" width="136" height="84" rx="3"/>
+
+  <!-- A console rather than a formula: a readout, a dial, two travel sliders
+       and a row of buttons with one lit. The gains themselves live on the
+       sliders of the interactive figure further down the page. -->
+  <g>
+    <rect x="126" y="94" width="116" height="68" rx="5" fill="#fff" stroke="#0a0a0a" stroke-width="1.9"/>
+
+    <!-- readout -->
+    <rect x="133" y="100" width="56" height="22" rx="2" fill="#dcece9" stroke="rgba(10,10,10,.45)" stroke-width="1.3"/>
+    <path class="held" d="M137 116 c 6 0 6 -9 12 -9 c 5 0 5 5 10 5 c 4 0 4 -3 8 -3 h 14" stroke-width="1.6"/>
+
+    <!-- dial, pointed a little off centre -->
+    <circle cx="220" cy="111" r="11" fill="none" stroke="#0a0a0a" stroke-width="1.7"/>
+    <path class="inner" d="M220 111 L227 104" stroke-linecap="round"/>
+    <circle cx="220" cy="111" r="2.2" fill="#0a0a0a"/>
+    <path class="thin" d="M210 104 l-3 -3 M230 104 l3 -3"/>
+
+    <!-- two travel sliders, at different settings -->
+    <path class="thin" d="M133 133 H185"/>
+    <rect x="150" y="128" width="7" height="10" rx="1.5" fill="#0a0a0a"/>
+    <path class="thin" d="M133 147 H185"/>
+    <rect x="168" y="142" width="7" height="10" rx="1.5" fill="#0a0a0a"/>
+
+    <!-- a row of buttons, one of them lit -->
+    <rect x="196" y="129" width="10" height="10" rx="2" fill="#0f766e" stroke="#0a0a0a" stroke-width="1.3"/>
+    <rect x="211" y="129" width="10" height="10" rx="2" fill="#fff" stroke="#0a0a0a" stroke-width="1.3"/>
+    <rect x="226" y="129" width="10" height="10" rx="2" fill="#fff" stroke="#0a0a0a" stroke-width="1.3"/>
+    <circle cx="201" cy="150" r="4.4" fill="#fff" stroke="#0a0a0a" stroke-width="1.3"/>
+    <circle cx="216" cy="150" r="4.4" fill="#0a0a0a"/>
+    <circle cx="231" cy="150" r="4.4" fill="#fff" stroke="#0a0a0a" stroke-width="1.3"/>
+  </g>
 
   <!-- the plant, drawn as the arm it is -->
-  <text class="name" x="316" y="76">Dynamic system</text>
-  <path class="wire" marker-end="url(#ca)" d="M240 126 H284"/>
+  <text class="name" x="318" y="78">Dynamic system</text>
+  <path class="wire" marker-end="url(#ca)" d="M252 126 H288"/>
   <g>
-    <!-- Links at stroke 7, which is about 5px once a card scales this down;
-         anything thinner reads as a bent wire rather than an arm. -->
-    <path d="M302 168 L302 132 L348 114" fill="none" stroke="#0a0a0a" stroke-width="7"
+    <path d="M306 178 L306 132 L350 114" fill="none" stroke="#0a0a0a" stroke-width="7"
           stroke-linejoin="round" stroke-linecap="round"/>
-    <!-- pedestal and floor -->
-    <path d="M292 168 H312 L316 180 H288 Z" fill="#0a0a0a"/>
-    <path d="M280 180 H324" stroke="#0a0a0a" stroke-width="2" fill="none"/>
-    <path class="thin" d="M286 180 l-6 8 M298 180 l-6 8 M310 180 l-6 8 M322 180 l-6 8"/>
-    <circle cx="302" cy="132" r="5" fill="#fff" stroke="#0a0a0a" stroke-width="2.2"/>
-    <circle cx="348" cy="114" r="5.4" fill="#0a0a0a"/>
-    <!-- the direction it is being driven -->
-    <path d="M322 100 A 32 32 0 0 1 352 96" fill="none" stroke="rgba(10,10,10,.5)"
+    <path d="M296 178 H316 L320 190 H292 Z" fill="#0a0a0a"/>
+    <path d="M284 190 H328" stroke="#0a0a0a" stroke-width="2" fill="none"/>
+    <path class="thin" d="M290 190 l-6 8 M302 190 l-6 8 M314 190 l-6 8 M326 190 l-6 8"/>
+    <circle cx="306" cy="132" r="5" fill="#fff" stroke="#0a0a0a" stroke-width="2.2"/>
+    <circle cx="350" cy="114" r="5.4" fill="#0a0a0a"/>
+    <path d="M324 100 A 32 32 0 0 1 354 96" fill="none" stroke="rgba(10,10,10,.5)"
           stroke-width="2" marker-end="url(#ca)"/>
   </g>
 
   <!-- the output, and the response it settles into -->
-  <text class="name" x="428" y="82">Output</text>
-  <path class="wire" d="M356 126 H392"/>
-  <!-- overshoot, then settle -->
-  <path class="trace" d="M392 126 C 400 126 400 96 410 96 C 418 96 418 118 426 118 C 433 118 433 108 440 108 H466"/>
-  <circle cx="372" cy="126" r="3.6" fill="#0a0a0a"/>
+  <text class="name" x="430" y="94">Output</text>
+  <path class="wire" d="M358 126 H392"/>
+  <path class="trace" d="M392 126 C 400 126 400 104 410 104 C 418 104 418 122 426 122 C 433 122 433 114 440 114 H468"/>
+  <circle cx="374" cy="126" r="3.6" fill="#0a0a0a"/>
 
   <!-- measurement: sampled, and returned to the junction -->
-  <text class="name" x="286" y="204">Sensing</text>
-  <path class="wire" d="M372 126 V246 H330"/>
-  <rect class="box" x="242" y="214" width="88" height="52" rx="3"/>
-  <path class="held" d="M254 254 h11 v-10 h11 v-12 h11 v7 h11 v-9 h11"/>
+  <text class="name" x="300" y="222">Sensing</text>
+  <path class="wire" d="M374 126 V256 H352"/>
+  <rect class="box" x="246" y="230" width="106" height="52" rx="3"/>
+  <path class="held" d="M258 270 h13 v-10 h13 v-12 h13 v7 h13 v-9 h13"/>
   <!-- one wire, one arrowhead, and it lands on the junction it feeds -->
-  <path class="wire" marker-end="url(#ca)" d="M242 246 H116 V139"/>
-  <text class="small" x="188" y="238">Feedback</text>
+  <path class="wire" marker-end="url(#ca)" d="M246 256 H90 V141"/>
+  <text class="small" x="168" y="248">Feedback</text>
 </svg>
