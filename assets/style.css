@@ -849,7 +849,6 @@ main:focus { outline: none; }
 @media (max-width: 720px) { .project { grid-template-columns: 1fr; } }
 
 .project__title { font-size: 1.02rem; font-weight: 580; line-height: 1.5; letter-spacing: -0.01em; }
-.project__ko { font-size: 0.86rem; color: var(--faint); margin-top: 0.35rem; line-height: 1.6; }
 .project__meta { display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; margin-top: 0.75rem; font-size: 0.82rem; color: var(--dim); }
 
 .pill {
@@ -1345,4 +1344,3 @@ main:focus { outline: none; }
 .sim__loop .sl-eq   { font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 16px }
 .sim__loop .sl-mid  { text-anchor: middle; font-family: Georgia, "Times New Roman", serif; font-style: italic; font-size: 15px }
 .sim__loop .sl-sign { fill: none; stroke: var(--dim); stroke-width: 1.8; stroke-linecap: round }
-.project__agency-ko { color: var(--faint); }

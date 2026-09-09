@@ -83,6 +83,11 @@ function applyLang() {
     /* They were already on screen, so skip the entrance animation. */
     $$("[data-reveal]", host).forEach((el) => el.classList.add("is-in"));
   });
+  if ($("#projects")) {
+    renderProjects();
+    /* Same as the area cards: already on screen, so no entrance animation. */
+    $$("[data-reveal]", $("#projects")).forEach((el) => el.classList.add("is-in"));
+  }
   $$("[data-lang]").forEach((b) => {
     const on = b.dataset.lang === LANG;
     b.classList.toggle("on", on);
@@ -524,18 +529,27 @@ function renderResearch() {
     wireLightbox(host, ".card__zoom");
   }
 
+  renderProjects();
+}
+
+/* Separate from renderResearch() so the language toggle can rebuild the
+   project list without touching the area cards or the lightbox wiring. */
+function renderProjects() {
   const projectHost = $("#projects");
   if (!projectHost) return;
+
+  /* A project reads in one language at a time -- the Korean names are the
+     official ones, so in Korean mode they stand alone rather than sitting
+     under an English translation. */
+  const ko = LANG === "ko" ? ' lang="ko"' : "";
 
   const row = (p, i) => `
     <div class="project" data-reveal style="--d:${i * 60}ms">
       <div>
-        <div class="project__title">${esc(p.titleEn)}</div>
-        <div class="project__ko" lang="ko">${esc(p.titleKo)}</div>
+        <div class="project__title"${ko}>${esc(t(p.title))}</div>
         <div class="project__meta">
-          <span>${esc(p.agency)}${p.agencyKo
-            ? ` <span class="project__agency-ko" lang="ko">${esc(p.agencyKo)}</span>` : ""}</span>
-          <span>${esc(p.role)}</span>
+          <span${ko}>${esc(t(p.agency))}</span>
+          <span${ko}>${esc(t(p.role))}</span>
           <span>${esc(p.period)}</span>
         </div>
       </div>
