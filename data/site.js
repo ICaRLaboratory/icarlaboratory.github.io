@@ -51,8 +51,8 @@ const SITE = {
     smc: {
       tab: "Sampled-data SMC",
       note: {
-        en: "The same arm and the same six kilogrammes, driven onto the surface s = e′ + λe instead of towards a point: sliding mode shrugs the load off, and pays for it by straddling that surface in a band that opens as the clock slows.",
-        ko: "같은 팔에 같은 6 kg을, 한 점이 아니라 면 s = e′ + λe 위로 몰아붙입니다. 슬라이딩 모드는 하중을 무시하는 대신 그 면을 사이에 두고 떨며, 클럭이 느려질수록 그 띠가 벌어집니다.",
+        en: "The same arm and the same six kilogrammes, driven onto the surface s = e′ + λe instead of towards a point: sliding mode shrugs the load off, and pays for it by straddling that surface in a band that opens as the sampling period grows.",
+        ko: "같은 팔에 같은 6 kg을, 한 점이 아니라 면 s = e′ + λe 위로 몰아붙입니다. 슬라이딩 모드는 하중을 무시하는 대신 그 면을 사이에 두고 떨며, 샘플링 주기가 길어질수록 그 띠가 벌어집니다.",
       },
       foot: {
         en: "The band is the largest |s| over the run once the surface has been reached: inside the boundary layer Φ the law is continuous, and outside it the torque is hard over one way or the other and flipping every sample.",
@@ -62,8 +62,8 @@ const SITE = {
     contact: {
       tab: "Admittance contact",
       note: {
-        en: "One machine pressed on a wall, wired both ways round: admittance measures the force and commands a motion, and gives way on a hard contact; impedance measures the motion and commands a force, and gives way on a slow clock.",
-        ko: "같은 기계를 벽에 누르되 인과만 뒤집습니다. 힘을 재서 위치를 지령하는 어드미턴스는 딱딱한 접촉에서 무너지고, 위치를 재서 힘을 지령하는 임피던스는 느린 클럭에서 무너집니다.",
+        en: "One machine pressed on a wall, wired both ways round: admittance measures the force and commands a motion, and gives way on a hard contact; impedance measures the motion and commands a force, and gives way as the sampling period grows.",
+        ko: "같은 기계를 벽에 누르되 인과만 뒤집습니다. 힘을 재서 위치를 지령하는 어드미턴스는 딱딱한 접촉에서 무너지고, 위치를 재서 힘을 지령하는 임피던스는 샘플링 주기가 길어지면 무너집니다.",
       },
       foot: {
         en: "The radius is the selected loop taken in contact, and past one it chatters; the stiffness that matters is not the wall's own but that of the sensor and the tool in series with it.",
