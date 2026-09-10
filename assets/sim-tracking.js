@@ -85,8 +85,12 @@ SIM.register((function () {
   let rhoFree = 0, rhoLoad = 0;
 
   /* the planes are grown to fit the run; sliding mode holds an order of
-     magnitude tighter than PD, so it starts an order of magnitude smaller */
-  let eTop = 0.04, dTop = 0.4, sTop = 0.1;
+     magnitude tighter than PD, so it starts an order of magnitude smaller.
+     Torque runs the other way round: switching asks for the inertia times
+     the switching gain, which is tens of newton metres, where PD asks for
+     its gain times an error of a hundredth of a radian. */
+  let eTop = 0.04, dTop = 0.4, sTop = 0.1, tauTop = 2;
+  const tauStep = (P) => (pd(P) ? 1 : 10);
 
   function sample(P) {
     const r = A.refJoints(S.simT);
@@ -437,33 +441,68 @@ SIM.register((function () {
 
   /* The same error against time, with the staircase the controller actually
      saw laid over the continuous one it did not. */
-  function drawErrors(g, p) {
-    const { ctx } = g;
+  /* ---------- the record: two strips over one clock ----------
+     The variable the law is written in goes above and the torque it asked
+     for goes below, sharing the seconds axis. Reading down a column is the
+     point: the input that was held and what the arm did about it are the
+     same instant, and under sliding mode the second strip is what the
+     first one costs. */
+  function strips(p) {
     const x0 = p.x + 48, x1 = p.x + p.w - 14;
-    const yTop = p.y + 52, yBot = p.y + p.h - 42;
-    const px = (t) => x0 + (t / WINDOW) * (x1 - x0);
-    const mid = (yTop + yBot) / 2;
-    const py = (e) => mid - (e / eTop) * ((yBot - yTop) / 2);
+    const top = p.y + 52, bot = p.y + p.h - 42;
+    const GAP = 18, h = (bot - top - GAP) / 2;
+    const band = (a, b) => {
+      const mid = (a + b) / 2, half = (b - a) / 2;
+      return { top: a, bot: b, mid, at: (v, span) => mid - (v / span) * half };
+    };
+    return {
+      x0, x1, top, bot,
+      px: (t) => x0 + (t / WINDOW) * (x1 - x0),
+      upper: band(top, top + h),
+      lower: band(bot - h, bot),
+    };
+  }
 
-    g.keyRow([
-      { label: JOINT[0].name, stroke: JOINT[0].on, width: 2.1 },
-      { label: JOINT[1].name, stroke: JOINT[1].on, width: 1.8 },
-      { label: "BETWEEN SAMPLES", stroke: g.ink(0.3), width: 1 },
-    ], p.x + 12, p.y + 34);
-
-    g.seconds(p, px, yTop, yBot, WINDOW, 5);
+  /* one strip's furniture: the zero it swings about, the extremes of its
+     scale, and the name of what is plotted, short enough to stand on its
+     side in half a panel */
+  function stripFrame(g, p, s, band, span, name) {
+    const { ctx } = g;
     ctx.strokeStyle = g.ink(0.22);
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(x0, mid); ctx.lineTo(x1, mid);
+    ctx.moveTo(s.x0, band.mid); ctx.lineTo(s.x1, band.mid);
     ctx.stroke();
-    g.cap("+" + eTop.toFixed(2), x0 - 6, yTop + 3, 9, "right", 0.45);
-    g.cap("0", x0 - 6, mid + 3, 9, "right", 0.45);
-    g.cap("-" + eTop.toFixed(2), x0 - 6, yBot + 3, 9, "right", 0.45);
-    g.vcap("ERROR  (RAD)", p.x + 15, mid, 9, 0.5);
-    g.cap("TIME  (S)", (x0 + x1) / 2, p.y + p.h - 11, 9, "center", 0.5);
+    const fmt = span >= 10 ? span.toFixed(0) : span >= 1 ? span.toFixed(1)
+      : span.toFixed(2);
+    g.cap("+" + fmt, s.x0 - 6, band.top + 3, 9, "right", 0.45);
+    g.cap("0", s.x0 - 6, band.mid + 3, 9, "right", 0.45);
+    g.cap("-" + fmt, s.x0 - 6, band.bot + 3, 9, "right", 0.45);
+    g.vcap(name, p.x + 15, band.mid, 9, 0.5);
+  }
 
-    if (S.simT >= T_LOAD) g.event(px(T_LOAD), yTop, yBot, KG);
+  /* the torque the hold is presenting to the arm, drawn as it was held:
+     the record is taken every frame, so wherever a step is wide enough to
+     see, the trace is the staircase */
+  function drawTorque(g, p, s, band) {
+    const { ctx } = g;
+    stripFrame(g, p, s, band, tauTop, "τ  (N·M)");
+    JOINT.forEach((j, i) => {
+      ctx.strokeStyle = j.on;
+      ctx.lineWidth = j.w;
+      ctx.beginPath();
+      let started = false;
+      for (const row of S.hist) {
+        const X = s.px(row[0]), Y = band.at(row[8 + i], tauTop);
+        started ? ctx.lineTo(X, Y) : (ctx.moveTo(X, Y), (started = true));
+      }
+      ctx.stroke();
+    });
+  }
+
+  function drawErrors(g, p, s, band) {
+    const { ctx } = g;
+    stripFrame(g, p, s, band, eTop, "e  (RAD)");
 
     JOINT.forEach((j, i) => {
       /* what happened between the samples, which the loop never saw */
@@ -472,7 +511,7 @@ SIM.register((function () {
       ctx.beginPath();
       let started = false;
       for (const row of S.hist) {
-        const X = px(row[0]), Y = py(row[4 + i]);
+        const X = s.px(row[0]), Y = band.at(row[4 + i], eTop);
         started ? ctx.lineTo(X, Y) : (ctx.moveTo(X, Y), (started = true));
       }
       ctx.stroke();
@@ -482,8 +521,9 @@ SIM.register((function () {
       ctx.lineWidth = j.w;
       ctx.beginPath();
       for (let k = 0; k < marks.length; k++) {
-        const X = px(marks[k][0]), Y = py(marks[k][1 + i]);
-        const Xn = k + 1 < marks.length ? px(marks[k + 1][0]) : px(Math.min(S.simT, WINDOW));
+        const X = s.px(marks[k][0]), Y = band.at(marks[k][1 + i], eTop);
+        const Xn = k + 1 < marks.length ? s.px(marks[k + 1][0])
+          : s.px(Math.min(S.simT, WINDOW));
         k ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y);
         ctx.lineTo(Xn, Y);
       }
@@ -586,48 +626,24 @@ SIM.register((function () {
   /* The sliding variable itself, against the layer it should stay inside.
      A sampled loop cannot sit on the surface; it straddles it in a band, and
      that band against Phi is the whole reading. */
-  function drawSliding(g, P, p) {
+  function drawSliding(g, P, p, s, band) {
     const { ctx } = g;
-    const x0 = p.x + 48, x1 = p.x + p.w - 14;
-    const yTop = p.y + 52, yBot = p.y + p.h - 42;
-    const px = (t) => x0 + (t / WINDOW) * (x1 - x0);
-    const mid = (yTop + yBot) / 2;
-    const py = (s) => mid - (s / sTop) * ((yBot - yTop) / 2);
-
-    g.keyRow([
-      { label: JOINT[0].name, stroke: JOINT[0].on, width: 2.1 },
-      { label: JOINT[1].name, stroke: JOINT[1].on, width: 1.8 },
-      { label: "BAND  ±" + bandName(P), stroke: "rgba(234,88,12,0.7)",
-        width: 1.4, dash: [4, 3] },
-    ], p.x + 12, p.y + 34);
-
-    g.seconds(p, px, yTop, yBot, WINDOW, 5);
 
     /* the sampling band, the width the hold implies */
     const reach = quasiBand(P);
-    const lo = Math.max(yTop, py(reach)), hi = Math.min(yBot, py(-reach));
+    const lo = Math.max(band.top, band.at(reach, sTop));
+    const hi = Math.min(band.bot, band.at(-reach, sTop));
     ctx.fillStyle = "rgba(234,88,12,0.09)";
-    ctx.fillRect(x0, lo, x1 - x0, hi - lo);
+    ctx.fillRect(s.x0, lo, s.x1 - s.x0, hi - lo);
     ctx.strokeStyle = "rgba(234,88,12,0.7)";
     ctx.lineWidth = 1.4;
     ctx.setLineDash([4, 3]);
     for (const yy of [lo, hi]) {
-      ctx.beginPath(); ctx.moveTo(x0, yy); ctx.lineTo(x1, yy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(s.x0, yy); ctx.lineTo(s.x1, yy); ctx.stroke();
     }
     ctx.setLineDash([]);
 
-    ctx.strokeStyle = g.ink(0.22);
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(x0, mid); ctx.lineTo(x1, mid);
-    ctx.stroke();
-    g.cap("+" + sTop.toFixed(2), x0 - 6, yTop + 3, 9, "right", 0.45);
-    g.cap("0", x0 - 6, mid + 3, 9, "right", 0.45);
-    g.cap("-" + sTop.toFixed(2), x0 - 6, yBot + 3, 9, "right", 0.45);
-    g.vcap("SLIDING VARIABLE  s  (RAD/S)", p.x + 15, mid, 9, 0.5);
-    g.cap("TIME  (S)", (x0 + x1) / 2, p.y + p.h - 11, 9, "center", 0.5);
-
-    if (S.simT >= T_LOAD) g.event(px(T_LOAD), yTop, yBot, KG);
+    stripFrame(g, p, s, band, sTop, "s  (RAD/S)");
 
     JOINT.forEach((j, i) => {
       ctx.strokeStyle = j.on;
@@ -635,11 +651,33 @@ SIM.register((function () {
       ctx.beginPath();
       let started = false;
       for (const row of S.hist) {
-        const a = px(row[0]), b = py(row[6 + i] + P.lam * row[4 + i]);
+        const a = s.px(row[0]), b = band.at(row[6 + i] + P.lam * row[4 + i], sTop);
         started ? ctx.lineTo(a, b) : (ctx.moveTo(a, b), (started = true));
       }
       ctx.stroke();
     });
+  }
+
+  /* both strips, their shared clock, and the key that serves the pair */
+  function drawRecord(g, P, p) {
+    const s = strips(p);
+    g.keyRow([
+      { label: JOINT[0].name, stroke: JOINT[0].on, width: 2.1 },
+      { label: JOINT[1].name, stroke: JOINT[1].on, width: 1.8 },
+      pd(P)
+        ? { label: "BETWEEN SAMPLES", stroke: g.ink(0.3), width: 1 }
+        : { label: "BAND  ±" + bandName(P), stroke: "rgba(234,88,12,0.7)",
+            width: 1.4, dash: [4, 3] },
+    ], p.x + 12, p.y + 34);
+
+    /* one axis and one marker down both strips, so a column is one instant */
+    g.seconds(p, s.px, s.top, s.bot, WINDOW, 5);
+    g.cap("TIME  (S)", (s.x0 + s.x1) / 2, p.y + p.h - 11, 9, "center", 0.5);
+    if (S.simT >= T_LOAD) g.event(s.px(T_LOAD), s.top, s.bot, KG);
+
+    if (pd(P)) drawErrors(g, p, s, s.upper);
+    else drawSliding(g, P, p, s, s.upper);
+    drawTorque(g, p, s, s.lower);
   }
 
   /* ---------- the module ---------- */
@@ -648,8 +686,9 @@ SIM.register((function () {
     id: "track",
     canvasLabel: "A two-link arm tracing a circle with a payload added " +
       "partway, under either sampled PD or sampled sliding mode control, " +
-      "with the joint errors, the record of them over time, and the " +
-      "distance from the end effector to the point it is tracking",
+      "with the joint errors, the record of them and of the torque over " +
+      "time, and the distance from the end effector to the point it is " +
+      "tracking",
 
     /* each law has its own note and footnote in data/site.js */
     words: (P) => P.law,
@@ -703,6 +742,7 @@ SIM.register((function () {
       eTop = pd(P) ? 0.04 : 0.01;
       dTop = pd(P) ? 0.4 : 0.1;
       sTop = 0.1;
+      tauTop = pd(P) ? 2 : 20;
     },
 
     done: () => diverged || S.simT >= WINDOW,
@@ -725,7 +765,9 @@ SIM.register((function () {
       const r = A.refJoints(S.simT);
       const e = [r.q[0] - S.q[0], r.q[1] - S.q[1]];
       const de = [r.dq[0] - S.v[0], r.dq[1] - S.v[1]];
-      S.hist.push([S.simT, S.q[0], S.q[1], err, e[0], e[1], de[0], de[1]]);
+      /* the torque as held, not as computed: it is what the arm was given */
+      S.hist.push([S.simT, S.q[0], S.q[1], err, e[0], e[1], de[0], de[1],
+                   held[0], held[1]]);
       if (S.hist.length > 1600) S.hist.shift();
 
       /* The scales grow to fit the run and never shrink inside it, so nothing
@@ -747,6 +789,11 @@ SIM.register((function () {
         const reach = quasiBand(P) * 1.8;
         if (reach > dTop) dTop = Math.ceil(reach / 0.05) * 0.05;
         if (reach > sTop) sTop = Math.ceil(reach / 0.05) * 0.05;
+      }
+      const step = tauStep(P);
+      for (let i = 0; i < 2; i++) {
+        const tq = Math.abs(held[i]);
+        if (tq > tauTop) tauTop = Math.ceil(tq / step) * step;
       }
 
       const wild = !Number.isFinite(err) || err > 3
@@ -822,11 +869,11 @@ SIM.register((function () {
       if (pd(P)) {
         drawLoopPD(g, P, b.loop);
         g.panel(b.left, "JOINT ERROR, PHASE PORTRAIT", () => drawPhase(g, b.left));
-        g.panel(b.right, "JOINT ERROR OVER TIME", () => drawErrors(g, b.right));
+        g.panel(b.right, "JOINT ERROR AND TORQUE", () => drawRecord(g, P, b.right));
       } else {
         drawLoopSMC(g, P, b.loop);
         g.panel(b.left, "ERROR PLANE AND SLIDING SURFACE", () => drawSurface(g, P, b.left));
-        g.panel(b.right, "SLIDING VARIABLE OVER TIME", () => drawSliding(g, P, b.right));
+        g.panel(b.right, "SLIDING VARIABLE AND TORQUE", () => drawRecord(g, P, b.right));
       }
     },
   };
