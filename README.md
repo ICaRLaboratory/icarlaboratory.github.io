@@ -124,9 +124,10 @@ are relative.
   for the small uppercase labels. Pretendard is the official v1.3.9 dynamic
   subset — 92 chunks split by Unicode range, so a page fetches only the chunks
   its own text needs (about 350 KB for a Korean page instead of the 2 MB full
-  font) while every modern Hangul syllable stays available. Provenance, licence
-  and checksums are in `assets/fonts/README.md`. Offline, the site falls back to
-  system fonts and still reads correctly.
+  font) while every modern Hangul syllable stays available. Both families are
+  under the SIL Open Font License 1.1, each license text committed beside the
+  fonts; provenance and checksums are in `assets/fonts/README.md`. Offline, the
+  site falls back to system fonts and still reads correctly.
 - Images in `assets/img/` came from the old Google Sites page.
 
 ## Day-to-day updates

@@ -1,17 +1,18 @@
-# Self-hosted Pretendard dynamic subsets
+# Self-hosted web fonts
 
 The site uses all **92 official Pretendard Variable v1.3.9 dynamic WOFF2 chunks**,
 selected by the upstream `unicode-range` declarations. All 11,172 modern Hangul
 syllables (U+AC00–U+D7A3) remain available, including syllables not currently in
 site text. No rebuilding or content-specific subsetting is needed for Korean
-text edits. JetBrains Mono and its preload are unchanged.
+text edits. JetBrains Mono and its preload are unchanged; it has its own
+section at the end of this file.
 
 `assets/style.css` imports the local `pretendardvariable-dynamic-subset.css`
 before other rules. Its relative font URLs resolve within this directory.
 There is no unconditional Pretendard preload or full-font fallback download.
 `font-display: swap` and variable weights 45–930 are preserved.
 
-## Provenance and license
+## Pretendard provenance and license
 
 - Upstream: https://github.com/orioncactus/pretendard
 - Release: `v1.3.9`
@@ -33,7 +34,7 @@ comments are otherwise upstream originals. Fonts are not rebuilt or renamed.
 Original upstream CSS SHA-256 (before the weight-declaration adaptation):
 `2973bcae80262dcb630cfb793fbf6af29bd986c769ee54953fb3e5b3e32323ca`.
 
-## Reproduce
+## Reproduce the Pretendard assets
 
 From the repository root, with Python 3 and network access, run this Python
 snippet (e.g. paste into `python3`). It fetches only the pinned upstream files,
@@ -81,7 +82,7 @@ python3 tools/check-font-coverage.py
 python3 -m unittest discover -s tests -p test_font_loading.py -v
 ```
 
-## Coverage and byte comparison
+## Pretendard coverage and byte comparison
 
 The checker intersects each real font's Unicode cmap (excluding `.notdef`) with
 its CSS `unicode-range`, then unions those sets. It checks all modern Hangul,
@@ -111,3 +112,38 @@ so they conservatively overcount displayed text. Actual requests depend on the
 page, language, rendered font usage, browser and cache. The CSS import adds a
 stylesheet dependency; measure cold-cache browser requests separately rather
 than inferring timing gains from bytes alone.
+
+## JetBrains Mono
+
+`assets/style.css` declares one `@font-face` for the small uppercase labels and
+numerals, and every page preloads it.
+
+- Upstream: https://github.com/JetBrains/JetBrainsMono
+- File: `jetbrains-mono-subset.woff2`, 36,968 bytes, SHA-256
+  `6f64a7f9db2dc4ead93682f7cd902653ff79c1b4bab67a0857d7d83cb3a9f3ce`
+- Version, read from the font's `name` table: `Version 2.211`
+  (`2.211;JB;JetBrainsMono-Regular`)
+- Variable, weight axis 100–800, which is what the CSS `font-weight: 100 800`
+  declares
+- Latin subset: 363 glyphs over 197 codepoints — U+0020–007E, U+00A0–00FF,
+  U+0102, U+0131, U+0152–0153, U+2013–2014
+- [JetBrainsMono-LICENSE.txt](JetBrainsMono-LICENSE.txt): SIL Open Font License
+  1.1, SHA-256
+  `b2fe5e8987594e9ffd1d2ca52a2f5d73eb8335243893c5d6254b5ad69269591d`. It is the
+  unmodified upstream `OFL.txt` at tag `v2.221`, commit
+  `43e5b71ef0ca1450b5ea454766622f835aa57d95`; the same bytes ship at `v2.210`
+  and `v2.242`, which bracket this 2.211 build.
+
+A subset is a Modified Version under the OFL, so clause 2 asks for the copyright
+notice and the license with every copy. The notice is in the machine-readable
+`name` table the clause allows (ID 0, `Copyright 2020 The JetBrains Mono Project
+Authors`); the license is the stand-alone text file above. JetBrains Mono names
+no Reserved Font Name after its copyright statement, so the subset keeps the
+family name.
+
+**Not byte-reproducible, unlike Pretendard above.** The repository does not
+record which upstream binary and subsetting run produced this file, and no
+upstream tag is version 2.211, so there is nothing to check it against.
+Everything listed here was read back out of the committed file. Cutting a fresh
+subset from a pinned upstream release would close that gap; no page depends on
+the current bytes.
