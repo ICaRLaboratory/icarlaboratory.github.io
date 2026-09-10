@@ -51,26 +51,27 @@ const SITE = {
      One line each: the figure is the explanation, and on a phone every line
      here is a line of it pushed off the screen. */
   sims: {
-    /* One tab, three control laws, and a note and a footnote for each of
-       them: the module reports which is selected and the shell reads the
-       matching block out of modes. */
+    /* One tab, four control laws, and a note and a footnote for whichever
+       of them has words to carry: the module reports which is selected and
+       the shell reads the matching block out of modes, clearing the lines
+       for a law that has none. */
     track: {
       tab: "Trajectory tracking",
       modes: {
         pd: {
           note: {
-            en: "A two-link arm tracing a circle under sampled PD feedback, with six kilogrammes landing on it at five seconds — past a spectral radius of one, the loop diverges.",
-            ko: "샘플드데이터 PD 제어를 이용한 2관절 로봇 팔의 원 궤적 추종입니다. 시작 5초 후 6 kg의 하중을 추가하며, 스펙트럼 반경이 1을 초과하면 제어계가 불안정해집니다.",
+            en: "A two-link arm tracing a circle under sampled PD feedback, with ten kilogrammes landing on it at five seconds: proportional and derivative on each joint, nothing done about the coupling or the load, and the payload costs it centimetres.",
+            ko: "샘플드데이터 PD 제어를 이용한 2관절 로봇 팔의 원 궤적 추종입니다. 시작 5초 후 10 kg의 하중을 추가하며, 관절 간 결합과 하중을 보상하지 않는 제어법이 감당하는 오차 수준을 확인할 수 있습니다.",
           },
           foot: {
-            en: "The radius is taken at the worst pose on the circle and at whatever the arm is carrying, so it moves when the payload lands. The error below it is measured at the end effector — how far the point at the end of the arm is from the point the reference asks for, root-mean-squared over the last second. The two joint errors belong to the panels below, not to this number.",
-            ko: "스펙트럼 반경은 현재 하중과 원 궤적상 안정성에 가장 불리한 자세를 기준으로 산출합니다. 위치 추종 오차는 최근 1초간 엔드이펙터와 목표 위치 사이 거리의 RMS 값이며, 관절별 오차는 각 패널에 표시합니다.",
+            en: "What it reports is the error at the end effector — how far the point at the end of the arm is from the point the reference asks for, root-mean-squared over the last second — and the verdict is that error against a tenth of the circle being traced. The two joint errors belong to the panels below, not to this number.",
+            ko: "표시되는 값은 엔드이펙터 기준 오차로, 최근 1초간 팔 끝점과 목표 궤적점 사이 거리의 RMS입니다. 판정은 이 값을 원 궤적 반지름의 1/10과 비교하여 결정하며, 관절별 오차는 각 패널에 표시합니다.",
           },
         },
         smc: {
           note: {
-            en: "The same arm and the same six kilogrammes, driven onto the surface s = e′ + λe instead of towards a point: sliding mode shrugs the load off, and pays for it by straddling that surface in a band that opens as the sampling period grows.",
-            ko: "동일한 로봇 팔과 6 kg의 추가 하중 조건에서 슬라이딩 모드 제어를 적용합니다. 슬라이딩 면 s = e′ + λe = 0 부근의 진동과 샘플링 주기에 따른 진동 폭의 변화를 확인할 수 있습니다.",
+            en: "The same arm and the same ten kilogrammes, driven onto the surface s = e′ + λe instead of towards a point: sliding mode shrugs the load off, and pays for it by straddling that surface in a band that opens as the sampling period grows.",
+            ko: "동일한 로봇 팔과 10 kg의 추가 하중 조건에서 슬라이딩 모드 제어를 적용합니다. 슬라이딩 면 s = e′ + λe = 0 부근의 진동과 샘플링 주기에 따른 진동 폭의 변화를 확인할 수 있습니다.",
           },
           foot: {
             en: "The band is the largest |s| over the run once the surface has been reached, and the shaded strip is (1+m)hη — how far a zero-order hold and m samples of delay let s run before the sign can change. The switch is left discontinuous, so the clock is what sets the chattering: a loop that is sliding stays about that wide, and one that has left the surface runs several times wider. The error beneath is measured at the end effector rather than at the joints — how far the point at the end of the arm is from the point being tracked, root-mean-squared over the last second.",
@@ -80,19 +81,19 @@ const SITE = {
         asmc: {
           /* The reference is the whole caption; a plain string stands in
              both languages. */
-          foot: "2024, doi:10.3390/electronics13193940  ·  2025, doi:10.3390/s25144252",
+          foot: "2024, doi:10.3390/electronics13193940",
         },
       },
     },
     contact: {
       tab: "Interaction control",
       note: {
-        en: "One machine reaching for a wall and then pressing on it, wired both ways round: admittance measures the force and commands a motion, and gives way on a hard contact; impedance measures the motion and commands a force, and gives way as the sampling period grows.",
-        ko: "벽면으로 접근한 뒤 힘을 유지하는 과정을 어드미턴스 제어와 임피던스 제어로 비교합니다. 두 방식은 각각 힘 측정에 따른 위치 제어와 위치 측정에 따른 힘 제어로 구성됩니다. 이 모델에서는 높은 접촉 강성이 어드미턴스 제어의 안정성을, 긴 샘플링 주기가 임피던스 제어의 안정성을 저하시킬 수 있습니다.",
+        en: "One machine reaching for a wall and then pressing on it, wired both ways round: admittance measures the force and commands a motion, impedance measures the motion and commands a force. The same wall, the same clock and the same demand either way, so what each settles at can be read straight against the other: a stiffer virtual spring holds less of the force it was asked for, and stiffer still on a coarse clock it rings and then lets go.",
+        ko: "벽면으로 접근한 뒤 힘을 유지하는 과정을 어드미턴스 제어와 임피던스 제어로 비교합니다. 두 방식은 각각 힘 측정에 따른 위치 제어와 위치 측정에 따른 힘 제어로 구성됩니다. 동일한 벽, 동일한 샘플링 주기, 동일한 목표 힘 조건에서 두 제어법이 도달하는 정상상태를 비교할 수 있습니다. 가상 강성을 높이면 목표 힘의 더 적은 부분만 유지되며, 샘플링 주기가 긴 조건에서 강성을 더 높이면 진동 후 접촉을 유지하지 못합니다.",
       },
       foot: {
-        en: "The tool reaches the surface over the first second and is asked for no force until it is touching: with a zero demand both laws reduce to position control, so the reach needs no separate controller. The radius is the selected loop taken in contact, and past one it chatters; the stiffness that matters is not the wall's own but that of the sensor and the tool in series with it.",
-        ko: "도구는 첫 1초 동안 벽면으로 접근하며, 접촉 이전에는 목표 힘을 0으로 두므로 두 제어법 모두 위치 제어로 동작합니다. 접근 구간에 별도의 제어기가 필요하지 않습니다. 스펙트럼 반경은 접촉 상태의 제어계를 기준으로 산출하며, 1을 초과하면 불안정해집니다. 유효 접촉 강성에는 벽의 강성과 직렬 연결된 힘센서 및 툴의 유연성이 함께 반영됩니다.",
+        en: "The tool reaches the surface over the first second and is asked for no force until it is touching: with a zero demand both laws reduce to position control, so the reach needs no separate controller. What is read off the run is the force the loop settles at over the last second and the width it is swinging through; the stiffness that matters is not the wall's own but that of the sensor and the tool in series with it.",
+        ko: "도구는 첫 1초 동안 벽면으로 접근하며, 접촉 이전에는 목표 힘을 0으로 두므로 두 제어법 모두 위치 제어로 동작합니다. 접근 구간에 별도의 제어기가 필요하지 않습니다. 표시되는 값은 최근 1초간 접촉력의 평균과 진동 폭입니다. 유효 접촉 강성에는 벽의 강성과 직렬 연결된 힘센서 및 툴의 유연성이 함께 반영됩니다.",
       },
     },
   },

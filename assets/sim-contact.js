@@ -27,8 +27,8 @@
    Both run on the same clock, because the interesting failures are
    sampled-data failures and the comparison is only fair if the clock
    is shared. The wall is a spring and a dashpot that can push and not
-   pull, f = max(0, k_e (x - x_w) + b_e x'), and the readout is the
-   spectral radius of whichever sampled loop is selected.
+   pull, f = max(0, k_e (x - x_w) + b_e x'), and what is read off the
+   run is the force the loop settles at and how much it is ringing.
 
    A run starts with the tool parked two centimetres off the surface
    and reaches for it: the contact point both laws hold to slides onto
@@ -76,7 +76,6 @@ SIM.register((function () {
 
   let x, v, e, de, held, simT, nextT, hist, diverged;
   let virtual = null;                              /* the admittance, discretised */
-  let rho = 0;
 
   const adm = (P) => P.mode === "admittance";
 
@@ -154,51 +153,6 @@ SIM.register((function () {
     } else {
       held = [demand(simT) - P.kd * (x - xc(simT)) - P.dd * v, 0];
     }
-  }
-
-  /* ---------- the sampled loop, and its radius ----------
-     Written on the state the clock actually carries. Under admittance that
-     is the machine and the virtual system together, four states, coupled
-     because the virtual system is driven by the force the machine is making
-     and the machine is driven by the position the virtual system reached.
-     Under impedance it is the machine alone, driven by a torque built from
-     its own measured state -- two states, and no sensor in between. Both are
-     taken in contact, where the wall closes the loop; out of contact the
-     halves come apart and neither question arises. */
-
-  function radius(P) {
-    const { m, kp, kv, br } = ROBOT;
-    if (adm(P)) {
-      const plant = SIM.discretize(
-        [[0, 1], [-(kp + P.ke) / m, -(kv + br + WALL.be) / m]],
-        [[0, 0], [kp / m, kv / m]], P.h, 2, 2);
-      const A = Array.from({ length: 4 }, () => new Array(4).fill(0));
-      for (let i = 0; i < 2; i++) {
-        for (let j = 0; j < 2; j++) A[i][j] = plant.Ad[i][j];
-        A[i][2] = plant.Bd[i][0];
-        A[i][3] = plant.Bd[i][1];
-        for (let j = 0; j < 2; j++) A[2 + i][2 + j] = virtual.Ad[i][j];
-        A[2 + i][0] = -virtual.Bd[i][0] * P.ke;
-        A[2 + i][1] = -virtual.Bd[i][0] * WALL.be;
-      }
-      return SIM.radiusByPowers(A, 4);
-    }
-    const plant = SIM.discretize(
-      [[0, 1], [-P.ke / m, -(br + WALL.be) / m]], [[0], [1 / m]], P.h, 2, 1);
-    const A = [[0, 0], [0, 0]];
-    for (let i = 0; i < 2; i++) {
-      A[i][0] = plant.Ad[i][0] - plant.Bd[i][0] * P.kd;
-      A[i][1] = plant.Ad[i][1] - plant.Bd[i][0] * P.dd;
-    }
-    return SIM.radiusByPowers(A, 2);
-  }
-
-  function fmtRadius(r) {
-    if (!Number.isFinite(r)) return "∞";
-    let places = 3;
-    const gap = Math.abs(r - 1);
-    if (gap > 0 && gap < 0.0015) places = Math.min(7, Math.ceil(-Math.log10(gap)) + 1);
-    return r.toFixed(places);
   }
 
   /* ---------- drawing ---------- */
@@ -683,8 +637,12 @@ SIM.register((function () {
         applies: (P) => P.mode === "admittance", off: "the machine's own" },
       { id: "dd", label: "Virtual damping <i>D</i><sub>d</sub>",
         min: 5, max: 120, step: 5, value: 20, show: (v) => v + " Ns/m" },
+      /* Far enough to break it. A virtual spring stiffer than the machine
+         can settle against inside one sampling period is where both of
+         these laws let go, and the run shows that without a criterion to
+         predict it -- but only if the slider reaches. */
       { id: "kd", label: "Virtual stiffness <i>K</i><sub>d</sub>",
-        min: 0, max: 400, step: 25, value: 200, show: (v) => v + " N/m" },
+        min: 0, max: 3000, step: 100, value: 200, show: (v) => v + " N/m" },
       /* Real contact stiffness spans decades -- soft rubber to metal through
          a stiff sensor -- so the slider is decades too, a tenth of one per
          notch, rather than a linear crawl across the interesting part. */
@@ -697,8 +655,8 @@ SIM.register((function () {
     ],
 
     readouts: [
-      { id: "rho", label: "Spectral radius" },
       { id: "held", label: "Force held" },
+      { id: "ring", label: "Force ripple" },
     ],
     verdict: true,
 
@@ -751,22 +709,39 @@ SIM.register((function () {
       /* the virtual system, as the controller will actually step it */
       virtual = SIM.discretize([[0, 1], [-P.kd / P.md, -P.dd / P.md]],
         [[0], [1 / P.md]], P.h, 2, 1);
-      rho = radius(P);
       return null;
     },
 
     live(P) {
-      const bad = !(rho < 1);
+      /* What the loop is doing rather than what a criterion says it may do:
+         the mean force over the last second and the width it is swinging
+         through. A loop that has lost the contact rings hard before any
+         state runs away, and that ring is the whole of what goes wrong
+         here, so it is what the verdict is read from: a fifth of the force
+         being asked for is where the ringing stops being a settling
+         transient and starts being the answer. */
       const fd = demand(simT);
+      let lo = Infinity, hi = -Infinity, sum = 0, n = 0;
+      for (let i = hist.length - 1; i >= 0 && hist[i][0] > simT - 1; i--) {
+        const f = hist[i][3];
+        if (f < lo) lo = f;
+        if (f > hi) hi = f;
+        sum += f;
+        n++;
+      }
+      const ring = n ? hi - lo : 0;
+      const loud = fd > 0 && ring > 0.2 * fd;
       return {
         readouts: {
-          rho: fmtRadius(rho),
-          /* an equilibrium the loop is running away from is not being held */
-          held: diverged ? "lost" : bad ? "not held"
-            : fd === 0 ? "—"
-            : settledForce(fd, P).toFixed(1) + " N of " + fd.toFixed(0),
+          held: diverged ? "lost" : fd === 0 || !n ? "—"
+            : (sum / n).toFixed(1) + " N of " + fd.toFixed(0),
+          ring: diverged ? "lost" : fd === 0 || !n ? "—"
+            : ring.toFixed(1) + " N",
         },
-        verdict: { text: bad ? "Unstable" : "Stable", bad },
+        verdict: {
+          text: diverged ? "Lost" : loud ? "Ringing" : "Held",
+          bad: diverged || loud,
+        },
       };
     },
 

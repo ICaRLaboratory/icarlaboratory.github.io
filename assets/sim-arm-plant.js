@@ -21,9 +21,10 @@
 
    The task is a circle, traced by the tip once every five seconds,
    and the joint angles that draw it come from the inverse kinematics
-   of the arm. At five seconds -- one full lap in -- six kilogrammes
+   of the arm. At five seconds -- one full lap in -- ten kilogrammes
    arrive at the end effector, and nothing about any controller
-   changes. What each one does about that is the point of having two
+   changes. Ten rather than six: the laws that estimate the arm rather
+   than model it shrug six off without moving, so it separated nothing. What each one does about that is the point of having two
    of them.
    =============================================================== */
 
@@ -31,7 +32,7 @@ const ARMPLANT = (function () {
   /* point masses at the end of each link: the smallest model that still
      has a varying inertia and real Coriolis terms */
   const ARM = { m1: 1, m2: 0.7, l1: 1, l2: 0.85 };
-  const PAYLOAD = 6;            /* kg, at the end effector */
+  const PAYLOAD = 10;           /* kg, at the end effector */
   const T_LOAD = 5;             /* s, one lap in */
   const WINDOW = 20;            /* s, four laps */
   const CIRCLE = { x: 0.9, y: -0.4, r: 0.35, T: 5, phase: Math.PI };

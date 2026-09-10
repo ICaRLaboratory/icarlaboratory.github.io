@@ -221,36 +221,7 @@ const SIM = (function () {
     return g;
   }
 
-  /* ---------- spectral radius, shared because both loops want one ----------
-     rho(M) = lim ||M^n||^(1/n); repeated squaring reaches n = 4096 in twelve
-     multiplications and does not stall on a complex leading pair. */
-
-  function radiusByPowers(M, n) {
-    const norm = (X) => {
-      let best = 0;
-      for (let i = 0; i < n; i++) {
-        let row = 0;
-        for (let j = 0; j < n; j++) row += Math.abs(X[i][j]);
-        if (row > best) best = row;
-      }
-      return best;
-    };
-    let s = norm(M);
-    if (s === 0) return 0;
-    let B = M.map((row) => row.map((c) => c / s));
-    let logN = Math.log(s);
-    let count = 1;
-    for (let k = 0; k < 12; k++) {
-      const sq = matmul(B, B, n);
-      const sn = norm(sq);
-      if (!Number.isFinite(sn)) return Infinity;
-      if (sn === 0) return 0;
-      B = sq.map((row) => row.map((c) => c / sn));
-      logN = 2 * logN + Math.log(sn);
-      count *= 2;
-    }
-    return Math.exp(logN / count);
-  }
+  /* ---------- matrices, for the plants that need discretising ---------- */
 
   function matmul(X, Y, n) {
     const C = Array.from({ length: n }, () => new Array(n).fill(0));
@@ -261,23 +232,6 @@ const SIM = (function () {
         for (let j = 0; j < n; j++) C[i][j] += c * Y[k][j];
       }
     return C;
-  }
-
-  /* The rightmost eigenvalue of a continuous loop, taken the same way: over a
-     short step exp(Ah) has radius exp(h max Re lambda), so one series and one
-     power iteration answer it without an eigensolver. */
-  function rightmostPole(A, n, h = 5e-4) {
-    let E = Array.from({ length: n }, (_, i) =>
-      Array.from({ length: n }, (_, j) => (i === j ? 1 : 0)));
-    let term = E.map((r) => r.slice());
-    for (let k = 1; k <= 14; k++) {
-      term = matmul(term, A, n).map((r) => r.map((c) => (c * h) / k));
-      E = E.map((r, i) => r.map((c, j) => c + term[i][j]));
-    }
-    const rho = radiusByPowers(E, n);
-    if (!Number.isFinite(rho)) return Infinity;
-    if (rho === 0) return -Infinity;
-    return Math.log(rho) / h;
   }
 
   /* The matrix exponential, by scaling and squaring: the plants here are
@@ -692,8 +646,6 @@ const SIM = (function () {
   return {
     register: (def) => defs.push(def),
     hue: HUE,
-    radiusByPowers,
-    rightmostPole,
     discretize,
     boot,
   };
