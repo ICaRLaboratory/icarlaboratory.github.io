@@ -354,6 +354,7 @@ const SIM = (function () {
             ${c.choices.map((o) => `
               <button type="button" class="chip${o.value === c.value ? " is-active" : ""}"
                       role="radio" aria-checked="${o.value === c.value}"
+                      ${o.off ? "disabled" : ""}
                       data-value="${o.value}">${o.label}</button>`).join("")}
           </div>
         </div>` : `
@@ -408,14 +409,16 @@ const SIM = (function () {
          one -- so a control can say when it does not apply, and is switched
          off and dimmed rather than quietly ignored. */
       for (const c of def.controls) {
-        if (c.choices) continue;
         const row = inputs[c.id].closest(".sim__ctrl");
+        row.hidden = c.hide ? c.hide(P) : false;
+        /* A group of chips is the question itself: it is either being asked
+           or it is not. There is no value beside it to switch off. */
+        if (c.choices) continue;
         /* A slider can belong to another mode entirely, in which case it goes
            away; or it can belong to this one and have nothing to say -- a
            virtual mass to a controller with no way to render one -- in which
            case it stays, switched off, so the reader can see that it is
            beside the point rather than missing. */
-        row.hidden = c.hide ? c.hide(P) : false;
         const applies = c.applies ? c.applies(P) : true;
         inputs[c.id].disabled = !applies;
         row.classList.toggle("is-off", !applies);
@@ -452,8 +455,14 @@ const SIM = (function () {
       const all = (typeof SITE !== "undefined" && SITE.sims && SITE.sims[def.id]) || {};
       const key = def.words ? def.words(P) : null;
       const w = (key && all.modes && all.modes[key]) || all;
-      if (noteEl && w.note) setProse(noteEl, w.note);
-      if (footEl && w.foot) setProse(footEl, w.foot);
+      /* A mode can have nothing to say -- a reference under the figure can
+         be the whole of it -- so an absent line is cleared and hidden
+         rather than left holding the words of the mode before it. */
+      for (const [el, v] of [[noteEl, w.note], [footEl, w.foot]]) {
+        if (!el) continue;
+        setProse(el, v || "");
+        el.hidden = !v;
+      }
     }
 
     function retune() {
@@ -545,7 +554,7 @@ const SIM = (function () {
       if (c.choices) {
         inputs[c.id].addEventListener("click", (ev) => {
           const btn = ev.target.closest("[role=radio]");
-          if (!btn) return;
+          if (!btn || btn.disabled) return;
           for (const b of inputs[c.id].querySelectorAll("[role=radio]")) {
             b.classList.toggle("is-active", b === btn);
             b.setAttribute("aria-checked", String(b === btn));
