@@ -575,13 +575,15 @@ const SIM = (function () {
     stack.innerHTML = defs.map((d, i) => `
       <div class="simpanel" id="simpanel-${d.id}" role="tabpanel"
            aria-labelledby="simtab-${d.id}" tabindex="0" ${i ? "hidden" : ""}>
-        <p class="lede sim__note" data-sim-note></p>
         <div class="sim">
           <figure class="sim__fig">
             <canvas aria-label="${d.canvasLabel}"></canvas>
           </figure>
           <div class="sim__panel"></div>
-          <p class="sim__foot" data-sim-foot></p>
+          <div class="sim__words">
+            <p class="sim__note" data-sim-note></p>
+            <p class="sim__foot" data-sim-foot></p>
+          </div>
         </div>
       </div>`).join("");
 

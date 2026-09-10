@@ -64,8 +64,8 @@ const SITE = {
             ko: "샘플드데이터 PD 제어를 적용한 2관절 로봇 팔의 원 궤적 추종을 보여줍니다. 시작 5초 후 10 kg의 하중을 추가하여, 관절 간 결합과 하중 변화에 대한 보상이 없는 조건에서 추종 성능을 확인합니다.",
           },
           foot: {
-            en: "What it reports is the error at the end effector — how far the point at the end of the arm is from the point the reference asks for, root-mean-squared over the last second — and the verdict is that error against a tenth of the circle being traced. The two joint errors belong to the panels below, not to this number.",
-            ko: "위치 추종 오차는 최근 1초간 엔드이펙터와 목표 위치 사이 거리의 RMS 값입니다. 이 시뮬레이션에서는 원 궤적 반지름의 1/10을 기준으로 추종 성능을 판정하며, 관절별 오차는 각 패널에 표시합니다.",
+            en: "End-effector error is the distance from the point at the end of the arm to the point the reference asks for, root-mean-squared over the last second, and the verdict reads it against a tenth of the circle being traced. The joint errors are the panels' own and are not in this number.",
+            ko: "End-effector error는 최근 1초간 엔드이펙터와 목표 위치 사이 거리의 RMS 값입니다. 판정은 이 값을 원 궤적 반지름의 1/10과 비교하며, 관절별 오차는 이 값에 포함되지 않고 각 패널에 표시됩니다.",
           },
         },
         smc: {
