@@ -648,7 +648,8 @@ SIM.register((function () {
     id: "track",
     canvasLabel: "A two-link arm tracing a circle with a payload added " +
       "partway, under either sampled PD or sampled sliding mode control, " +
-      "with the joint tracking errors and the record of them over time",
+      "with the joint errors, the record of them over time, and the " +
+      "distance from the end effector to the point it is tracking",
 
     /* each law has its own note and footnote in data/site.js */
     words: (P) => P.law,
@@ -684,7 +685,8 @@ SIM.register((function () {
 
     readouts: [
       { id: "main", label: (P) => (pd(P) ? "Spectral radius" : "Sliding band") },
-      { id: "err", label: "Tracking error" },
+      /* named for the thing it measures: the tip, not the joints */
+      { id: "err", label: "End-effector error" },
     ],
     verdict: true,
 
@@ -760,7 +762,10 @@ SIM.register((function () {
     },
 
     live(P) {
-      /* the error the tip is holding, over the last second of the record */
+      /* The error the tip is holding, over the last second of the record:
+         the distance from the end effector to the point the reference is
+         asking for, root-mean-squared. The joints have their own errors and
+         their own two panels; this is the one the task is judged on. */
       let sum = 0, n = 0;
       for (let i = S.hist.length - 1; i >= 0 && S.hist[i][0] > S.simT - 1; i--) {
         sum += S.hist[i][3] * S.hist[i][3];

@@ -49,8 +49,8 @@ const SITE = {
             ko: "샘플드데이터 PD 제어를 이용한 2관절 로봇 팔의 원 궤적 추종입니다. 시작 5초 후 6 kg의 하중을 추가하며, 스펙트럼 반경이 1을 초과하면 제어계가 불안정해집니다.",
           },
           foot: {
-            en: "The radius is taken at the worst pose on the circle and at whatever the arm is carrying, so it moves when the payload lands.",
-            ko: "스펙트럼 반경은 현재 하중과 원 궤적상 안정성에 가장 불리한 자세를 기준으로 산출하며, 하중 변화에 따라 갱신됩니다.",
+            en: "The radius is taken at the worst pose on the circle and at whatever the arm is carrying, so it moves when the payload lands. The error below it is measured at the end effector — how far the point at the end of the arm is from the point the reference asks for, root-mean-squared over the last second. The two joint errors belong to the panels below, not to this number.",
+            ko: "스펙트럼 반경은 현재 하중과 원 궤적상 안정성에 가장 불리한 자세를 기준으로 산출하며, 하중 변화에 따라 갱신됩니다. 그 아래 오차는 엔드이펙터, 즉 팔의 끝점 기준입니다. 끝점과 기준 궤적점 사이의 거리를 최근 1초간 RMS로 계산한 값이며, 관절별 오차는 아래 두 패널에서 확인할 수 있습니다.",
           },
         },
         smc: {
@@ -59,8 +59,8 @@ const SITE = {
             ko: "동일한 로봇 팔과 6 kg의 추가 하중 조건에서 슬라이딩 모드 제어를 적용합니다. 슬라이딩 면 s = e′ + λe = 0 부근의 진동과 샘플링 주기에 따른 진동 폭의 변화를 확인할 수 있습니다.",
           },
           foot: {
-            en: "The band is the largest |s| over the run once the surface has been reached, and the shaded strip is (1+m)hη — how far a zero-order hold and m samples of delay let s run before the sign can change. The switch is left discontinuous, so the clock is what sets the chattering: a loop that is sliding stays about that wide, and one that has left the surface runs several times wider.",
-            ko: "진동 폭은 슬라이딩 면 도달 이후 |s|의 최댓값이며, 그래프의 음영 영역은 영차 홀드와 m 샘플 지연으로 부호가 바뀌기 전까지 s가 진행하는 폭 (1+m)hη입니다. 경계층 없이 불연속 제어를 그대로 적용하므로 진동 폭은 샘플링 주기와 지연이 결정하며, 슬라이딩이 유지되면 이 폭과 비슷한 수준에 머무르고 면을 벗어나면 수 배로 커집니다.",
+            en: "The band is the largest |s| over the run once the surface has been reached, and the shaded strip is (1+m)hη — how far a zero-order hold and m samples of delay let s run before the sign can change. The switch is left discontinuous, so the clock is what sets the chattering: a loop that is sliding stays about that wide, and one that has left the surface runs several times wider. The error beneath is measured at the end effector rather than at the joints — how far the point at the end of the arm is from the point being tracked, root-mean-squared over the last second.",
+            ko: "진동 폭은 슬라이딩 면 도달 이후 |s|의 최댓값이며, 그래프의 음영 영역은 영차 홀드와 m 샘플 지연으로 부호가 바뀌기 전까지 s가 진행하는 폭 (1+m)hη입니다. 경계층 없이 불연속 제어를 그대로 적용하므로 진동 폭은 샘플링 주기와 지연이 결정하며, 슬라이딩이 유지되면 이 폭과 비슷한 수준에 머무르고 면을 벗어나면 수 배로 커집니다. 아래 오차는 관절이 아니라 엔드이펙터, 즉 팔의 끝점 기준으로, 끝점과 추종 대상 점 사이의 거리를 최근 1초간 RMS로 계산한 값입니다.",
           },
         },
       },
