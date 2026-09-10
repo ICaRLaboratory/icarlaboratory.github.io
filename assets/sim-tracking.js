@@ -66,6 +66,8 @@ SIM.register((function () {
   const smc = (P) => P.law === "smc";
   const tdc = (P) => P.law === "tdc";
   const asmc = (P) => P.law === "asmc";
+  /* which of the lab's laws the switch has selected */
+  const sigvar = (P) => asmc(P) && P.algo === "sigvar";
   /* The two that estimate the arm instead of modelling it. Both hold an
      order of magnitude tighter than the laws that model it, which is what
      they share here: the planes they are drawn on. They do not share a
@@ -108,6 +110,39 @@ SIM.register((function () {
     hbar: [1.0, 0.4],          /* kg m^2, the diagonal standing in for M(q) */
   };
 
+  /* The other law the switch offers, from the lab's other 2024 paper. Its
+     sliding variable is scaled up rather than shaped:
+
+         s     = Lam (e' + Ke e),  Lam > I                        eq (7)
+         tau   = -Hb Phi^ + Hb(q_r'' + (Lam - I)e'' + Lam Ke e'
+                 + Ks s) + Hb k(s) sgn(s)                    eq (8), (9)
+         k_i   = h_i                       if ||s||_inf >= eps
+               = alpha (|s_i|/eps)^8       otherwise               eq (12)
+         h_i'  = gam |s_i|                 if ||s||_inf >= eps
+               = -del k_i |s_i| / (eps h)  otherwise               eq (13)
+
+     Scaling the variable by Lam is the point: the error dynamics come out
+     with Lam^-1 on the estimate error instead of the error itself, so the
+     same estimate buys a tighter loop. The gain is a rate while the loop is
+     outside eps and a steep function of |s| inside it, which is where the
+     chattering would otherwise be.
+
+     The paper's own numbers, except two this arm sets: Hbar again, and eps.
+     Theorem 1 holds once the loop is inside eps, so eps has to be a width
+     the run really stays within -- and no wider, or the switching term sits
+     dormant at zero, which is what the published 0.1 does on an arm whose
+     errors are an order smaller than the one the paper used. Measured, |s|
+     holds under 0.019, so 0.02 is the band: the theorem's premise is met
+     and what the panels shade is a bound rather than a threshold. */
+  const SIGVAR = {
+    ke: 30, ks: 5,             /* the surface, and the linear term on it */
+    lam: 6,                    /* Lam > 1, the scaling that buys Lam^-1 */
+    alpha: 1, gam: 500,        /* the cap inside eps, and the rate outside */
+    del: 0.01, eps: 0.02,      /* the decay inside eps, and the band itself */
+    pow: 8,                    /* the paper's exponent */
+    hbar: [0.25, 0.1],
+  };
+
   /* What a zero-order hold does to an ideal sliding mode. On the surface the
      switching term drives s at plus or minus eta, and the hold cannot turn it
      round until the next sample -- nor until m samples after that, if the
@@ -127,12 +162,15 @@ SIM.register((function () {
     ASMC.lam * (Math.exp(Math.sqrt(Math.max(phiMax, 0.05) / ASMC.rho)) - 1);
 
   const quasiBand = (P) =>
-    (asmc(P) ? theoremBand() : (lag(P) + 1) * clock(P) * P.eta);
-  const bandName = (P) => (asmc(P) ? "δ" : P.m ? "(1+m)hη" : "hη");
+    (sigvar(P) ? SIGVAR.eps : asmc(P) ? theoremBand()
+      : (lag(P) + 1) * clock(P) * P.eta);
+  const bandName = (P) =>
+    (sigvar(P) ? "ε" : asmc(P) ? "δ" : P.m ? "(1+m)hη" : "hη");
 
   /* The surface slope, the clock and the delay each law actually runs on:
      PROPOSED carries its own, the other two read the sliders. */
-  const slope = (P) => (tdc(P) ? P.l1 : asmc(P) ? ASMC.l1 : P.lam);
+  const slope = (P) => (tdc(P) ? P.l1 : sigvar(P) ? SIGVAR.ke
+    : asmc(P) ? ASMC.l1 : P.lam);
   const clock = (P) => (asmc(P) ? ASMC.h : P.h);
   const lag = (P) => (asmc(P) ? 0 : P.m);
 
@@ -141,6 +179,7 @@ SIM.register((function () {
   /* what the delay estimate needs carried across a sample, and what the
      adaptive gain came out at, for the panel to print */
   let vPrev = [0, 0], nhatPrev = [0, 0], phiMax = 0, gainNow = [0, 0];
+  let hRate = [0, 0];          /* h_{i,t}, which only the sliding-variable law keeps */
 
   /* the planes are grown to fit the run; sliding mode holds an order of
      magnitude tighter than PD, so it starts an order of magnitude smaller.
@@ -175,8 +214,14 @@ SIM.register((function () {
          has moved across it, so the acceleration and the estimate are both
          read off the arm -- neither of these is told the payload landed. */
       const h = clock(P);
-      /* TDC's gain matrix is a slider; the published law keeps the paper's. */
-      const hb = tdc(P) ? ASMC.hbar.map((v) => v * P.hs) : ASMC.hbar;
+      /* TDC's gain matrix is a slider; each published law keeps its own. */
+      const hb = tdc(P) ? ASMC.hbar.map((v) => v * P.hs)
+        : sigvar(P) ? SIGVAR.hbar : ASMC.hbar;
+      /* the sliding-variable law switches on the whole vector, not per joint */
+      const sAll = sigvar(P) ? [0, 1].map((i) => SIGVAR.lam *
+        ((r.dq[i] - S.v[i]) + SIGVAR.ke * (r.q[i] - S.q[i]))) : null;
+      const outside = sAll
+        ? Math.max(Math.abs(sAll[0]), Math.abs(sAll[1])) >= SIGVAR.eps : false;
       for (let i = 0; i < 2; i++) {
         const ddq = (S.v[i] - vPrev[i]) / h;
         const nhat = ddq - held[i] / hb[i];              /* eq (5) */
@@ -189,6 +234,20 @@ SIM.register((function () {
           tau[i] = hb[i] * (r.ddq[i] + (P.l1 + P.l2) * de
                             + P.l1 * P.l2 * e - nhat);
           gainNow[i] = 0;
+        } else if (sigvar(P)) {
+          const s = sAll[i];
+          const dde = r.ddq[i] - ddq;             /* the same measurement again */
+          /* eq (12) and (13): a rate outside the band, a steep function of
+             |s| inside it, and the cap alpha at its edge */
+          const k = outside ? hRate[i]
+            : SIGVAR.alpha * Math.pow(Math.abs(s) / SIGVAR.eps, SIGVAR.pow);
+          hRate[i] = Math.max(0, hRate[i] + h * (outside
+            ? SIGVAR.gam * Math.abs(s)
+            : -SIGVAR.del * k * Math.abs(s) / (SIGVAR.eps * h)));
+          tau[i] = hb[i] * (r.ddq[i] + (SIGVAR.lam - 1) * dde
+                            + SIGVAR.lam * SIGVAR.ke * de + SIGVAR.ks * s
+                            - nhat + k * Math.sign(s));   /* eq (8), (9) */
+          gainNow[i] = k;
         } else {
           const s = de + ASMC.l1 * e;
           /* eq (18): continuous, class K-infinity, and quadratic in |s| near
@@ -361,6 +420,10 @@ SIM.register((function () {
     const rows = tdc(P)
       ? [["ℓ₁", P.l1.toFixed(0)], ["ℓ₂", P.l2.toFixed(0)],
          ["H", "×" + P.hs.toFixed(2)]]
+      : sigvar(P)
+        ? [["Λ", SIGVAR.lam.toFixed(0)], ["ε", SIGVAR.eps.toFixed(2)],
+           ["Ke", SIGVAR.ke.toFixed(0)], ["Ks", SIGVAR.ks.toFixed(0)],
+           ["k", Math.max(gainNow[0], gainNow[1]).toFixed(3)]]
       : asmc(P)
         ? [["ρ", ASMC.rho.toFixed(0)], ["λ", ASMC.lam.toFixed(4)],
            ["ℓ₁", ASMC.l1.toFixed(0)], ["ℓ₂", ASMC.l2.toFixed(0)],
@@ -740,8 +803,9 @@ SIM.register((function () {
       "time, and the distance from the end effector to the point it is " +
       "tracking",
 
-    /* each law has its own note and footnote in data/site.js */
-    words: (P) => P.law,
+    /* each law has its own note and footnote in data/site.js, and the two
+       published ones are keyed by which paper is on the figure */
+    words: (P) => (asmc(P) ? "asmc-" + P.algo : P.law),
 
     controls: [
       { id: "law", label: "Control law",
@@ -756,9 +820,11 @@ SIM.register((function () {
       { id: "algo", label: "Algorithm",
         value: "quasi", cols: 2,
         hide: (P) => !asmc(P),
-        choices: [{ value: "quasi", label: "Quasi-convex" },
-                  { value: "sigvar", label: "Sliding variable", off: true },
-                  { value: "tde", label: "TDE + NN", off: true },
+        /* Each named for the part of the loop its paper replaced, so the
+           switch reads without the papers beside it. */
+        choices: [{ value: "quasi", label: "Smooth gain" },
+                  { value: "sigvar", label: "Novel SV" },
+                  { value: "tde", label: "Neural estimate", off: true },
                   { value: "force", label: "Force tracking", off: true }] },
       { id: "kp", label: "Proportional gain <i>K</i><sub>p</sub>",
         min: 10, max: 200, step: 5, value: 70, show: (v) => v.toFixed(1),
@@ -824,6 +890,7 @@ SIM.register((function () {
       nhatPrev = [0, 0];
       phiMax = 0;
       gainNow = [0, 0];
+      hRate = [0, 0];
       /* the proposed law holds an order of magnitude tighter again than
          sliding mode, so its planes start an order of magnitude smaller */
       eTop = pd(P) ? 0.04 : tde(P) ? 0.002 : 0.01;

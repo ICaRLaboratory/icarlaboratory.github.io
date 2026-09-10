@@ -74,14 +74,17 @@ const SITE = {
             ko: "동일한 로봇 팔에 10 kg의 하중을 추가하는 조건에서 슬라이딩 모드 제어를 적용합니다. 샘플링 주기에 따른 슬라이딩 면 s = e′ + λe = 0 부근의 진동 특성을 비교합니다.",
           },
           foot: {
-            en: "The band is the largest |s| over the run once the surface has been reached, and the shaded strip is (1+m)hη — how far a zero-order hold and m samples of delay let s run before the sign can change. The switch is left discontinuous, so the clock is what sets the chattering: a loop that is sliding stays about that wide, and one that has left the surface runs several times wider. The error beneath is measured at the end effector rather than at the joints — how far the point at the end of the arm is from the point being tracked, root-mean-squared over the last second.",
-            ko: "진동 폭은 슬라이딩 면 도달 이후 |s|의 최댓값으로 정의합니다. 음영 영역의 (1+m)hη는 영차 홀드와 m 샘플 지연에 따른 슬라이딩 변수의 변화 폭을 나타냅니다. 이 시뮬레이션은 경계층 없이 불연속 제어를 적용하여 샘플링 주기와 지연에 따른 진동 특성을 비교합니다. 위치 추종 오차는 최근 1초간 엔드이펙터와 목표 위치 사이 거리의 RMS 값입니다.",
+            en: "The band is the largest |s| once the surface has been reached, and the shaded strip is (1+m)hη — how far a hold and m samples of delay let s run before the sign can change. The switch is left discontinuous, so the clock is what sets the chattering.",
+            ko: "진동 폭은 슬라이딩 면 도달 이후 |s|의 최댓값입니다. 음영 영역의 (1+m)hη는 영차 홀드와 m 샘플 지연에 따른 변화 폭이며, 경계층 없이 불연속 제어를 적용하므로 진동 폭은 샘플링 주기가 결정합니다.",
           },
         },
-        asmc: {
-          /* The reference is the whole caption; a plain string stands in
-             both languages. */
+        /* One block per paper the switch can put on the figure; the
+           reference is the whole caption either way. */
+        "asmc-quasi": {
           foot: "2024, doi:10.3390/electronics13193940",
+        },
+        "asmc-sigvar": {
+          foot: "2024, doi:10.1109/access.2024.3493882",
         },
       },
     },
