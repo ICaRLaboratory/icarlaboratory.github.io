@@ -51,8 +51,8 @@
    but straddles it, in a band of about (1 + m)h eta -- the switching
    term drives s at plus or minus eta and cannot be turned round until
    the next sample, nor until the m samples of delay have passed. That
-   width is printed beside the measured band, and wherever the loop is
-   really sliding the two agree to within about half again.
+   width is what the two panels shade, and a loop that is really
+   sliding measures it to within about half again.
    =============================================================== */
 
 SIM.register((function () {
@@ -74,9 +74,9 @@ SIM.register((function () {
      about (1 + m)h eta. Measured over a run it comes out a little wider,
      since the switching term is not the only thing moving s -- the payload
      and the inertia the controller does not know about move it too -- so
-     read it as the width to expect rather than a ceiling. It is the
-     sampled-data cost of the method, and the number the measured band is
-     worth reading against. */
+     it is the width to expect rather than a ceiling. It is the sampled-data
+     cost of the method: the panels shade it, the key names it, and the
+     verdict is read against it. */
   const quasiBand = (P) => (P.m + 1) * P.h * P.eta;
   const bandName = (P) => (P.m ? "(1+m)hη" : "hη");
 
@@ -684,11 +684,6 @@ SIM.register((function () {
 
     readouts: [
       { id: "main", label: (P) => (pd(P) ? "Spectral radius" : "Sliding band") },
-      /* the width the hold implies, beside the width actually measured */
-      { id: "bound",
-        label: (P) => "Band from sampling  " +
-          `<span class="sim__sym">${bandName(P)}</span>`,
-        hide: pd },
       { id: "err", label: "Tracking error" },
     ],
     verdict: true,
@@ -808,7 +803,6 @@ SIM.register((function () {
       return {
         readouts: {
           main: diverged ? "lost" : band ? band.toFixed(3) + " rad/s" : "—",
-          bound: bound.toFixed(3) + " rad/s",
           err,
         },
         verdict: {
