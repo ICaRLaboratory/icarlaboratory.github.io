@@ -59,7 +59,16 @@ async function run() {
   const errors = [];
   page.on('pageerror', error => errors.push(String(error)));
   page.on('console', message => {
-    if (message.type() === 'error') errors.push(`console: ${message.text()}`);
+    if (message.type() !== 'error') return;
+    // Only this repository's own console errors are this repository's problem.
+    // The contact page embeds a map, which is the site's one request to
+    // somewhere else, and a five hundred from that somewhere else says
+    // nothing about the code here -- but it used to fail the run, because
+    // the response listener below skips other origins and this one did not.
+    // A message with no location keeps counting: that is our own script.
+    const from = message.location()?.url || '';
+    if (from && !from.startsWith(base + '/')) return;
+    errors.push(`console: ${message.text()}`);
   });
   page.on('response', response => {
     if (response.url().startsWith(base + '/') && response.status() >= 400) {

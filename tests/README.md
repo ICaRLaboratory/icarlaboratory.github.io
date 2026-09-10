@@ -7,8 +7,10 @@ repositories and local bare remotes; they never publish this checkout.
 
 CI checks JavaScript/Bash syntax, news unit tests, publishing safeguards,
 self-hosted font coverage and asset checksums, and the real `browser-checks.html` harness in headless
-Chromium. Failed assertions, empty results, uncaught page errors, browser console
-errors, and local HTTP errors fail the browser step. The runner binds Python's
+Chromium. Failed assertions, empty results, uncaught page errors, console errors
+from this site's own files, and local HTTP errors fail the browser step. Console
+errors from another origin do not: the contact page embeds a map, and that
+service having a bad day is not a fault in this repository. The runner binds Python's
 HTTP server to loopback on an OS-assigned port, verifies HTTP readiness, applies
 timeouts, and closes the server/browser on completion, failure, or interruption.
 
