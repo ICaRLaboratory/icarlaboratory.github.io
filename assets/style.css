@@ -547,7 +547,32 @@ main:focus { outline: none; }
   text-transform: uppercase;
   color: var(--faint);
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
 }
+
+/* Play/pause for the hero figure, added by hero.js so it only exists
+   where it can work. Which state it starts in is the visitor's motion
+   preference; this is how either choice gets overridden. It stands on
+   the black band, so the inverted tokens already dress it. */
+.hero__toggle {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+  color: var(--faint);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+.hero__toggle:hover { color: var(--text); border-color: var(--accent); }
+.hero__toggle svg { width: 13px; height: 13px; }
 
 @media (max-width: 940px) {
   .hero__inner { grid-template-columns: 1fr; gap: 2.5rem; }

@@ -401,13 +401,52 @@
   reset();
   for (let i = 0; i < 260; i++) step();
 
-  if (reduced.matches) draw();
-  else raf = requestAnimationFrame(loop);
+  /* ---------- running or held ----------
+     Whether the figure starts moving is the visitor's motion preference,
+     which is why the same page animates on one machine and sits still on
+     another. The button under the caption overrides it either way, and
+     once it has been pressed the preference stops speaking for the
+     figure: a machine set to reduce motion can still be told to play,
+     and one that is not can be told to stop. */
+  let running = !reduced.matches;
+  let chosen = false;
+
+  const PLAY  = '<path d="M8 5l11 7-11 7z" fill="currentColor" stroke="none"/>';
+  const PAUSE = '<path d="M9 5v14M15 5v14"/>';
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "hero__toggle";
+
+  function syncButton() {
+    const label = running ? "Pause the figure" : "Play the figure";
+    button.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${running ? PAUSE : PLAY}</svg>`;
+    button.setAttribute("aria-label", label);
+    button.title = label;
+  }
+
+  function setRunning(next) {
+    running = next;
+    if (running && !raf && !document.hidden) raf = requestAnimationFrame(loop);
+    else if (!running && raf) { cancelAnimationFrame(raf); raf = null; }
+    syncButton();
+  }
+
+  button.addEventListener("click", () => { chosen = true; setRunning(!running); });
+  /* The preference can be flipped while the page is open. */
+  reduced.addEventListener("change", (e) => { if (!chosen) setRunning(!e.matches); });
+
+  syncButton();
+  const figure = canvas.parentElement;
+  (figure.querySelector("figcaption") || figure).appendChild(button);
+
+  if (running) raf = requestAnimationFrame(loop);
+  else draw();
 
   let rt;
   window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(draw, 150); });
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) { if (raf) cancelAnimationFrame(raf); raf = null; }
-    else if (!raf && !reduced.matches) raf = requestAnimationFrame(loop);
+    else if (!raf && running) raf = requestAnimationFrame(loop);
   });
 })();

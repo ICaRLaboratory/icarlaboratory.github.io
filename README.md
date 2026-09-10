@@ -90,8 +90,11 @@ comma will say so.
 `assets/hero.js` draws one damped second-order system, three ways: the phase
 plane inside the controller block, a two-link arm posed from the same state, and
 the zero-order-hold of that state in the sensor block. It is a canvas, so it
-stays sharp at any size; it pauses when the tab is hidden and freezes to a single
-still frame for visitors who ask for reduced motion.
+stays sharp at any size, and it pauses when the tab is hidden. Whether it starts
+moving is the visitor's motion preference — a machine set to reduce motion gets a
+single still frame — and the small play/pause button in the caption overrides
+that either way, which is why the same page can animate on one computer and sit
+still on another.
 
 ## Publishing
 
