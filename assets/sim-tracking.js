@@ -22,9 +22,10 @@
    pose on the circle decides local stability.
 
    SLIDING MODE aims at a surface rather than a point. Each joint
-   gets s = e' + lambda e, and the control drives s to zero:
+   gets s = e' + lambda e, and the control drives s to zero the
+   classical way, discontinuously:
 
-       tau[k] = M_nominal(q) . eta sat( s[k] / Phi )
+       tau[k] = M_nominal(q) . eta sgn( s[k] )
 
    s = 0 is a first-order equation in the error whose decay does not
    care what the arm weighs, so the payload that costs the PD loop
@@ -37,10 +38,21 @@
    is in that nominal inertia; it is the disturbance the surface is
    there to absorb.
 
+   No boundary layer, deliberately. Smoothing the switch inside a
+   layer is the standard practical fix for chattering, and a good one,
+   but it is a modification of the method rather than the method --
+   and the PD next door is the plain classical one too. Left
+   discontinuous, the chattering is not a slider setting but a
+   property, and what sets its size is the clock.
+
    Sampling is what the two have in common and what neither escapes. A
    hold cannot switch between samples, so PD's radius climbs past one
    as the period grows, and sliding mode does not reach its surface
-   but straddles it, in a band that opens the same way.
+   but straddles it, in a band of about (1 + m)h eta -- the switching
+   term drives s at plus or minus eta and cannot be turned round until
+   the next sample, nor until the m samples of delay have passed. That
+   width is printed beside the measured band, and wherever the loop is
+   really sliding the two agree to within about half again.
    =============================================================== */
 
 SIM.register((function () {
@@ -53,6 +65,21 @@ SIM.register((function () {
   ];
   const pd = (P) => P.law === "pd";
 
+  /* What a zero-order hold does to an ideal sliding mode. On the surface the
+     switching term drives s at plus or minus eta, and the hold cannot turn it
+     round until the next sample -- nor until m samples after that, if the
+     measurement it switched on was that old. So s runs on for (1 + m)h at
+     the full switching rate before the sign can change, and overshoots the
+     surface by that much: it is not reached but straddled, in a band of
+     about (1 + m)h eta. Measured over a run it comes out a little wider,
+     since the switching term is not the only thing moving s -- the payload
+     and the inertia the controller does not know about move it too -- so
+     read it as the width to expect rather than a ceiling. It is the
+     sampled-data cost of the method, and the number the measured band is
+     worth reading against. */
+  const quasiBand = (P) => (P.m + 1) * P.h * P.eta;
+  const bandName = (P) => (P.m ? "(1+m)hη" : "hη");
+
   const S = { q: [0, 0], v: [0, 0], simT: 0, hist: [] };
   let held, queue, nextT, marks, diverged;
   let rhoFree = 0, rhoLoad = 0;
@@ -60,8 +87,6 @@ SIM.register((function () {
   /* the planes are grown to fit the run; sliding mode holds an order of
      magnitude tighter than PD, so it starts an order of magnitude smaller */
   let eTop = 0.04, dTop = 0.4, sTop = 0.1;
-
-  const sat = (u) => (u > 1 ? 1 : u < -1 ? -1 : u);
 
   function sample(P) {
     const r = A.refJoints(S.simT);
@@ -77,7 +102,7 @@ SIM.register((function () {
       const want = [0, 0];
       for (let i = 0; i < 2; i++) {
         const s = (r.dq[i] - S.v[i]) + P.lam * (r.q[i] - S.q[i]);
-        want[i] = P.eta * sat(s / P.phi);
+        want[i] = P.eta * Math.sign(s);
       }
       const [a, b, , d] = A.inertia(S.q[1], A.ARM.m2);
       tau[0] = a * want[0] + b * want[1];
@@ -306,14 +331,14 @@ SIM.register((function () {
     g.signal("e", colMid + 9, jy + jr + 2, smY - 2);
     g.roundBox(colX, smY, colW, smH);
     g.cap("SLIDING MODE", colX, smY - 9, 10, "left");
-    /* the surface itself, written out: it is the whole design */
-    g.maths("s = e' + λe", colMid, smY + smH * 0.26, 13, "center", 0.85);
-    [["λ", P.lam.toFixed(0)], ["η", P.eta.toFixed(0)], ["Φ", P.phi.toFixed(2)]]
-      .forEach(([sym, val], i) => {
-        const yy = smY + smH * (0.52 + i * 0.22);
-        g.maths(sym, colX + colW * 0.36, yy, 14, "right");
-        g.words(val, colX + colW * 0.76, yy, 12);
-      });
+    /* the surface and the law, written out: they are the whole design */
+    g.maths("s = e' + λe", colMid, smY + smH * 0.24, 13, "center", 0.85);
+    g.maths("τ = M η sgn s", colMid, smY + smH * 0.47, 12.5, "center", 0.6);
+    [["λ", P.lam.toFixed(0)], ["η", P.eta.toFixed(0)]].forEach(([sym, val], i) => {
+      const yy = smY + smH * (0.70 + i * 0.22);
+      g.maths(sym, colX + colW * 0.36, yy, 14, "right");
+      g.words(val, colX + colW * 0.76, yy, 12);
+    });
 
     const px0 = x + w * 0.40, pw = w * 0.585;
     const py0 = y + h * 0.03, ph = h * 0.94;
@@ -467,8 +492,9 @@ SIM.register((function () {
   }
 
   /* The plane the design is drawn in: the surface is a line through the
-     origin of slope -lambda, the boundary layer is a strip either side of
-     it, and a loop that is sliding lives inside that strip. */
+     origin of slope -lambda, the band the hold implies is a strip of width
+     h eta either side of it, and a loop that is sliding lives in that
+     strip. */
   function drawSurface(g, P, p) {
     const { ctx } = g;
     const left = p.x + 48, right = p.x + p.w - 16;
@@ -488,7 +514,7 @@ SIM.register((function () {
     ctx.rect(left, top, right - left, bottom - top);
     ctx.clip();
 
-    /* the boundary layer, then the surface down its middle */
+    /* the sampling band, then the surface down its middle */
     const X = (e) => cx + e * sx;
     const Y = (d) => cy - d * sy;
     const band = (off, style) => {
@@ -498,18 +524,19 @@ SIM.register((function () {
       ctx.strokeStyle = style;
       ctx.stroke();
     };
+    const reach = quasiBand(P);
     ctx.fillStyle = "rgba(234,88,12,0.09)";
     ctx.beginPath();
-    ctx.moveTo(X(-eTop), Y(P.lam * eTop + P.phi));
-    ctx.lineTo(X(eTop), Y(-P.lam * eTop + P.phi));
-    ctx.lineTo(X(eTop), Y(-P.lam * eTop - P.phi));
-    ctx.lineTo(X(-eTop), Y(P.lam * eTop - P.phi));
+    ctx.moveTo(X(-eTop), Y(P.lam * eTop + reach));
+    ctx.lineTo(X(eTop), Y(-P.lam * eTop + reach));
+    ctx.lineTo(X(eTop), Y(-P.lam * eTop - reach));
+    ctx.lineTo(X(-eTop), Y(P.lam * eTop - reach));
     ctx.closePath();
     ctx.fill();
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 3]);
-    band(P.phi, "rgba(234,88,12,0.6)");
-    band(-P.phi, "rgba(234,88,12,0.6)");
+    band(reach, "rgba(234,88,12,0.6)");
+    band(-reach, "rgba(234,88,12,0.6)");
     ctx.setLineDash([]);
     ctx.lineWidth = 1.6;
     band(0, "rgba(234,88,12,0.9)");
@@ -570,13 +597,15 @@ SIM.register((function () {
     g.keyRow([
       { label: JOINT[0].name, stroke: JOINT[0].on, width: 2.1 },
       { label: JOINT[1].name, stroke: JOINT[1].on, width: 1.8 },
-      { label: "LAYER  ±Φ", stroke: "rgba(234,88,12,0.7)", width: 1.4, dash: [4, 3] },
+      { label: "BAND  ±" + bandName(P), stroke: "rgba(234,88,12,0.7)",
+        width: 1.4, dash: [4, 3] },
     ], p.x + 12, p.y + 34);
 
     g.seconds(p, px, yTop, yBot, WINDOW, 5);
 
-    /* the boundary layer */
-    const lo = Math.max(yTop, py(P.phi)), hi = Math.min(yBot, py(-P.phi));
+    /* the sampling band, the width the hold implies */
+    const reach = quasiBand(P);
+    const lo = Math.max(yTop, py(reach)), hi = Math.min(yBot, py(-reach));
     ctx.fillStyle = "rgba(234,88,12,0.09)";
     ctx.fillRect(x0, lo, x1 - x0, hi - lo);
     ctx.strokeStyle = "rgba(234,88,12,0.7)";
@@ -641,10 +670,6 @@ SIM.register((function () {
       { id: "eta", label: "Switching gain <i>η</i>",
         min: 2, max: 60, step: 2, value: 20, show: (v) => v + " rad/s²",
         hide: (P) => pd(P) },
-      { id: "phi", label: "Boundary layer <i>Φ</i>",
-        min: 2, max: 100, step: 2, value: 20,
-        read: (v) => v / 100, show: (v) => v.toFixed(2) + " rad/s",
-        hide: (P) => pd(P) },
       /* shared, and the point of sharing them: the same clock and the same
          delay, so the two laws are answering the same question */
       { id: "h", label: "Sampling period <i>h</i>",
@@ -659,6 +684,11 @@ SIM.register((function () {
 
     readouts: [
       { id: "main", label: (P) => (pd(P) ? "Spectral radius" : "Sliding band") },
+      /* the width the hold implies, beside the width actually measured */
+      { id: "bound",
+        label: (P) => "Band from sampling  " +
+          `<span class="sim__sym">${bandName(P)}</span>`,
+        hide: pd },
       { id: "err", label: "Tracking error" },
     ],
     verdict: true,
@@ -715,8 +745,11 @@ SIM.register((function () {
         }
       }
       if (!pd(P)) {
-        if (P.phi * 1.5 > dTop) dTop = Math.ceil(P.phi * 1.5 / 0.05) * 0.05;
-        if (P.phi * 1.6 > sTop) sTop = Math.ceil(P.phi * 1.6 / 0.05) * 0.05;
+        /* room for the band the hold implies, so it is on the picture even
+           when the run is holding well inside it */
+        const reach = quasiBand(P) * 1.8;
+        if (reach > dTop) dTop = Math.ceil(reach / 0.05) * 0.05;
+        if (reach > sTop) sTop = Math.ceil(reach / 0.05) * 0.05;
       }
 
       const wild = !Number.isFinite(err) || err > 3
@@ -754,8 +787,8 @@ SIM.register((function () {
          over, not the worst of the last second. The arm is at its lightest
          before the payload lands, and a light arm is the hard case for a
          gain written as an acceleration -- reading only the calm end would
-         report sliding for a run that spent its first five seconds
-         hammering. */
+         report sliding for a run that spent its first five seconds well off
+         the surface. */
       let band = 0;
       for (const row of S.hist) {
         if (row[0] <= 0.5) continue;
@@ -764,15 +797,22 @@ SIM.register((function () {
           if (s > band) band = s;
         }
       }
-      const bad = diverged || band > P.phi;
+      const bound = quasiBand(P);
+      /* A loop in quasi-sliding mode measures the width of its band, within
+         about half again of it, across every period, gain and delay the
+         sliders reach -- and a run that has left the surface measures
+         several times it, often by orders of magnitude. Half again is where
+         the two populations part: past it the switching is no longer
+         dominating what it has to dominate. */
+      const bad = diverged || band > 1.5 * bound;
       return {
         readouts: {
-          main: diverged ? "lost"
-            : band ? band.toFixed(3) + " of " + P.phi.toFixed(2) : "—",
+          main: diverged ? "lost" : band ? band.toFixed(3) + " rad/s" : "—",
+          bound: bound.toFixed(3) + " rad/s",
           err,
         },
         verdict: {
-          text: diverged ? "Lost" : band > P.phi ? "Chattering" : "Sliding",
+          text: diverged ? "Lost" : bad ? "Not sliding" : "Sliding",
           bad,
         },
       };

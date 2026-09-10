@@ -1326,6 +1326,9 @@ main:focus { outline: none; }
   font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.18em;
   text-transform: uppercase; color: var(--faint);
 }
+/* A formula inside a label keeps its own case: uppercased, hη becomes HΗ,
+   which is an H and a capital eta and reads as neither. */
+.sim__rho-label .sim__sym { text-transform: none; letter-spacing: 0.1em; }
 .sim__rho-val { font-family: var(--mono); font-size: 1.5rem; letter-spacing: -0.02em; color: var(--text); }
 .sim__verdict {
   font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.14em;
@@ -1350,7 +1353,7 @@ main:focus { outline: none; }
 /* A control that belongs to another mode is gone, not dimmed. The row sets
    its own display, which beats the [hidden] rule the browser supplies, so it
    has to be said here. */
-.sim__ctrl[hidden] { display: none; }
+.sim__ctrl[hidden], .sim__out[hidden] { display: none; }
 /* a slider the current mode cannot use: still readable, plainly not in play */
 .sim__ctrl.is-off { opacity: 0.42; }
 .sim__ctrl.is-off input[type="range"] { cursor: not-allowed; }

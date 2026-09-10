@@ -59,8 +59,8 @@ const SITE = {
             ko: "동일한 로봇 팔과 6 kg의 추가 하중 조건에서 슬라이딩 모드 제어를 적용합니다. 슬라이딩 면 s = e′ + λe = 0 부근의 진동과 샘플링 주기에 따른 진동 폭의 변화를 확인할 수 있습니다.",
           },
           foot: {
-            en: "The band is the largest |s| over the run once the surface has been reached: inside the boundary layer Φ the law is continuous, and outside it the torque is hard over one way or the other and flipping every sample.",
-            ko: "진동 폭은 슬라이딩 면 도달 이후 |s|의 최댓값으로 표시합니다. 경계층 Φ 내부에서는 제어 입력이 연속적으로 변하며, 외부에서는 s의 부호에 따라 불연속 제어 성분이 전환됩니다.",
+            en: "The band is the largest |s| over the run once the surface has been reached, and the number beside it is (1+m)hη — how far a zero-order hold and m samples of delay let s run before the sign can change. The switch is left discontinuous, so the clock is what sets the chattering: a loop that is sliding measures the width of that band, and one that has left the surface measures several times it.",
+            ko: "진동 폭은 슬라이딩 면 도달 이후 |s|의 최댓값이며, 옆의 값은 영차 홀드와 m 샘플 지연으로 부호가 바뀌기 전까지 s가 진행하는 폭 (1+m)hη입니다. 경계층 없이 불연속 제어를 그대로 적용하므로 진동 폭은 샘플링 주기와 지연이 결정합니다. 슬라이딩이 유지되면 측정값이 이 폭과 비슷한 수준에 머무르고, 면을 벗어나면 수 배로 커집니다.",
           },
         },
       },

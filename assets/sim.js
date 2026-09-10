@@ -366,7 +366,8 @@ const SIM = (function () {
       `<button class="chip sim__play" type="button"
                id="sim-${def.id}-play">Play</button>` +
       def.readouts.map((r, i) => `
-        <div class="sim__out${i ? " sim__out--tight" : ""}" aria-live="polite">
+        <div class="sim__out${i ? " sim__out--tight" : ""}" aria-live="polite"
+             id="sim-${def.id}-row-${r.id}">
           <div class="sim__rho">
             <span class="sim__rho-label" id="sim-${def.id}-lab-${r.id}"></span>
             <span id="sim-${def.id}-out-${r.id}"
@@ -381,9 +382,11 @@ const SIM = (function () {
       outs[c.id] = panel.querySelector(`#sim-${def.id}-${c.id}-val`);
     }
     const labels = {};
+    const rows = {};
     for (const r of def.readouts) {
       readouts[r.id] = panel.querySelector(`#sim-${def.id}-out-${r.id}`);
       labels[r.id] = panel.querySelector(`#sim-${def.id}-lab-${r.id}`);
+      rows[r.id] = panel.querySelector(`#sim-${def.id}-row-${r.id}`);
     }
     verdictEl = panel.querySelector(`#sim-${def.id}-verdict`);
     const playBtn = panel.querySelector(`#sim-${def.id}-play`);
@@ -420,8 +423,11 @@ const SIM = (function () {
           : c.show ? c.show(P[c.id], P) : String(P[c.id]);
       }
       for (const r of def.readouts) {
+        if (rows[r.id]) rows[r.id].hidden = r.hide ? r.hide(P) : false;
         if (labels[r.id]) {
-          labels[r.id].textContent = typeof r.label === "function" ? r.label(P) : r.label;
+          /* markup, like the control labels: a readout naming a formula needs
+             a span the uppercasing cannot reach */
+          labels[r.id].innerHTML = typeof r.label === "function" ? r.label(P) : r.label;
         }
       }
     }
