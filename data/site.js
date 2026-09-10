@@ -74,8 +74,8 @@ const SITE = {
             ko: "동일한 로봇 팔에 10 kg의 하중을 추가하는 조건에서 슬라이딩 모드 제어를 적용합니다. 샘플링 주기에 따른 슬라이딩 면 s = e′ + λe = 0 부근의 진동 특성을 비교합니다.",
           },
           foot: {
-            en: "The band is the largest |s| once the surface has been reached, and the shaded strip is (1+m)hη — how far a hold and m samples of delay let s run before the sign can change. The switch is left discontinuous, so the clock is what sets the chattering.",
-            ko: "진동 폭은 슬라이딩 면 도달 이후 |s|의 최댓값입니다. 음영 영역의 (1+m)hη는 영차 홀드와 m 샘플 지연에 따른 변화 폭이며, 경계층 없이 불연속 제어를 적용하므로 진동 폭은 샘플링 주기가 결정합니다.",
+            en: "The band is the largest |s| once the surface has been reached.",
+            ko: "진동 폭은 슬라이딩 면 도달 이후 |s|의 최댓값입니다.",
           },
         },
         /* One block per paper the switch can put on the figure; the
