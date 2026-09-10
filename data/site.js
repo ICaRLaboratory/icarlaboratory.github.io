@@ -41,8 +41,8 @@ const SITE = {
   recruiting: {
     on: true,
     title: {
-      en: "We are recruiting undergraduate researchers and graduate students.",
-      ko: "학부연구생 및 대학원생을 모집하고 있습니다.",
+      en: "We are recruiting undergraduate researchers and graduate students. Students interested in control algorithms, robotics or embedded systems are welcome to contact us by email.",
+      ko: "ICaR 연구실에서 학부연구생 및 대학원생을 모집하고 있습니다. 제어 알고리즘, 로보틱스, 임베디드 시스템 연구에 관심 있는 학생은 이메일로 연락주시기 바랍니다.",
     },
   },
 

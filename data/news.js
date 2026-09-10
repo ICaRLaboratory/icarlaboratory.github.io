@@ -31,5 +31,11 @@
 const NEWS_WINDOW_DAYS = 14;
 
 const NEWS = [
-  // Nothing current. Add entries above using the shape in the comment.
+  {
+    date: "2026-09-10",
+    title: {
+      en: "The ICaR Lab website has been redesigned.",
+      ko: "ICaR 연구실 홈페이지를 새롭게 개편했습니다.",
+    },
+  },
 ];
