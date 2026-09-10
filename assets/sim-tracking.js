@@ -595,7 +595,7 @@ SIM.register((function () {
     g.cap("+" + sTop.toFixed(2), x0 - 6, yTop + 3, 9, "right", 0.45);
     g.cap("0", x0 - 6, mid + 3, 9, "right", 0.45);
     g.cap("-" + sTop.toFixed(2), x0 - 6, yBot + 3, 9, "right", 0.45);
-    g.vcap("SLIDING VARIABLE  s  (1/S)", p.x + 15, mid, 9, 0.5);
+    g.vcap("SLIDING VARIABLE  s  (RAD/S)", p.x + 15, mid, 9, 0.5);
     g.cap("TIME  (S)", (x0 + x1) / 2, p.y + p.h - 11, 9, "center", 0.5);
 
     if (S.simT >= T_LOAD) g.event(px(T_LOAD), yTop, yBot, KG);
@@ -643,7 +643,7 @@ SIM.register((function () {
         hide: (P) => pd(P) },
       { id: "phi", label: "Boundary layer <i>Φ</i>",
         min: 2, max: 100, step: 2, value: 20,
-        read: (v) => v / 100, show: (v) => v.toFixed(2) + " 1/s",
+        read: (v) => v / 100, show: (v) => v.toFixed(2) + " rad/s",
         hide: (P) => pd(P) },
       /* shared, and the point of sharing them: the same clock and the same
          delay, so the two laws are answering the same question */
