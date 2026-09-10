@@ -499,7 +499,6 @@ SIM.register((function () {
     g.vcap("ERROR RATE  (RAD/S)", p.x + 15, cy, 9, 0.5);
 
     const hist = S.hist;
-    const cut = hist.length > A.TRAIL ? hist[hist.length - A.TRAIL][0] : 0;
     JOINT.forEach((j, i) => {
       const X = (row) => cx + row[4 + i] * sx;
       const Y = (row) => cy - row[6 + i] * sy;
@@ -514,8 +513,13 @@ SIM.register((function () {
         }
         ctx.stroke();
       };
+      /* The two halves meet at the payload and neither is trimmed. A trail
+         window belongs to the tip path on the arm, where the pen keeps
+         moving off down the page; here the curve retraces nearly the same
+         small loop every lap, so dropping its oldest samples only punched a
+         hole between the pale half and the recent end of the solid one. */
       path(0, T_LOAD, j.off);
-      path(Math.max(T_LOAD, cut), Infinity, j.on);
+      path(T_LOAD, Infinity, j.on);
       if (hist.length) {
         const last = hist[hist.length - 1];
         ctx.fillStyle = j.on;
@@ -684,7 +688,6 @@ SIM.register((function () {
     g.cap("s = 0", right - 2, top + 12, 9, "right", 0.6);
 
     const hist = S.hist;
-    const cut = hist.length > A.TRAIL ? hist[hist.length - A.TRAIL][0] : 0;
     JOINT.forEach((j, i) => {
       const path = (from, to, stroke) => {
         ctx.strokeStyle = stroke;
@@ -698,8 +701,13 @@ SIM.register((function () {
         }
         ctx.stroke();
       };
+      /* The two halves meet at the payload and neither is trimmed. A trail
+         window belongs to the tip path on the arm, where the pen keeps
+         moving off down the page; here the curve retraces nearly the same
+         small loop every lap, so dropping its oldest samples only punched a
+         hole between the pale half and the recent end of the solid one. */
       path(0, T_LOAD, j.off);
-      path(Math.max(T_LOAD, cut), Infinity, j.on);
+      path(T_LOAD, Infinity, j.on);
       if (hist.length) {
         const last = hist[hist.length - 1];
         ctx.fillStyle = j.on;
