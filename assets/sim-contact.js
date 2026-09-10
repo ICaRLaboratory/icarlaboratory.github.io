@@ -30,6 +30,13 @@
    pull, f = max(0, k_e (x - x_w) + b_e x'), and the readout is the
    spectral radius of whichever sampled loop is selected.
 
+   A run starts with the tool parked two centimetres off the surface
+   and reaches for it: the contact point both laws hold to slides onto
+   the wall over the first second, and no force is asked for until the
+   tool is there. Neither law needs a mode of its own to do it -- with
+   f_d = 0 the same relation is position control -- so what the picture
+   shows is one controller reaching, touching and then pressing.
+
    Three things are worth finding on the sliders.
 
    The offset. Holding the virtual spring costs force, so the loop
@@ -60,6 +67,8 @@ SIM.register((function () {
   const ROBOT = { m: 1, kp: 35400, kv: 377, br: 5 };
   const WALL = { x: 0, be: 2 };                    /* surface, and its damping */
   const START = -0.02;                             /* the tool, 2 cm off the wall */
+  const APPROACH = 0.8;                            /* s, reaching for the surface */
+  const T_PRESS = 1;                               /* s, force asked for once there */
   const DEMAND = [10, 25];                         /* N, before and after the step */
   const T_STEP = 3;                                /* s */
   const WINDOW = 6;                                /* s */
@@ -77,7 +86,27 @@ SIM.register((function () {
     if (k >= 1e3) return (k / 1e3).toFixed(k >= 1e4 ? 0 : 1) + " kN/m";
     return Math.round(k) + " N/m";
   }
-  const demand = (t) => (t >= T_STEP ? DEMAND[1] : DEMAND[0]);
+  /* The surface is reached, not started on. The contact point both laws
+     hold to slides from where the tool is parked onto the wall over the
+     first APPROACH seconds, eased at both ends so the command never steps,
+     and nothing is asked of the force until the tool is there.
+
+     Neither law changes shape to do it. With f_d = 0 and no contact the
+     admittance relation leaves e at zero, so x_r is the contact point
+     itself and the inner loop tracks it: position control. The impedance
+     law becomes tau = -K_d (x - x_c) - D_d x', which is a PD to the same
+     point. Asking for ten newtons during the reach would be the mistake --
+     the admittance would integrate an error nothing balances, run e out to
+     f_d / K_d, and aim the tool five centimetres past the wall. */
+  const xc = (t) => {
+    if (t >= APPROACH) return WALL.x;
+    const u = t / APPROACH;
+    return START + (WALL.x - START) * u * u * (3 - 2 * u);
+  };
+  const demand = (t) => (t < T_PRESS ? 0 : t >= T_STEP ? DEMAND[1] : DEMAND[0]);
+  /* the force asked for, and when: the steps the records draw */
+  const DEMANDS = [[0, T_PRESS, 0], [T_PRESS, T_STEP, DEMAND[0]],
+                   [T_STEP, WINDOW, DEMAND[1]]];
   const force = (X, V, ke) => {
     if (X <= WALL.x) return 0;
     return Math.max(0, ke * (X - WALL.x) + WALL.be * V);
@@ -121,9 +150,9 @@ SIM.register((function () {
       const ne = Ad[0][0] * e + Ad[0][1] * de + Bd[0][0] * u;
       const nde = Ad[1][0] * e + Ad[1][1] * de + Bd[1][0] * u;
       e = ne; de = nde;
-      held = [WALL.x + e, de];
+      held = [xc(simT) + e, de];
     } else {
-      held = [demand(simT) - P.kd * (x - WALL.x) - P.dd * v, 0];
+      held = [demand(simT) - P.kd * (x - xc(simT)) - P.dd * v, 0];
     }
   }
 
@@ -195,12 +224,16 @@ SIM.register((function () {
     ctx.stroke();
     ctx.strokeStyle = SIM.hue.one;
     ctx.lineWidth = 3;
-    const knee = sx + sw * (T_STEP / WINDOW);
+    /* three levels now: nothing is asked for while the tool is still on its
+       way to the surface */
+    const at = (t) => sx + sw * (t / WINDOW);
+    const LEVEL = [sy + sh, sy + sh * 0.55, sy];
     ctx.beginPath();
-    ctx.moveTo(sx + 2, sy + sh * 0.55);
-    ctx.lineTo(knee, sy + sh * 0.55);
-    ctx.lineTo(knee, sy);
-    ctx.lineTo(sx + sw - 2, sy);
+    ctx.moveTo(sx + 2, LEVEL[0]);
+    DEMANDS.forEach(([from], i) => {
+      if (i) { ctx.lineTo(at(from), LEVEL[i - 1]); ctx.lineTo(at(from), LEVEL[i]); }
+    });
+    ctx.lineTo(sx + sw - 2, LEVEL[2]);
     ctx.stroke();
     g.maths("f", sx + sw + 6, sy + 5, 15, "left");
     g.maths("d", sx + sw + 12, sy + 9, 10, "left", 0.8);
@@ -421,7 +454,7 @@ SIM.register((function () {
 
     /* what the controller is commanding, which is the difference itself */
     if (adm(P)) {
-      const xr = px(WALL.x + e);
+      const xr = px(xc(simT) + e);
       ctx.strokeStyle = g.ink(0.6);
       ctx.lineWidth = 1.6;
       ctx.setLineDash([4, 3]);
@@ -536,10 +569,11 @@ SIM.register((function () {
       ctx.lineWidth = 1.8;
       ctx.setLineDash(dash);
       ctx.beginPath();
-      ctx.moveTo(x0, py(value(DEMAND[0])));
-      ctx.lineTo(px(T_STEP), py(value(DEMAND[0])));
-      ctx.lineTo(px(T_STEP), py(value(DEMAND[1])));
-      ctx.lineTo(x1, py(value(DEMAND[1])));
+      DEMANDS.forEach(([from, to, fd], i) => {
+        const Y = py(value(fd));
+        i ? ctx.lineTo(px(from), Y) : ctx.moveTo(px(from), Y);
+        ctx.lineTo(Math.min(px(to), x1), Y);
+      });
       ctx.stroke();
       ctx.setLineDash([]);
     }
@@ -729,6 +763,7 @@ SIM.register((function () {
           rho: fmtRadius(rho),
           /* an equilibrium the loop is running away from is not being held */
           held: diverged ? "lost" : bad ? "not held"
+            : fd === 0 ? "—"
             : settledForce(fd, P).toFixed(1) + " N of " + fd.toFixed(0),
         },
         verdict: { text: bad ? "Unstable" : "Stable", bad },

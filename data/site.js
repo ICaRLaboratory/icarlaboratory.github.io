@@ -68,12 +68,12 @@ const SITE = {
     contact: {
       tab: "Interaction control",
       note: {
-        en: "One machine pressed on a wall, wired both ways round: admittance measures the force and commands a motion, and gives way on a hard contact; impedance measures the motion and commands a force, and gives way as the sampling period grows.",
-        ko: "동일한 접촉 조건에서 어드미턴스 제어와 임피던스 제어를 비교합니다. 두 방식은 각각 힘 측정에 따른 위치 제어와 위치 측정에 따른 힘 제어로 구성됩니다. 이 모델에서는 높은 접촉 강성이 어드미턴스 제어의 안정성을, 긴 샘플링 주기가 임피던스 제어의 안정성을 저하시킬 수 있습니다.",
+        en: "One machine reaching for a wall and then pressing on it, wired both ways round: admittance measures the force and commands a motion, and gives way on a hard contact; impedance measures the motion and commands a force, and gives way as the sampling period grows.",
+        ko: "벽면으로 접근한 뒤 힘을 유지하는 과정을 어드미턴스 제어와 임피던스 제어로 비교합니다. 두 방식은 각각 힘 측정에 따른 위치 제어와 위치 측정에 따른 힘 제어로 구성됩니다. 이 모델에서는 높은 접촉 강성이 어드미턴스 제어의 안정성을, 긴 샘플링 주기가 임피던스 제어의 안정성을 저하시킬 수 있습니다.",
       },
       foot: {
-        en: "The radius is the selected loop taken in contact, and past one it chatters; the stiffness that matters is not the wall's own but that of the sensor and the tool in series with it.",
-        ko: "스펙트럼 반경은 접촉 상태의 제어계를 기준으로 산출하며, 1을 초과하면 불안정해집니다. 유효 접촉 강성에는 벽의 강성과 직렬 연결된 힘센서 및 툴의 유연성이 함께 반영됩니다.",
+        en: "The tool reaches the surface over the first second and is asked for no force until it is touching: with a zero demand both laws reduce to position control, so the reach needs no separate controller. The radius is the selected loop taken in contact, and past one it chatters; the stiffness that matters is not the wall's own but that of the sensor and the tool in series with it.",
+        ko: "도구는 첫 1초 동안 벽면으로 접근하며, 접촉 이전에는 목표 힘을 0으로 두므로 두 제어법 모두 위치 제어로 동작합니다. 접근 구간에 별도의 제어기가 필요하지 않습니다. 스펙트럼 반경은 접촉 상태의 제어계를 기준으로 산출하며, 1을 초과하면 불안정해집니다. 유효 접촉 강성에는 벽의 강성과 직렬 연결된 힘센서 및 툴의 유연성이 함께 반영됩니다.",
       },
     },
   },
