@@ -45,6 +45,11 @@ __pycache__/
 !*.sample
 !*.template
 
+# Papers kept here to work from. Anything committed is served publicly by
+# GitHub Pages, and a publisher's PDF is not ours to redistribute, so these
+# stay on this machine. Only the DOI goes on the site.
+*.pdf
+
 # Camera originals: too big for the repo, and GitHub Pages would serve them
 # publicly with their EXIF (including GPS) intact. Web copies live in
 # assets/img/ and are generated from these.
