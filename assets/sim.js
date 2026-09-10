@@ -349,7 +349,8 @@ const SIM = (function () {
       def.controls.map((c) => (c.choices ? `
         <div class="sim__ctrl sim__ctrl--pick">
           <span class="sim__ctrl-name" id="sim-${def.id}-${c.id}-lab">${c.label}</span>
-          <div class="sim__pick" role="radiogroup"
+          <div class="sim__pick${c.cols ? " sim__pick--grid" : ""}"
+               ${c.cols ? `style="--cols:${c.cols}"` : ""} role="radiogroup"
                aria-labelledby="sim-${def.id}-${c.id}-lab" id="sim-${def.id}-${c.id}">
             ${c.choices.map((o) => `
               <button type="button" class="chip${o.value === c.value ? " is-active" : ""}"

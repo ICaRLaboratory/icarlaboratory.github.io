@@ -1448,6 +1448,26 @@ main:focus { outline: none; }
 .sim__ctrl[hidden], .sim__out[hidden] { display: none; }
 /* a slider the current mode cannot use: still readable, plainly not in play */
 .sim__ctrl.is-off { opacity: 0.42; }
+/* Four names rather than two, some of them long: wrapped in a row they came
+   out ragged, so a group can ask for a grid instead and every pill in it is
+   the same size whether its name takes one line or two. */
+.sim__pick--grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr));
+  gap: 0.4rem;
+}
+.sim__pick--grid .chip {
+  display: grid;
+  place-items: center;
+  min-height: 2.05rem;
+  padding: 0.35rem 0.45rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-align: center;
+  border-radius: 10px;
+}
+
 /* A law named on the switch but not implemented here. Dimmed rather than
    absent, so the set the lab works on is the set on the panel. */
 .sim__pick .chip:disabled { opacity: 0.34; cursor: default; }
