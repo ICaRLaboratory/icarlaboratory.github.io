@@ -75,6 +75,7 @@ function setLang(next) {
    event listener (the nav, the lightbox) is rebuilt. */
 function applyLang() {
   fillFields();
+  renderRecruiting();
   renderNews();
   ["#areas", "#areas-full"].forEach((sel) => {
     const host = $(sel);
@@ -468,6 +469,21 @@ function currentNews(now = new Date()) {
 const NEWS_MONTH = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+/* The standing recruiting band under the hero. It has no window: unlike
+   a news item it stays up until SITE.recruiting.on is turned off. */
+function renderRecruiting() {
+  const band = $("#recruit");
+  if (!band) return;
+  const r = SITE.recruiting;
+  if (!r || !r.on) { band.hidden = true; return; }
+  band.hidden = false;
+
+  const ko = LANG === "ko" && isPair(r.title) && r.title.ko ? ' lang="ko"' : "";
+  const mail = SITE.contact.email;
+  $("#recruittext", band).innerHTML =
+    `<span${ko}>${esc(t(r.title))}</span> <a class="recruit__link" href="mailto:${esc(mail)}">${esc(mail)}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>`;
+}
+
 function renderNews() {
   const band = $("#news");
   if (!band) return;
@@ -761,6 +777,7 @@ function renderContact() {
 function boot(page) {
   if ($("#nav") && !$("#nav").firstElementChild) renderNav(page);
   fillFields();
+  renderRecruiting();
   renderNews();
   renderHome();
   renderResearch();

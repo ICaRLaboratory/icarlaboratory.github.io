@@ -273,6 +273,73 @@ main:focus { outline: none; }
   .lang button { padding: 0.36rem 0.5rem; font-size: 0.72rem; }
 }
 
+/* ---------- recruiting ---------- */
+
+/* The standing band under the hero: no window, no date, it stays until
+   SITE.recruiting.on is turned off. It sits directly above the news band
+   and borrows its grid, but stands on paper rather than the soft ground
+   so two bands in a row still read as two. */
+.recruit {
+  background: var(--bg);
+  border-bottom: 1px solid var(--line-soft);
+}
+.recruit[hidden] { display: none; }
+
+.recruit__inner {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: clamp(1.1rem, 4vw, 3rem);
+  align-items: center;
+  padding-block: clamp(1.1rem, 2.4vw, 1.6rem);
+}
+
+/* the .badge chip from the member cards, filled: black is the accent, so
+   the one mark on the band is ink rather than colour */
+.recruit__badge {
+  margin: 0;
+  justify-self: start;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.62rem;
+  border-radius: 5px;
+  background: var(--text);
+  color: var(--bg);
+  white-space: nowrap;
+}
+
+.recruit__text {
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+/* the address never breaks away from its arrow */
+.recruit__link {
+  color: inherit;
+  white-space: nowrap;
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 0.22em;
+  transition: text-decoration-color 0.16s;
+}
+.recruit__link:hover { text-decoration-color: currentColor; }
+.recruit__link svg {
+  width: 0.85em;
+  height: 0.85em;
+  margin-left: 0.2em;
+  vertical-align: -0.08em;
+  transition: transform 0.2s;
+}
+.recruit__link:hover svg { transform: translateX(3px); }
+
+@media (max-width: 640px) {
+  .recruit__inner { grid-template-columns: 1fr; gap: 0.7rem; align-items: start; }
+}
+
 /* ---------- news ---------- */
 
 /* A short-lived band under the hero. renderNews() sets [hidden] when

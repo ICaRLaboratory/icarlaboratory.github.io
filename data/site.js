@@ -32,6 +32,20 @@ const SITE = {
     en: "We pursue research in control theory and algorithms, robot motion and coordination, and embedded computing and signal processing. Topics include dynamic systems with delays and uncertainty, robot interaction with the environment, and real-time processing and inference on resource-constrained devices. We develop each area independently and connect them where the research calls for it.",
     ko: "제어 이론과 알고리즘, 로봇의 운동과 협업, 임베디드 연산과 신호처리를 연구합니다. 시간 지연과 불확실성을 고려한 시스템 안정성 해석, 로봇과 환경의 상호작용, 자원 제약을 고려한 실시간 처리와 AI 추론을 다룹니다. 각 분야의 전문성을 바탕으로 융합 연구를 수행합니다.",
   },
+
+  /* The standing recruiting band under the hero on the home page. Set
+     `on: false` when a round closes: the band goes away and the wording
+     stays here, ready to be switched back on. Nothing here expires by
+     itself -- short-lived announcements belong in data/news.js instead.
+     The address shown beside it is contact.email below. */
+  recruiting: {
+    on: true,
+    title: {
+      en: "We are recruiting undergraduate researchers and graduate students.",
+      ko: "학부연구생 및 대학원생을 모집하고 있습니다.",
+    },
+  },
+
   /* The two loops on the research page. Each block is keyed by the id its
      module in assets/ registers, so the physics and the words stay apart.
      One line each: the figure is the explanation, and on a phone every line
