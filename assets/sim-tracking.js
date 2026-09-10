@@ -1,11 +1,12 @@
 /* ===============================================================
-   One arm, one circle, one payload, two ways of chasing it.
+   One arm, one circle, one payload, three ways of chasing it.
 
    The plant, the task and the six kilogrammes that land on it at
    five seconds are in assets/sim-arm-plant.js. What is here is the
-   pair of controllers the tab switches between, sharing that plant
-   and sharing the clock, so the two can be read straight against
-   each other.
+   controllers the tab switches between, sharing that plant, so they
+   can be read straight against each other. PD and sliding mode share
+   the clock as well; the proposed law brings its own, for the reason
+   given where its constants are.
 
    PD is deliberately plain: proportional and derivative on each
    joint, tracking the reference with no attempt to cancel any of the
@@ -64,6 +65,40 @@ SIM.register((function () {
     { name: "ELBOW", on: H.two, off: H.twoPale, w: 1.8 },
   ];
   const pd = (P) => P.law === "pd";
+  const smc = (P) => P.law === "smc";
+  const asmc = (P) => P.law === "asmc";
+
+  /* PROPOSED is the lab's own adaptive sliding mode, as published. The
+     switching gain is replaced by a continuous function of the sliding
+     variable, and everything the arm is doing is estimated from the last
+     sample instead of from a model of it:
+
+         sigma    = e' + l1 e
+         k(sigma) = rho ln^2(1 + |sigma| / lambda)        the quasi-convex gain
+         N^(t)    = q''(t-h) - Hbar^-1 tau(t-h)           the delay estimate
+         tau      = Hbar ( q_r'' + l1 e' + l2 sigma
+                           - N^ - alpha phi + k(sigma) sgn sigma )
+
+     Electronics 13(19) 3940 introduced the gain; Sensors 25(14) 4252 carries
+     the same law with the estimate, equations (5), (11), (12) and (18), and
+     its Theorem 1 bounds the band the surface settles into at
+
+         delta = lambda ( exp( sqrt(phibar / rho) ) - 1 ),
+
+     phibar being the estimate's own error. Two things are left out. The
+     RBFNN that paper puts in place of the fixed alpha needs trained weights,
+     and a file of them has no place on a site with no build step. And the
+     estimate is only as good as h is small -- N(t) is taken for N(t-h) --
+     so this law keeps its own millisecond clock rather than the slider the
+     other two share. The panel prints that clock, and the sliding mode next
+     door can be set to the same 1 ms to be read against it. */
+  const ASMC = {
+    h: 0.001,                  /* s, the rate the estimate needs */
+    l1: 30, l2: 5,             /* the surface, and the linear term on it */
+    rho: 10, lam: 0.0213,      /* the gain, the paper's own two numbers */
+    alpha: 0.3,                /* how much of the last estimate error is undone */
+    hbar: [1.0, 0.4],          /* kg m^2, the diagonal standing in for M(q) */
+  };
 
   /* What a zero-order hold does to an ideal sliding mode. On the surface the
      switching term drives s at plus or minus eta, and the hold cannot turn it
@@ -77,12 +112,28 @@ SIM.register((function () {
      it is the width to expect rather than a ceiling. It is the sampled-data
      cost of the method: the panels shade it, the key names it, and the
      verdict is read against it. */
-  const quasiBand = (P) => (P.m + 1) * P.h * P.eta;
-  const bandName = (P) => (P.m ? "(1+m)hη" : "hη");
+  /* Theorem 1's bound, evaluated at the estimate error the run has actually
+     shown. Nothing has been measured for the first half second, so it opens
+     at a floor rather than at zero and tightens onto the real number. */
+  const theoremBand = () =>
+    ASMC.lam * (Math.exp(Math.sqrt(Math.max(phiMax, 0.05) / ASMC.rho)) - 1);
+
+  const quasiBand = (P) =>
+    (asmc(P) ? theoremBand() : (lag(P) + 1) * clock(P) * P.eta);
+  const bandName = (P) => (asmc(P) ? "δ" : P.m ? "(1+m)hη" : "hη");
+
+  /* The surface slope, the clock and the delay each law actually runs on:
+     PROPOSED carries its own, the other two read the sliders. */
+  const slope = (P) => (asmc(P) ? ASMC.l1 : P.lam);
+  const clock = (P) => (asmc(P) ? ASMC.h : P.h);
+  const lag = (P) => (asmc(P) ? 0 : P.m);
 
   const S = { q: [0, 0], v: [0, 0], simT: 0, hist: [] };
   let held, queue, nextT, marks, diverged;
   let rhoFree = 0, rhoLoad = 0;
+  /* what the delay estimate needs carried across a sample, and what the
+     adaptive gain came out at, for the panel to print */
+  let vPrev = [0, 0], nhatPrev = [0, 0], phiMax = 0, gainNow = [0, 0];
 
   /* the planes are grown to fit the run; sliding mode holds an order of
      magnitude tighter than PD, so it starts an order of magnitude smaller.
@@ -102,7 +153,7 @@ SIM.register((function () {
       /* the error as the controller saw it, which is the one it acted on */
       marks.push([S.simT, r.q[0] - S.q[0], r.q[1] - S.q[1]]);
       if (marks.length > 1600) marks.shift();
-    } else {
+    } else if (smc(P)) {
       const want = [0, 0];
       for (let i = 0; i < 2; i++) {
         const s = (r.dq[i] - S.v[i]) + P.lam * (r.q[i] - S.q[i]);
@@ -111,10 +162,36 @@ SIM.register((function () {
       const [a, b, , d] = A.inertia(S.q[1], A.ARM.m2);
       tau[0] = a * want[0] + b * want[1];
       tau[1] = b * want[0] + d * want[1];
+    } else {
+      /* The published law. `held` is still the torque the arm was given over
+         the interval that just ended, and S.v has moved across it, so the
+         acceleration and the estimate are both read off the arm rather than
+         off a model of it -- nothing here knows the payload landed. */
+      const h = clock(P);
+      for (let i = 0; i < 2; i++) {
+        const ddq = (S.v[i] - vPrev[i]) / h;
+        const nhat = ddq - held[i] / ASMC.hbar[i];       /* eq (5) */
+        const phi = nhat - nhatPrev[i];                  /* eq (11), one back */
+        const e = r.q[i] - S.q[i], de = r.dq[i] - S.v[i];
+        const s = de + ASMC.l1 * e;
+        /* eq (18): continuous, class K-infinity, and quadratic in |s| near
+           the surface -- which is what leaves the torque smooth where a
+           switch would be chattering */
+        const k = ASMC.rho * Math.pow(Math.log1p(Math.abs(s) / ASMC.lam), 2);
+        tau[i] = ASMC.hbar[i] * (r.ddq[i] + ASMC.l1 * de + ASMC.l2 * s
+                                 - nhat - ASMC.alpha * phi
+                                 + k * Math.sign(s));    /* eq (12) */
+        gainNow[i] = k;
+        nhatPrev[i] = nhat;
+        /* the estimate error the bound is read at; the reaching phase is not
+           the loop the theorem is about */
+        if (S.simT > 0.5 && Math.abs(phi) > phiMax) phiMax = Math.abs(phi);
+      }
+      vPrev = [S.v[0], S.v[1]];
     }
     for (let i = 0; i < 2; i++) {
       queue[i].push(tau[i]);
-      const k = queue[i].length - 1 - P.m;
+      const k = queue[i].length - 1 - lag(P);
       held[i] = k >= 0 ? queue[i][k] : 0;
       if (queue[i].length > 64) queue[i].shift();
     }
@@ -131,7 +208,7 @@ SIM.register((function () {
      locally stable exactly when the radius is under 1. */
 
   function radiusAt(q2, m2, P) {
-    const h = P.h, m = P.m;
+    const h = clock(P), m = lag(P);
     const [a, b, , d] = A.inertia(q2, m2);
     const det = a * d - b * b;
     const Mi = [d / det, -b / det, -b / det, a / det];
@@ -181,6 +258,10 @@ SIM.register((function () {
     }
     return worst;
   }
+
+  /* A loop holding ten microns reads as 0.0 mm at one place, which looks
+     like nothing rather than like an answer, so the places follow the size. */
+  const fmtMm = (mm) => mm.toFixed(mm < 0.02 ? 3 : mm < 0.2 ? 2 : 1) + " mm";
 
   /* Three places is enough to read, but near the boundary show as many as it
      takes to separate the number from 1, so a loop that really is unstable
@@ -334,11 +415,17 @@ SIM.register((function () {
     g.arrow(colMid, jy + jr + 2, colMid, smY - 2);
     g.signal("e", colMid + 9, jy + jr + 2, smY - 2);
     g.roundBox(colX, smY, colW, smH);
-    g.cap("SLIDING MODE", colX, smY - 9, 10, "left");
+    g.cap(asmc(P) ? "ASMC" : "SMC", colX, smY - 9, 10, "left");
     /* the surface and the law, written out: they are the whole design */
-    g.maths("s = e' + λe", colMid, smY + smH * 0.24, 13, "center", 0.85);
-    g.maths("τ = M η sgn s", colMid, smY + smH * 0.47, 12.5, "center", 0.6);
-    [["λ", P.lam.toFixed(0)], ["η", P.eta.toFixed(0)]].forEach(([sym, val], i) => {
+    g.maths(asmc(P) ? "σ = e' + ℓ₁e" : "s = e' + λe",
+            colMid, smY + smH * 0.24, 13, "center", 0.85);
+    g.maths(asmc(P) ? "k(σ) = ρ ln²(1 + |σ|/λ)" : "τ = M η sgn s",
+            colMid, smY + smH * 0.47, asmc(P) ? 10.5 : 12.5, "center", 0.6);
+    const rows = asmc(P)
+      ? [["ρ", ASMC.rho.toFixed(0)],
+         ["k", Math.max(gainNow[0], gainNow[1]).toFixed(3)]]
+      : [["λ", P.lam.toFixed(0)], ["η", P.eta.toFixed(0)]];
+    rows.forEach(([sym, val], i) => {
       const yy = smY + smH * (0.70 + i * 0.22);
       g.maths(sym, colX + colW * 0.36, yy, 14, "right");
       g.words(val, colX + colW * 0.76, yy, 12);
@@ -360,14 +447,14 @@ SIM.register((function () {
 
     g.roundBox(delX, rowY, halfW, rowH);
     g.words("Delay", delX + halfW / 2, rowY + rowH * 0.42, 13);
-    g.labelled("m", "", P.m === 0 ? " = 0"
-      : " = " + P.m + " · " + Math.round(P.m * P.h * 1000) + " ms",
+    g.labelled("m", "", lag(P) === 0 ? " = 0"
+      : " = " + lag(P) + " · " + Math.round(lag(P) * clock(P) * 1000) + " ms",
       delX + halfW / 2, rowY + rowH * 0.85);
 
     g.arrow(delX - 2, rowY + rowH * 0.5, samX + halfW + 2, rowY + rowH * 0.5);
     g.roundBox(samX, rowY, halfW, rowH);
     g.words("Sample", samX + halfW / 2, rowY + rowH * 0.42, 13);
-    g.labelled("h", "", " = " + Math.round(P.h * 1000) + " ms",
+    g.labelled("h", "", " = " + Math.round(clock(P) * 1000) + " ms",
       samX + halfW / 2, rowY + rowH * 0.85);
 
     ctx.strokeStyle = g.ink(0.9); ctx.lineWidth = 2;
@@ -559,18 +646,18 @@ SIM.register((function () {
     const Y = (d) => cy - d * sy;
     const band = (off, style) => {
       ctx.beginPath();
-      ctx.moveTo(X(-eTop), Y(P.lam * eTop + off));
-      ctx.lineTo(X(eTop), Y(-P.lam * eTop + off));
+      ctx.moveTo(X(-eTop), Y(slope(P) * eTop + off));
+      ctx.lineTo(X(eTop), Y(-slope(P) * eTop + off));
       ctx.strokeStyle = style;
       ctx.stroke();
     };
     const reach = quasiBand(P);
     ctx.fillStyle = "rgba(234,88,12,0.09)";
     ctx.beginPath();
-    ctx.moveTo(X(-eTop), Y(P.lam * eTop + reach));
-    ctx.lineTo(X(eTop), Y(-P.lam * eTop + reach));
-    ctx.lineTo(X(eTop), Y(-P.lam * eTop - reach));
-    ctx.lineTo(X(-eTop), Y(P.lam * eTop - reach));
+    ctx.moveTo(X(-eTop), Y(slope(P) * eTop + reach));
+    ctx.lineTo(X(eTop), Y(-slope(P) * eTop + reach));
+    ctx.lineTo(X(eTop), Y(-slope(P) * eTop - reach));
+    ctx.lineTo(X(-eTop), Y(slope(P) * eTop - reach));
     ctx.closePath();
     ctx.fill();
     ctx.lineWidth = 1;
@@ -651,7 +738,7 @@ SIM.register((function () {
       ctx.beginPath();
       let started = false;
       for (const row of S.hist) {
-        const a = s.px(row[0]), b = band.at(row[6 + i] + P.lam * row[4 + i], sTop);
+        const a = s.px(row[0]), b = band.at(row[6 + i] + slope(P) * row[4 + i], sTop);
         started ? ctx.lineTo(a, b) : (ctx.moveTo(a, b), (started = true));
       }
       ctx.stroke();
@@ -685,7 +772,8 @@ SIM.register((function () {
   return {
     id: "track",
     canvasLabel: "A two-link arm tracing a circle with a payload added " +
-      "partway, under either sampled PD or sampled sliding mode control, " +
+      "partway, under sampled PD, sampled sliding mode or the lab's " +
+      "proposed adaptive sliding mode control, " +
       "with the joint errors, the record of them and of the torque over " +
       "time, and the distance from the end effector to the point it is " +
       "tracking",
@@ -697,7 +785,18 @@ SIM.register((function () {
       { id: "law", label: "Control law",
         value: "pd",
         choices: [{ value: "pd", label: "PD" },
-                  { value: "smc", label: "Sliding mode" }] },
+                  { value: "smc", label: "SMC" },
+                  { value: "asmc", label: "Proposed" }] },
+      /* Which of the lab's own laws is on the figure. One of them is
+         implemented here; the others are named and switched off, so the
+         switch shows the set rather than a single button. */
+      { id: "algo", label: "Algorithm",
+        value: "quasi",
+        hide: (P) => !asmc(P),
+        choices: [{ value: "quasi", label: "Quasi-convex" },
+                  { value: "sigvar", label: "Sliding variable", off: true },
+                  { value: "tde", label: "TDE + NN", off: true },
+                  { value: "force", label: "Force tracking", off: true }] },
       { id: "kp", label: "Proportional gain <i>K</i><sub>p</sub>",
         min: 10, max: 200, step: 5, value: 70, show: (v) => v.toFixed(1),
         hide: (P) => !pd(P) },
@@ -706,20 +805,24 @@ SIM.register((function () {
         hide: (P) => !pd(P) },
       { id: "lam", label: "Surface slope <i>λ</i>",
         min: 2, max: 40, step: 1, value: 10, show: (v) => v + " 1/s",
-        hide: (P) => pd(P) },
+        hide: (P) => !smc(P) },
       { id: "eta", label: "Switching gain <i>η</i>",
         min: 2, max: 60, step: 2, value: 20, show: (v) => v + " rad/s²",
-        hide: (P) => pd(P) },
-      /* shared, and the point of sharing them: the same clock and the same
-         delay, so the two laws are answering the same question */
+        hide: (P) => !smc(P) },
+      /* Shared by PD and sliding mode, and the point of sharing them: the
+         same clock and the same delay, so the two are answering the same
+         question. The proposed law brings its own clock, so it has no
+         sliders at all -- the tab is the whole control. */
       { id: "h", label: "Sampling period <i>h</i>",
         min: 1, max: 100, step: 1, value: 10,
-        read: (v) => v / 1000, show: (v) => Math.round(v * 1000) + " ms" },
+        read: (v) => v / 1000, show: (v) => Math.round(v * 1000) + " ms",
+        applies: (P) => !asmc(P), off: Math.round(ASMC.h * 1000) + " ms" },
       { id: "m", label: "Feedback delay <i>m</i>",
         min: 0, max: 3, step: 1, value: 0,
         show: (v, P) => (v === 0 ? "0"
           : v + (v > 1 ? " samples" : " sample") + "  ·  " +
-            Math.round(v * P.h * 1000) + " ms") },
+            Math.round(v * P.h * 1000) + " ms"),
+        applies: (P) => !asmc(P), off: "0" },
     ],
 
     readouts: [
@@ -739,9 +842,15 @@ SIM.register((function () {
       nextT = 0;
       marks = [];
       diverged = false;
-      eTop = pd(P) ? 0.04 : 0.01;
-      dTop = pd(P) ? 0.4 : 0.1;
-      sTop = 0.1;
+      vPrev = [S.v[0], S.v[1]];
+      nhatPrev = [0, 0];
+      phiMax = 0;
+      gainNow = [0, 0];
+      /* the proposed law holds an order of magnitude tighter again than
+         sliding mode, so its planes start an order of magnitude smaller */
+      eTop = pd(P) ? 0.04 : asmc(P) ? 0.002 : 0.01;
+      dTop = pd(P) ? 0.4 : asmc(P) ? 0.02 : 0.1;
+      sTop = asmc(P) ? 0.01 : 0.1;
       tauTop = pd(P) ? 2 : 20;
     },
 
@@ -753,7 +862,7 @@ SIM.register((function () {
       while (left > 1e-9 && guard++ < 400) {
         if (S.simT >= nextT - 1e-12) {
           sample(P);
-          nextT = S.simT + P.h;
+          nextT = S.simT + clock(P);
         }
         const stepTo = Math.min(left, Math.max(nextT - S.simT, 1e-9));
         A.integrate(S, stepTo, held);
@@ -779,7 +888,7 @@ SIM.register((function () {
         for (let i = 0; i < 2; i++) {
           if (Math.abs(e[i]) > eTop) eTop = Math.ceil(Math.abs(e[i]) / eStep) * eStep;
           if (Math.abs(de[i]) > dTop) dTop = Math.ceil(Math.abs(de[i]) / dStep) * dStep;
-          const s = de[i] + P.lam * e[i];
+          const s = de[i] + slope(P) * e[i];
           if (Math.abs(s) > sTop) sTop = Math.ceil(Math.abs(s) / 0.05) * 0.05;
         }
       }
@@ -819,7 +928,7 @@ SIM.register((function () {
         n++;
       }
       const err = diverged ? "lost"
-        : n ? (Math.sqrt(sum / n) * 1000).toFixed(1) + " mm" : "—";
+        : n ? fmtMm(Math.sqrt(sum / n) * 1000) : "—";
 
       if (pd(P)) {
         const rho = A.loaded(S.simT) ? rhoLoad : rhoFree;
@@ -840,7 +949,7 @@ SIM.register((function () {
       for (const row of S.hist) {
         if (row[0] <= 0.5) continue;
         for (let j = 0; j < 2; j++) {
-          const s = Math.abs(row[6 + j] + P.lam * row[4 + j]);
+          const s = Math.abs(row[6 + j] + slope(P) * row[4 + j]);
           if (s > band) band = s;
         }
       }
@@ -851,10 +960,14 @@ SIM.register((function () {
          several times it, often by orders of magnitude. Half again is where
          the two populations part: past it the switching is no longer
          dominating what it has to dominate. */
-      const bad = diverged || band > 1.5 * bound;
+      /* Sliding mode is judged against a width to expect, so it is allowed
+         half again of it. The proposed law is judged against Theorem 1's
+         bound, which is a bound: past it the claim has failed. */
+      const bad = diverged || band > (asmc(P) ? 1 : 1.5) * bound;
       return {
         readouts: {
-          main: diverged ? "lost" : band ? band.toFixed(3) + " rad/s" : "—",
+          main: diverged ? "lost"
+            : band ? band.toFixed(asmc(P) ? 4 : 3) + " rad/s" : "—",
           err,
         },
         verdict: {
