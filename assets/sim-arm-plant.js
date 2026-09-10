@@ -204,10 +204,20 @@ const ARMPLANT = (function () {
     ctx.moveTo(bx - 9, by); ctx.lineTo(bx + 9, by);
     ctx.lineTo(bx + 6, by + 11); ctx.lineTo(bx - 6, by + 11);
     ctx.closePath(); ctx.fill();
-    ctx.fillStyle = "#fff";
+
+    /* The two joints wear the colours their traces wear in the records
+       below, so a curve in the panel and the pivot it belongs to can be
+       matched without counting links. */
+    const pin = Math.max(5, s * 0.036);
     ctx.strokeStyle = g.ink(1);
     ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(j1.x, j1.y, 4, 0, 7); ctx.fill(); ctx.stroke();
+    for (const [pt, fill] of [[{ x: bx, y: by }, SIM.hue.one], [j1, SIM.hue.two]]) {
+      ctx.fillStyle = fill;
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, pin, 0, 7);
+      ctx.fill();
+      ctx.stroke();
+    }
 
     /* the load, when it is there: a mass at the tip, and said in words */
     if (loaded(S.simT)) {
