@@ -1,11 +1,13 @@
 /* ---------------------------------------------------------------
    Short-lived announcements for the top of the home page.
 
-   Each item disappears on its own once it is older than
-   NEWS_WINDOW_DAYS, and when nothing is left inside the window the
-   whole band vanishes -- no empty heading, no gap. Nothing needs to be
-   deleted by hand; old entries can simply be left in the list, or
-   cleared out whenever it suits.
+   The band shows the NEWS_MAX_ITEMS newest items, but only while at
+   least one of them is younger than NEWS_WINDOW_DAYS. So posting
+   something fresh brings the previous couple of items back up with it,
+   and once everything has been quiet for that long the whole band
+   vanishes -- no empty heading, no gap. Nothing needs to be deleted by
+   hand; old entries can simply be left in the list, or cleared out
+   whenever it suits.
 
    Add an item at the top:
 
@@ -27,8 +29,12 @@
    - Newest first is not required; the list is sorted by date anyway.
    --------------------------------------------------------------- */
 
-/* How long an item stays up, in days. */
+/* How new an item has to be to hold the band open, in days. */
 const NEWS_WINDOW_DAYS = 14;
+
+/* How many items the band shows at most, newest first. The rest stay in
+   the list below without appearing on the page. */
+const NEWS_MAX_ITEMS = 3;
 
 const NEWS = [
   {

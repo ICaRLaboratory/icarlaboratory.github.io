@@ -73,10 +73,11 @@ image is resampled and JPEG-encoded only once, with the metadata dropped. Then
 list it in `data/gallery.js`, newest album first.
 
 **Post a short announcement** — add an entry to `NEWS` in `data/news.js` and a
-band appears at the top of the home page. Each item disappears on its own after
-`NEWS_WINDOW_DAYS` (14), and the band hides itself once nothing is current, so
-nothing has to be deleted by hand. An item dated in the future stays hidden
-until that day, so something can be queued in advance.
+band appears at the top of the home page. It shows the `NEWS_MAX_ITEMS` (3)
+newest items, so a fresh post brings the previous couple back up with it, and
+it hides itself once every item is older than `NEWS_WINDOW_DAYS` (14) — nothing
+has to be deleted by hand. An item dated in the future stays hidden until that
+day, so something can be queued in advance.
 
 **Advisor CV, contact, research areas** — `data/site.js`.
 

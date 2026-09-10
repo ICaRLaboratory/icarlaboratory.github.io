@@ -452,18 +452,21 @@ function newsDay(iso) {
     d.getDate() === +m[3] ? d : null;
 }
 
+/* The newest few items, but only while one of them is actually recent:
+   a fresh post carries the previous couple back onto the page with it,
+   and a quiet stretch takes the whole band down rather than leaving
+   last spring's news sitting under the hero. */
 function currentNews(now = new Date()) {
   if (typeof NEWS === "undefined") return [];
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const window = (typeof NEWS_WINDOW_DAYS === "number" ? NEWS_WINDOW_DAYS : 14);
-  return NEWS
+  const max = (typeof NEWS_MAX_ITEMS === "number" ? NEWS_MAX_ITEMS : 3);
+  const age = (n) => Math.round((today - n.day) / 86400000);
+  const posted = NEWS
     .map((n) => ({ ...n, day: newsDay(n.date) }))
-    .filter((n) => {
-      if (!n.day) return false;
-      const age = Math.round((today - n.day) / 86400000);
-      return age >= 0 && age < window;      /* not yet due, or expired */
-    })
+    .filter((n) => n.day && age(n) >= 0)    /* a real date, and due */
     .sort((a, b) => b.day - a.day);
+  return posted.some((n) => age(n) < window) ? posted.slice(0, max) : [];
 }
 
 const NEWS_MONTH = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",

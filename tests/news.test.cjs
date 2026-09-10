@@ -28,11 +28,31 @@ test('newsDay preserves valid calendar dates including leap days', () => {
   }
 });
 
-test('currentNews includes today and day 13 but not future, day 14 or invalid dates', () => {
-  const actual = vm.runInContext(`
-    NEWS.splice(0, NEWS.length, ...['2026-09-10', '2026-08-26', '2026-08-27',
-      '2026-09-09', '2026-08-40'].map(date => ({date, title: date})));
-    JSON.stringify(currentNews(new Date(2026, 8, 9)).map(n => n.date));
-  `, context);
-  assert.deepEqual(JSON.parse(actual), ['2026-09-09', '2026-08-27']);
+const shown = (dates, now = new Date(2026, 8, 9)) => JSON.parse(vm.runInContext(`
+  NEWS.splice(0, NEWS.length, ...${JSON.stringify(dates)}.map(date => ({date, title: date})));
+  JSON.stringify(currentNews(new Date(${now.getFullYear()}, ${now.getMonth()}, ${now.getDate()}))
+    .map(n => n.date));
+`, context));
+
+test('a current item carries older ones onto the page, newest first', () => {
+  // 09-09 is today, 08-27 is day 13, 08-26 is day 14: expired on its own,
+  // but it rides along under a current item.
+  assert.deepEqual(shown(['2026-08-26', '2026-09-09', '2026-08-27']),
+    ['2026-09-09', '2026-08-27', '2026-08-26']);
+});
+
+test('future and invalid dates stay off the page', () => {
+  assert.deepEqual(shown(['2026-09-10', '2026-08-40', '2026-09-09']), ['2026-09-09']);
+});
+
+test('the band shows at most NEWS_MAX_ITEMS', () => {
+  assert.equal(vm.runInContext('NEWS_MAX_ITEMS', context), 3);
+  assert.deepEqual(shown(['2026-09-09', '2026-09-08', '2026-09-07', '2026-09-06']),
+    ['2026-09-09', '2026-09-08', '2026-09-07']);
+});
+
+test('nothing current takes the whole band down, old items and all', () => {
+  assert.deepEqual(shown(['2026-08-26', '2026-06-01']), []);
+  assert.deepEqual(shown(['2026-09-10']), []);      // queued, not yet due
+  assert.deepEqual(shown([]), []);
 });
