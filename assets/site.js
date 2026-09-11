@@ -892,25 +892,66 @@ function renderGallery() {
 
    The listener sits on the host, not on the triggers: the language toggle
    replaces the cards' innerHTML but never the host, so this survives it. */
+/* What the viewer is walking, and where in it. Module scope rather than the
+   closure, because the research page wires two hosts into the one dialog and
+   the arrows are wired once: they have to move whichever set was opened
+   last, not whichever host happened to wire them. */
+let lbSet = [], lbAt = 0;
+
+function lightboxAt(i) {
+  const box = $("#lightbox");
+  const trigger = lbSet[i];
+  if (!box || !trigger) return;
+  lbAt = i;
+  const img = $("img", box);
+  img.src = trigger.dataset.src;
+  img.alt = trigger.dataset.alt;
+  $("figcaption", box).textContent = trigger.dataset.alt;
+  /* One photo is not a set, so the arrows go rather than sit dead; at the
+     ends they stay put and dim, which says where the set ends without
+     making the reader find out by pressing. */
+  for (const [sel, on] of [[".lightbox__nav--prev", i > 0],
+                           [".lightbox__nav--next", i < lbSet.length - 1]]) {
+    const btn = $(sel, box);
+    if (!btn) continue;
+    btn.hidden = lbSet.length < 2;
+    btn.disabled = !on;
+  }
+}
+
 function wireLightbox(host, selector) {
   const box = $("#lightbox");
   if (!host || !box) return;
   const img = $("img", box);
-  const cap = $("figcaption", box);
 
   host.addEventListener("click", (e) => {
     const trigger = e.target.closest(selector);
     if (!trigger) return;
-    img.src = trigger.dataset.src;
-    img.alt = trigger.dataset.alt;
-    cap.textContent = trigger.dataset.alt;
+    /* The set is the album the photo belongs to, so the arrows never walk
+       out of one event and into the next; a figure that is in no album
+       walks the page it is on. */
+    const scope = trigger.closest(".album") || host;
+    lbSet = $$(selector, scope);
+    lightboxAt(lbSet.indexOf(trigger));
     box.showModal();
   });
   if (box.dataset.wired) return;        /* the dialog's own controls, once */
   box.dataset.wired = "1";
   box.addEventListener("click", (e) => { if (e.target === box) box.close(); });
   $(".lightbox__x", box).addEventListener("click", () => box.close());
-  box.addEventListener("close", () => { img.removeAttribute("src"); });
+  $$(".lightbox__nav", box).forEach((btn) => {
+    const step = btn.classList.contains("lightbox__nav--next") ? 1 : -1;
+    btn.addEventListener("click", () => lightboxAt(lbAt + step));
+  });
+  /* the arrow keys, because a viewer that has arrows on screen should take
+     them from the keyboard too */
+  box.addEventListener("keydown", (e) => {
+    const step = { ArrowLeft: -1, ArrowRight: 1 }[e.key];
+    if (!step) return;
+    e.preventDefault();
+    lightboxAt(lbAt + step);
+  });
+  box.addEventListener("close", () => { img.removeAttribute("src"); lbSet = []; });
 }
 
 /* ---------- contact ---------- */
