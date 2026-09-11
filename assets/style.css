@@ -1295,36 +1295,41 @@ main:focus { outline: none; }
 }
 .lightbox__x:hover { background: rgba(255, 255, 255, 0.14); border-color: #fff; }
 
-/* Walking the set: the close button's circle, on the sides. Outside the
-   picture where there is room for it, over the picture on a phone where
-   there is not. */
+/* Walking the set. These sit over a photograph as often as over the
+   backdrop, and a dark circle with a hairline border disappeared into both --
+   so they are solid: a white disc, a dark chevron, and a shadow to lift them
+   off whatever is behind. Outside the picture where there is room for it,
+   over the picture where there is not. */
 .lightbox__nav {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 42px; height: 42px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  display: grid;
+  place-items: center;
+  width: 48px; height: 48px;
+  padding: 0;
+  border: 0;
   border-radius: 50%;
-  background: rgba(10, 10, 10, 0.45);
-  color: #fff;
-  font-size: 1.4rem;
-  line-height: 1;
+  background: #fff;
+  color: #0a0a0a;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, opacity 0.2s;
+  box-shadow: 0 3px 16px rgba(0, 0, 0, 0.5);
+  transition: transform 0.18s, background 0.18s;
 }
-.lightbox__nav--prev { left: -3.4rem; }
-.lightbox__nav--next { right: -3.4rem; }
-.lightbox__nav:hover:not(:disabled) { background: rgba(255, 255, 255, 0.14); border-color: #fff; }
-.lightbox__nav:disabled { opacity: 0.22; cursor: default; }
+.lightbox__nav svg { display: block; width: 22px; height: 22px; }
+.lightbox__nav--prev { left: -3.9rem; }
+.lightbox__nav--next { right: -3.9rem; }
+.lightbox__nav:hover { transform: translateY(-50%) scale(1.09); }
+.lightbox__nav:active { transform: translateY(-50%) scale(0.96); }
 /* the reset makes [hidden] win, but this rule would not without saying so */
 .lightbox__nav[hidden] { display: none; }
 /* Outside the picture needs somewhere to be outside of. The dialog runs to
    94vw, so below about 1340px the margin is thinner than the button and it
    would hang off the screen: from there down the arrows sit over the picture
    instead. */
-@media (max-width: 1340px) {
-  .lightbox__nav--prev { left: 0.4rem; }
-  .lightbox__nav--next { right: 0.4rem; }
+@media (max-width: 1360px) {
+  .lightbox__nav--prev { left: 0.5rem; }
+  .lightbox__nav--next { right: 0.5rem; }
 }
 
 /* ---------- print ----------

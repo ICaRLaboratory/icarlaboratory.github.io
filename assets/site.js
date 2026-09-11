@@ -937,23 +937,20 @@ let lbSet = [], lbAt = 0;
 
 function lightboxAt(i) {
   const box = $("#lightbox");
-  const trigger = lbSet[i];
-  if (!box || !trigger) return;
-  lbAt = i;
+  if (!box || !lbSet.length) return;
+  /* Round rather than stop at the ends. An album holds two or three photos,
+     and an arrow that answers a press with nothing reads as broken -- which
+     is what the dimmed ones it replaced did. */
+  const at = (i + lbSet.length) % lbSet.length;
+  const trigger = lbSet[at];
+  if (!trigger) return;
+  lbAt = at;
   const img = $("img", box);
   img.src = trigger.dataset.src;
   img.alt = trigger.dataset.alt;
   $("figcaption", box).textContent = trigger.dataset.alt;
-  /* One photo is not a set, so the arrows go rather than sit dead; at the
-     ends they stay put and dim, which says where the set ends without
-     making the reader find out by pressing. */
-  for (const [sel, on] of [[".lightbox__nav--prev", i > 0],
-                           [".lightbox__nav--next", i < lbSet.length - 1]]) {
-    const btn = $(sel, box);
-    if (!btn) continue;
-    btn.hidden = lbSet.length < 2;
-    btn.disabled = !on;
-  }
+  /* one photo is not a set, so the arrows go rather than sit there */
+  $$(".lightbox__nav", box).forEach((btn) => { btn.hidden = lbSet.length < 2; });
 }
 
 function wireLightbox(host, selector) {
