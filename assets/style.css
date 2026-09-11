@@ -1308,7 +1308,17 @@ main:focus { outline: none; }
   overflow: visible;
 }
 .lightbox::backdrop { background: rgba(8, 8, 8, 0.9); }
-.lightbox figure { margin: 0; }
+/* The picture takes a place of its own in the dialog's stacking context, and
+   the dialog isolates that context from the page's. Left as static content it
+   has been seen painting *under* the backdrop after the dialog has resized a
+   few times -- the photograph and the page behind it both go dim and stay
+   dim, while the arrows and the close button, which are positioned, stay
+   bright. Reported from Chrome on Windows with a screenshot; the dimming does
+   not come back from a resize, which is what a paint order would do. */
+.lightbox { isolation: isolate; }
+.lightbox figure { margin: 0; position: relative; z-index: 1; }
+/* and the controls stay above the picture, which now has a layer of its own */
+.lightbox__x, .lightbox__nav { z-index: 2; }
 .lightbox img {
   display: block;
   max-width: 100%;
