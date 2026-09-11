@@ -418,6 +418,16 @@ const SIM = (function () {
         setProse(el, v || "");
         el.hidden = !v;
       }
+      /* A mode can name a paper instead of writing a footnote, and then the
+         caption is the publication's own row. It is built from the DOI, so
+         nothing about the paper is retyped here. */
+      const ref = footEl && w.ref && typeof pubRef === "function" ? pubRef(w.ref) : "";
+      if (footEl) footEl.classList.toggle("pub-ref", !!ref);
+      if (ref) {
+        footEl.removeAttribute("lang");   /* setProse may have left one */
+        footEl.innerHTML = ref;
+        footEl.hidden = false;
+      }
     }
 
     function retune() {

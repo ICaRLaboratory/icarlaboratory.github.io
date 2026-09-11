@@ -355,6 +355,29 @@ function pubRow(p, i) {
     </li>`;
 }
 
+/* The publication row's own three lines, for a caption whose whole job is to
+   name a paper -- the research page's "ours" control laws. The paper is looked
+   up by DOI so the wording stays in data/publications.js, the one curated copy
+   of it, and a caption can never drift from the list. */
+function pubRef(doi) {
+  const key = String(doi).toLowerCase();
+  const every = [
+    ...(typeof JOURNAL_PAPERS === "undefined" ? [] : JOURNAL_PAPERS),
+    ...(typeof CONFERENCE_PAPERS === "undefined" ? [] : CONFERENCE_PAPERS),
+  ];
+  const p = every.find((x) => String(x.doi || "").toLowerCase() === key);
+  const href = `https://doi.org/${esc(doi)}`;
+  const link = `<a class="pub__doi" href="${href}" target="_blank" rel="noopener">doi:${esc(doi)}</a>`;
+  /* A DOI the list does not carry still deserves its link rather than a
+     blank caption. */
+  if (!p) return `<span class="pub__venue">${link}</span>`;
+
+  return `
+      <span class="pub__title"><a class="pub__link" href="${href}" target="_blank" rel="noopener">${esc(p.title)}</a></span>
+      <span class="pub__authors">${markAuthor(p.authors)}</span>
+      <span class="pub__venue"><em>${esc(p.venue)}</em> &middot; ${esc(p.detail)} &middot; ${link}</span>`;
+}
+
 function renderPublications() {
   const host = $("#publist");
   if (!host) return;

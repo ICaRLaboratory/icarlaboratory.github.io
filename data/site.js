@@ -78,13 +78,15 @@ const SITE = {
             ko: "진동 폭은 슬라이딩 면 도달 이후 |s|의 최댓값입니다.",
           },
         },
-        /* One block per paper the switch can put on the figure; the
-           reference is the whole caption either way. */
+        /* One block per paper the switch can put on the figure. `ref` is a
+           DOI from data/publications.js and prints as that paper's own row
+           from the publication list, so the caption is never a second,
+           drifting copy of the citation. */
         "asmc-quasi": {
-          foot: "2024, doi:10.3390/electronics13193940",
+          ref: "10.3390/electronics13193940",
         },
         "asmc-sigvar": {
-          foot: "2024, doi:10.1109/access.2024.3493882",
+          ref: "10.1109/access.2024.3493882",
         },
       },
     },

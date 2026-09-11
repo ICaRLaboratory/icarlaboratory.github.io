@@ -1471,6 +1471,13 @@ main:focus { outline: none; }
 
 .sim__foot { color: var(--faint); }
 
+/* A footnote that is a reference: the publication row's three lines, kept out
+   of the faint fine-print colour so the paper being demonstrated is legible.
+   Spans, because this lives inside the caption's <p>. */
+.pub-ref { color: var(--dim); display: grid; gap: 0.1rem; }
+.pub-ref > span { display: block; }
+.pub-ref .pub__title { font-size: 0.95rem; color: var(--text); }
+
 /* Named for what it will do next, so the width has to hold the longest of
    the three words without the row shifting under a thumb. */
 .sim__play { align-self: flex-start; min-width: 7.5rem; text-align: center; }

@@ -61,6 +61,12 @@ the `DEG` and `TOPIC` constants at the top of that file. For a photo, drop the f
 `DEG.ms` for `DEG.msDone`, and add `graduated: "2027.02"` (plus `now:` for their
 current position, if you want it shown).
 
+**Cite a paper under a simulation** — in `data/site.js`, a `sims` mode can
+carry `ref: "<doi>"` instead of a `foot:` line, and the caption becomes that
+paper's own row from `data/publications.js` — title, authors, venue, DOI. The
+DOI is the only thing written twice, so a citation can never drift from the
+publication list. The two adaptive sliding-mode laws use it.
+
 **Add a project or course** — `data/projects.js` (`status` is `"ongoing"` or
 `"completed"`) and `data/courses.js`.
 
