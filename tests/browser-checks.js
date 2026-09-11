@@ -100,11 +100,22 @@ window.testsDone = false;
           pageDoc.querySelector(`[data-lang="${lang}"]`).click();
           await pageDoc.fonts.ready;
           const edge = pageDoc.documentElement.clientWidth;
+          // A scroller's contents are meant to be past its edge -- that is
+          // what the gallery's album strips are. What must not happen is the
+          // page itself carrying the overflow, which is checked separately
+          // below; here the scrollers' children are the scroller's business.
+          const inScroller = el => {
+            for (let node = el.parentElement; node && node !== pageDoc.body; node = node.parentElement) {
+              const flow = frame.contentWindow.getComputedStyle(node).overflowX;
+              if (flow === 'auto' || flow === 'scroll') return true;
+            }
+            return false;
+          };
           const clipped = [...pageDoc.querySelectorAll('main *')].filter(el => {
             const rect = el.getBoundingClientRect();
             const style = frame.contentWindow.getComputedStyle(el);
             return rect.width > 2 && style.visibility !== 'hidden' &&
-              (rect.right > edge + 1 || rect.left < -1);
+              (rect.right > edge + 1 || rect.left < -1) && !inScroller(el);
           });
           check(`${page}: ${width}px ${lang} content fits viewport`, clipped.length === 0);
           if (clipped.length) window.testResults.at(-1).elements = clipped.slice(0, 4)

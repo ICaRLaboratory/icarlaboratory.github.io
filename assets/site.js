@@ -760,13 +760,94 @@ function albumCard(a, i) {
         ${a.titleKo ? `<div class="album__ko" lang="ko">${esc(a.titleKo)}</div>` : ""}
         <div class="album__meta">${esc(a.date)}${a.place ? " &middot; " + esc(a.place) : ""}</div>
       </div>
-      <div class="album__grid">
-        ${a.photos.map((p) => `
-          <button class="shot" type="button" data-src="${esc(p.src)}" data-alt="${esc(p.alt)}">
-            <img src="${esc(p.src)}" alt="${esc(p.alt)}" loading="lazy">
-          </button>`).join("")}
+      <div class="album__strip">
+        <div class="album__grid" tabindex="0" role="group"
+             aria-label="${esc(a.title)}, ${a.photos.length} photos">
+          ${a.photos.map((p) => `
+            <button class="shot" type="button" data-src="${esc(p.src)}" data-alt="${esc(p.alt)}">
+              <img src="${esc(p.src)}" alt="${esc(p.alt)}" loading="lazy">
+            </button>`).join("")}
+        </div>
+        <button class="album__page album__page--prev" type="button" hidden
+                aria-label="Earlier photos in this album">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <button class="album__page album__page--next" type="button" hidden
+                aria-label="More photos in this album">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 5l7 7-7 7"/></svg>
+        </button>
       </div>
     </section>`;
+}
+
+/* An album is a strip you push sideways, not a block that grows downwards.
+   Fourteen photographs used to be fourteen rows on a phone -- three thousand
+   pixels of one album, with the next conference buried under it. As a strip
+   the album is one row however many photographs are in it, and the next one
+   is always in reach.
+
+   The scrolling is the browser's own, so a thumb throws it and a trackpad
+   swipes it. What is added here is the pair of buttons a mouse needs, and
+   they appear only when there is something off the edge to reach. */
+function wireStrips(scope) {
+  $$(".album__strip", scope).forEach((strip) => {
+    if (strip.dataset.wired) return;
+    strip.dataset.wired = "1";
+    const grid = $(".album__grid", strip);
+    if (!grid) return;
+    grid.addEventListener("scroll", () => syncStrip(strip), { passive: true });
+    /* The buttons answer to the strip's measurements, and those move for
+       more reasons than a scroll: a window resized, a font arriving, a
+       filter drawing a different album into the same place. Watch the box
+       itself rather than trying to name the occasions. */
+    if (typeof ResizeObserver === "function") {
+      new ResizeObserver(() => syncStrip(strip)).observe(grid);
+    }
+    $$(".album__page", strip).forEach((btn) => {
+      const dir = btn.classList.contains("album__page--next") ? 1 : -1;
+      btn.addEventListener("click", () => {
+        /* a screenful less an overlap, so nothing is stepped over */
+        grid.scrollBy({ left: dir * grid.clientWidth * 0.8, behavior: "smooth" });
+        /* The scroll event is the usual way this pair keeps up. Ask again as
+           the animation lands as well: a button that has just been pressed is
+           exactly when being one press out of date shows. */
+        settleStrip(strip);
+      });
+    });
+    syncStrip(strip);
+  });
+}
+
+/* Follow a smooth scroll to wherever it stops, then leave it alone. */
+function settleStrip(strip) {
+  const grid = $(".album__grid", strip);
+  if (!grid) return;
+  let last = -1, tries = 0;
+  const tick = () => {
+    const at = Math.round(grid.scrollLeft);
+    syncStrip(strip);
+    if (at === last || ++tries > 30) return;
+    last = at;
+    setTimeout(tick, 50);
+  };
+  tick();
+}
+
+function syncStrip(strip) {
+  const grid = $(".album__grid", strip);
+  if (!grid) return;
+  const room = Math.round(grid.scrollWidth - grid.clientWidth);
+  const at = Math.round(grid.scrollLeft);
+  const prev = $(".album__page--prev", strip), next = $(".album__page--next", strip);
+  /* Slack enough to cover a rounding: an album that overruns its row by four
+     pixels has nothing to show past the edge, and a button that scrolls by
+     four pixels is a button that does not work. */
+  if (prev) prev.hidden = room <= 12 || at <= 8;
+  if (next) next.hidden = room <= 12 || at >= room - 8;
 }
 
 function renderGallery() {
@@ -797,6 +878,7 @@ function renderGallery() {
     shown += next.length;
     host.insertAdjacentHTML("beforeend", next.map(albumCard).join(""));
     initReveal();
+    wireStrips(host);
     if (!observer) return;
     /* Re-observing delivers a fresh callback, which is what keeps a tall
        screen filling until the sentinel is finally pushed out of range. */
@@ -809,6 +891,7 @@ function renderGallery() {
     host.insertAdjacentHTML("beforeend", list.slice(shown).map(albumCard).join(""));
     shown = list.length;
     initReveal();
+    wireStrips(host);
     if (observer) observer.unobserve(sentinel);
   }
 
@@ -919,8 +1002,11 @@ function renderGallery() {
 
   draw(active);
 
-  /* A print job has no scroll to load the rest, so hand it everything. */
+  /* A print job has no scroll to load the rest, so hand it everything, and
+     paper has no strips to push either -- the print rules lay them out as a
+     grid, so the buttons have to go with them. */
   window.addEventListener("beforeprint", addRest);
+  window.addEventListener("resize", () => $$(".album__strip", host).forEach(syncStrip));
 
   /* The listener sits on the host, which the redraws keep, so this is once. */
   wireLightbox(host, ".shot");
@@ -1003,6 +1089,24 @@ function wireLightbox(host, selector) {
     const step = btn.classList.contains("lightbox__nav--next") ? 1 : -1;
     btn.addEventListener("click", () => lightboxAt(lbAt + step));
   });
+  /* A thumb should push the photograph the way it pushes the strip it came
+     from. Touch and pen only: a mouse drag on an image is the browser's own
+     gesture, and the arrows are there for the mouse anyway. */
+  let from = null;
+  box.addEventListener("pointerdown", (e) => {
+    from = e.pointerType === "mouse" ? null : { x: e.clientX, y: e.clientY };
+  });
+  box.addEventListener("pointerup", (e) => {
+    if (!from) return;
+    const dx = e.clientX - from.x, dy = e.clientY - from.y;
+    from = null;
+    /* far enough to be meant, and more across than down */
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      lightboxAt(lbAt + (dx < 0 ? 1 : -1));
+    }
+  });
+  box.addEventListener("pointercancel", () => { from = null; });
+
   /* the arrow keys, because a viewer that has arrows on screen should take
      them from the keyboard too */
   box.addEventListener("keydown", (e) => {
