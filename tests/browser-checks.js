@@ -7,11 +7,40 @@ window.testsDone = false;
   try { savedLang = localStorage.getItem('icar-lang'); } catch (_) { /* private mode */ }
   const frame = document.createElement('iframe');
   frame.style.cssText = 'width:390px;height:844px;border:0';
-  const loaded = new Promise(resolve => frame.onload = resolve);
-  frame.src = '../index.html?test-run=' + Date.now();
   document.body.append(frame);
   const check = (name, pass) => window.testResults.push({ name, pass: !!pass });
   const settle = () => new Promise(resolve => setTimeout(resolve, 300));
+  /* A page is ready when its own markup and styles are, not when every
+     third-party embed it carries has answered. contact.html holds a map
+     iframe: waiting on the frame's load event hands the whole run to whether
+     Google replies, and when it does not the suite stops where it stands --
+     59 checks in, no failure, no end. So navigation resolves on the new
+     document being parsed and settled, and the load event only when it gets
+     there first. */
+  let navSeq = 0;
+  const navigate = (path) => {
+    const marker = 'test-run=' + Date.now() + '-' + (navSeq++);
+    return new Promise(resolve => {
+      let settled = false;
+      const done = () => { if (!settled) { settled = true; resolve(); } };
+      const started = Date.now();
+      frame.onload = done;
+      const poll = () => {
+        if (settled) return;
+        let doc = null;
+        try { doc = frame.contentDocument; } catch (_) { /* mid-navigation */ }
+        /* the marker says this is the document we asked for and not the one
+           before it, which is already complete and would resolve at once */
+        const here = doc && doc.location && doc.location.href.indexOf(marker) !== -1;
+        if (here && (doc.readyState === 'complete'
+            || (doc.readyState === 'interactive' && Date.now() - started > 1500))) done();
+        else if (Date.now() - started > 10000) done();   /* test what is there */
+        else setTimeout(poll, 100);
+      };
+      frame.src = path + '?' + marker;
+      setTimeout(poll, 100);
+    });
+  };
   const refreshStyles = async doc => {
     await Promise.all([...doc.querySelectorAll('link[rel="stylesheet"]')].map(sheet =>
       new Promise((resolve, reject) => {
@@ -23,7 +52,7 @@ window.testsDone = false;
   try {
     check('test page opts out of search indexing',
       document.querySelector('meta[name="robots"]')?.content.split(/[,\s]+/).includes('noindex'));
-    await loaded;
+    await navigate('../index.html');
     // Revalidate every fixture's styles when rerunning during local development.
     await refreshStyles(frame.contentDocument);
     await settle();
@@ -60,9 +89,7 @@ window.testsDone = false;
     check('returning to mobile keeps collapsed links unfocusable', doc.activeElement !== first && button.getAttribute('aria-expanded') === 'false');
     for (const page of ['index.html', 'research.html', 'members.html', 'publications.html',
       'lecture.html', 'gallery.html', 'contact.html']) {
-      const pageLoaded = new Promise(resolve => frame.onload = resolve);
-      frame.src = '../' + page + '?test-run=' + Date.now();
-      await pageLoaded;
+      await navigate('../' + page);
       const pageDoc = frame.contentDocument;
       await refreshStyles(pageDoc);
       await pageDoc.fonts.ready;
