@@ -1329,10 +1329,12 @@ main:focus { outline: none; }
   margin: 0;
   background: rgba(8, 8, 8, 0.92);
   overflow: visible;
-  display: grid;
   place-items: center;
   isolation: isolate;
 }
+/* only when open: a plain `display` here would override the closed dialog's
+   own `display: none` and leave the dark ground over the page */
+.lightbox[open] { display: grid; }
 .lightbox::backdrop { background: transparent; }
 .lightbox figure { margin: 0; position: relative; z-index: 1; }
 /* and the controls stay above the picture */
