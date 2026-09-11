@@ -10,13 +10,8 @@ window.testsDone = false;
   document.body.append(frame);
   const check = (name, pass) => window.testResults.push({ name, pass: !!pass });
   const settle = () => new Promise(resolve => setTimeout(resolve, 300));
-  /* A page is ready when its own markup and styles are, not when every
-     third-party embed it carries has answered. contact.html holds a map
-     iframe: waiting on the frame's load event hands the whole run to whether
-     Google replies, and when it does not the suite stops where it stands --
-     59 checks in, no failure, no end. So navigation resolves on the new
-     document being parsed and settled, and the load event only when it gets
-     there first. */
+  /* Resolve on the new document being parsed, not on the frame's load event:
+     contact.html carries a map iframe, and waiting for it hangs the run. */
   let navSeq = 0;
   const navigate = (path) => {
     const marker = 'test-run=' + Date.now() + '-' + (navSeq++);
@@ -100,10 +95,7 @@ window.testsDone = false;
           pageDoc.querySelector(`[data-lang="${lang}"]`).click();
           await pageDoc.fonts.ready;
           const edge = pageDoc.documentElement.clientWidth;
-          // A scroller's contents are meant to be past its edge -- that is
-          // what the gallery's album strips are. What must not happen is the
-          // page itself carrying the overflow, which is checked separately
-          // below; here the scrollers' children are the scroller's business.
+          // a scroller's contents are meant to be past its edge
           const inScroller = el => {
             for (let node = el.parentElement; node && node !== pageDoc.body; node = node.parentElement) {
               const flow = frame.contentWindow.getComputedStyle(node).overflowX;

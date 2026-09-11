@@ -355,10 +355,8 @@ function pubRow(p, i) {
     </li>`;
 }
 
-/* The publication row's own three lines, for a caption whose whole job is to
-   name a paper -- the research page's "ours" control laws. The paper is looked
-   up by DOI so the wording stays in data/publications.js, the one curated copy
-   of it, and a caption can never drift from the list. */
+/* A publication row, for a caption whose job is to name a paper. Looked up
+   by DOI so the wording stays in data/publications.js. */
 function pubRef(doi) {
   const key = String(doi).toLowerCase();
   const every = [
@@ -368,8 +366,7 @@ function pubRef(doi) {
   const p = every.find((x) => String(x.doi || "").toLowerCase() === key);
   const href = `https://doi.org/${esc(doi)}`;
   const link = `<a class="pub__doi" href="${href}" target="_blank" rel="noopener">doi:${esc(doi)}</a>`;
-  /* A DOI the list does not carry still deserves its link rather than a
-     blank caption. */
+  /* a DOI the list does not carry still gets its link */
   if (!p) return `<span class="pub__venue">${link}</span>`;
 
   return `
@@ -785,15 +782,8 @@ function albumCard(a, i) {
     </section>`;
 }
 
-/* An album is a strip you push sideways, not a block that grows downwards.
-   Fourteen photographs used to be fourteen rows on a phone -- three thousand
-   pixels of one album, with the next conference buried under it. As a strip
-   the album is one row however many photographs are in it, and the next one
-   is always in reach.
-
-   The scrolling is the browser's own, so a thumb throws it and a trackpad
-   swipes it. What is added here is the pair of buttons a mouse needs, and
-   they appear only when there is something off the edge to reach. */
+/* The scrolling is the browser's own; these are the buttons a mouse needs,
+   shown only when there is something off the edge. */
 function wireStrips(scope) {
   $$(".album__strip", scope).forEach((strip) => {
     if (strip.dataset.wired) return;
@@ -801,29 +791,21 @@ function wireStrips(scope) {
     const grid = $(".album__grid", strip);
     if (!grid) return;
     grid.addEventListener("scroll", () => syncStrip(strip), { passive: true });
-    /* The buttons answer to the strip's measurements, and those move for
-       more reasons than a scroll: a window resized, a font arriving, a
-       filter drawing a different album into the same place. Watch the box
-       itself rather than trying to name the occasions. */
     if (typeof ResizeObserver === "function") {
       new ResizeObserver(() => syncStrip(strip)).observe(grid);
     }
     $$(".album__page", strip).forEach((btn) => {
       const dir = btn.classList.contains("album__page--next") ? 1 : -1;
       btn.addEventListener("click", () => {
-        /* a screenful less an overlap, so nothing is stepped over */
         grid.scrollBy({ left: dir * grid.clientWidth * 0.8, behavior: "smooth" });
-        /* The scroll event is the usual way this pair keeps up. Ask again as
-           the animation lands as well: a button that has just been pressed is
-           exactly when being one press out of date shows. */
-        settleStrip(strip);
+        settleStrip(strip);        /* the scroll event alone can be missed */
       });
     });
     syncStrip(strip);
   });
 }
 
-/* Follow a smooth scroll to wherever it stops, then leave it alone. */
+/* follow a smooth scroll to wherever it stops */
 function settleStrip(strip) {
   const grid = $(".album__grid", strip);
   if (!grid) return;
@@ -844,9 +826,7 @@ function syncStrip(strip) {
   const room = Math.round(grid.scrollWidth - grid.clientWidth);
   const at = Math.round(grid.scrollLeft);
   const prev = $(".album__page--prev", strip), next = $(".album__page--next", strip);
-  /* Slack enough to cover a rounding: an album that overruns its row by four
-     pixels has nothing to show past the edge, and a button that scrolls by
-     four pixels is a button that does not work. */
+  /* 12px of slack: an overrun too small to see is not worth a button */
   if (prev) prev.hidden = room <= 12 || at <= 8;
   if (next) next.hidden = room <= 12 || at >= room - 8;
 }
@@ -964,14 +944,9 @@ function renderGallery() {
         if (uncovered) uncovered.focus();
         return;
       }
-      /* Mark the chips in place rather than rebuilding the row: rebuilding
-         would take the button the reader just pressed out of the document
-         and drop the keyboard on the body. Only "+ Earlier" rebuilds, and
-         it hands the focus on itself. */
+      /* in place, not a rebuild: a rebuild drops the keyboard on the body */
       active = btn.dataset.set;
-      /* replaceState rather than location.hash: the same shareable address,
-         without a jump to an anchor that does not exist and without filling
-         the Back button with filter presses. */
+      /* replaceState: shareable, without an anchor jump or Back-button noise */
       try {
         history.replaceState(null, "",
           active === "all" ? location.pathname + location.search : "#" + active);
@@ -982,11 +957,8 @@ function renderGallery() {
         if (!c.dataset.more) c.setAttribute("aria-pressed", String(on));
       });
       draw(active);
-      /* The albums above the reader just got shorter. If the row they pressed
-         has gone off the top of the screen, they are now looking at the space
-         the rest of the gallery used to fill, which reads as a filter that
-         broke. Bring the row back to where they can see it -- and only then,
-         because a page that jumps when it did not need to is worse. */
+      /* the albums just got shorter; if the row has gone off the top the
+         reader is left looking at the space they filled */
       if (filters.getBoundingClientRect().top < 0) {
         filters.scrollIntoView({ block: "start", behavior: "smooth" });
       }
@@ -1027,18 +999,14 @@ function renderGallery() {
 
    The listener sits on the host, not on the triggers: the language toggle
    replaces the cards' innerHTML but never the host, so this survives it. */
-/* What the viewer is walking, and where in it. Module scope rather than the
-   closure, because the research page wires two hosts into the one dialog and
-   the arrows are wired once: they have to move whichever set was opened
-   last, not whichever host happened to wire them. */
+/* Module scope, not the closure: the research page wires two hosts into the
+   one dialog and the arrows are wired once. */
 let lbSet = [], lbAt = 0, lbShow = 0;
 
 function lightboxAt(i) {
   const box = $("#lightbox");
   if (!box || !lbSet.length) return;
-  /* Round rather than stop at the ends. An album holds two or three photos,
-     and an arrow that answers a press with nothing reads as broken -- which
-     is what the dimmed ones it replaced did. */
+  /* round rather than stop: an arrow that ignores a press reads as broken */
   const at = (i + lbSet.length) % lbSet.length;
   const trigger = lbSet[at];
   if (!trigger) return;
@@ -1046,25 +1014,17 @@ function lightboxAt(i) {
   const img = $("img", box);
   const src = trigger.dataset.src;
   img.alt = trigger.dataset.alt;
-  /* where this one sits in the set: paging through six photographs without
-     it is walking a corridor with no doors numbered */
+  /* where this one sits in the set */
   $("figcaption", box).textContent = lbSet.length > 1
     ? `${trigger.dataset.alt}  ·  ${at + 1} / ${lbSet.length}`
     : trigger.dataset.alt;
   /* one photo is not a set, so the arrows go rather than sit there */
   $$(".lightbox__nav", box).forEach((btn) => { btn.hidden = lbSet.length < 2; });
 
-  /* Hold the photo that is up until the next one can be drawn. Assigning src
-     and hoping empties the frame while the file is still on its way, and
-     paging quickly through an album the browser has not fetched yet is then
-     a string of dark gaps where the photographs should be. There is nothing
-     to hold on the first open, so that one goes straight in.
-
-     What the picture waits for is the file, not decode(): decode() on an
-     image that is not in the document can sit unsettled for ever -- measured
-     here, on a file already complete with its size known -- and a viewer
-     whose swap is behind that promise simply stops changing its picture. So
-     the load event carries it, and decode only gets a moment to help. */
+  /* Hold the photo that is up until the next one has loaded, or the frame
+     empties while the file is on its way. Waits on load, not decode():
+     decode() on a detached image can stay pending for ever (measured, on a
+     file already complete), which stops the viewer changing picture. */
   const turn = ++lbShow;
   const swap = () => { if (turn === lbShow) img.src = src; };
   if (!img.getAttribute("src") || typeof Image !== "function") swap();
@@ -1073,8 +1033,6 @@ function lightboxAt(i) {
     const settle = () => {
       const decoded = ready.decode ? ready.decode().catch(() => {}) : null;
       if (!decoded) return swap();
-      /* whichever comes first: decoded, or long enough that waiting costs
-         more than the flash it was meant to save */
       Promise.race([decoded, new Promise((go) => setTimeout(go, 120))]).then(swap, swap);
     };
     ready.onload = settle;
@@ -1092,10 +1050,7 @@ function lightboxAt(i) {
   }
 }
 
-/* The two arrows, built rather than written into every page that carries a
-   viewer -- index.html had the dialog and not the buttons, so the home page's
-   figures opened without a way forward while the same figures on the research
-   page had one. A page that has the dialog has the pair. */
+/* built here rather than written into each page's dialog markup */
 function lightboxArrows(box) {
   if ($(".lightbox__nav", box)) return;
   const fig = $("figure", box);
@@ -1140,9 +1095,7 @@ function wireLightbox(host, selector) {
     const step = btn.classList.contains("lightbox__nav--next") ? 1 : -1;
     btn.addEventListener("click", () => lightboxAt(lbAt + step));
   });
-  /* A thumb should push the photograph the way it pushes the strip it came
-     from. Touch and pen only: a mouse drag on an image is the browser's own
-     gesture, and the arrows are there for the mouse anyway. */
+  /* swipe: touch and pen only, a mouse drag on an image is the browser's */
   let from = null;
   box.addEventListener("pointerdown", (e) => {
     from = e.pointerType === "mouse" ? null : { x: e.clientX, y: e.clientY };
@@ -1158,8 +1111,7 @@ function wireLightbox(host, selector) {
   });
   box.addEventListener("pointercancel", () => { from = null; });
 
-  /* the arrow keys, because a viewer that has arrows on screen should take
-     them from the keyboard too */
+  /* the arrow keys */
   box.addEventListener("keydown", (e) => {
     const step = { ArrowLeft: -1, ArrowRight: 1 }[e.key];
     if (!step) return;
@@ -1189,10 +1141,7 @@ function renderContact() {
 
 /* ---------- boot ---------- */
 
-/* A way back up from the foot of a long page. The publication list runs to
-   thirty-seven journal articles; the lecture page and the gallery grow the
-   same way. It earns its place only on a page long enough to get lost in,
-   and only once the reader is well down it. */
+/* A way back up, on pages long enough to get lost in. */
 function initToTop() {
   if ($(".to-top")) return;
   const btn = document.createElement("button");
@@ -1209,15 +1158,12 @@ function initToTop() {
   const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
   btn.addEventListener("click", () => {
     window.scrollTo({ top: 0, behavior: calm.matches ? "auto" : "smooth" });
-    /* the keyboard goes back to the top too, not just the page */
-    const main = $("#main");
+    const main = $("#main");          /* the keyboard goes up too */
     if (main) main.focus({ preventScroll: true });
   });
 
-  /* A mark a screen and a half down the page, watched rather than polled.
-     If the page is shorter than that the mark is past the end of it, the
-     reader can never scroll above it, and the button never appears -- which
-     is the rule for short pages, for free. */
+  /* A mark a screen and a half down, watched rather than polled. On a page
+     shorter than that the mark is past the end and never goes above. */
   const mark = document.createElement("div");
   mark.setAttribute("aria-hidden", "true");
   mark.style.cssText = "position:absolute;top:150vh;left:0;width:1px;height:1px";
@@ -1231,7 +1177,6 @@ function initToTop() {
   if (typeof IntersectionObserver === "function") {
     new IntersectionObserver(sync, { threshold: [0, 1] }).observe(mark);
   }
-  /* the observer answers the scrolling; these answer everything else */
   window.addEventListener("scroll", sync, { passive: true });
   window.addEventListener("resize", sync);
   sync();

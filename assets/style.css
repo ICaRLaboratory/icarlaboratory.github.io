@@ -1209,27 +1209,19 @@ main:focus { outline: none; }
   margin-top: 0.55rem;
 }
 
-/* One row per album, pushed sideways, however many photographs are in it.
-   A grid grew the album downwards instead -- a phone gave every photograph a
-   row of its own, so fourteen of them buried the next conference under three
-   thousand pixels. The column is a little narrower than the strip so the next
-   photograph shows at the edge: that peek is what says there is more. */
+/* One row per album, pushed sideways. The column is a little narrower than
+   the strip, so the next photograph peeks at the edge. */
 .album__strip { position: relative; }
 .album__grid {
   display: grid;
   grid-auto-flow: column;
-  /* Fill the row when the photographs fit in it -- two of them take half
-     each, three a third -- and hold a photograph's width once they do not,
-     which is when the row becomes a strip with more of it off the edge. */
+  /* fill the row when they fit; hold 320px and scroll once they do not */
   grid-auto-columns: minmax(clamp(232px, 74vw, 320px), 1fr);
   gap: 1rem;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scroll-snap-type: x proximity;
-  /* No bar under every album: the photograph showing at the edge and the
-     pair of chevrons already say there is more, and a scrollbar drawn under
-     each of six albums is six grey rules the page did not ask for. */
-  scrollbar-width: none;
+  scrollbar-width: none;      /* the peek and the chevrons say there is more */
 }
 .album__grid::-webkit-scrollbar { display: none; }
 .album__grid:focus-visible { outline: 2px solid var(--text); outline-offset: 4px; }
@@ -1241,8 +1233,7 @@ main:focus { outline: none; }
   padding-bottom: 0;
 }
 
-/* The pair a mouse needs. They sit on the strip's edges and appear only when
-   there is something past them; a thumb and a trackpad never need them. */
+/* the pair a mouse needs, shown only when there is something past them */
 .album__page {
   position: absolute;
   top: calc(50% - 0.2rem);
@@ -1303,24 +1294,13 @@ main:focus { outline: none; }
 
 /* ---------- lightbox ---------- */
 
-/* The viewer fills the screen and paints its own dark ground.
-
-   It used to be a box the size of the photograph, with ::backdrop supplying
-   the dark. Chrome was reported painting that backdrop *over* the picture
-   after a few quick presses -- the photograph and the page behind it dim,
-   the buttons bright, and it stays dim through a resize, which is a paint
-   order and not a pixel. Nudging the order with a z-index fixed the research
-   page and not the home page, which is the one with a canvas animating
-   behind it.
-
-   An element's own background cannot be painted above its own children, so
-   the dark is the dialog's background now and ::backdrop carries nothing.
-   There is no order left to get wrong. */
+/* The viewer fills the screen and paints its own dark ground: Chrome was
+   reported painting ::backdrop over the picture, and an element's background
+   cannot be painted above its own children. */
 .lightbox {
   border: 0;
   padding: 0;
-  /* inset rather than 100vw: a viewport width includes the scrollbar, and a
-     dialog that wide puts a scrollbar of its own along the foot of it */
+  /* inset, not 100vw: a viewport width includes the scrollbar */
   inset: 0;
   width: auto;
   height: auto;
@@ -1370,15 +1350,10 @@ main:focus { outline: none; }
 }
 .lightbox__x:hover { background: rgba(255, 255, 255, 0.14); border-color: #fff; }
 
-/* Walking the set. These sit over a photograph as often as over the
-   backdrop, and a dark circle with a hairline border disappeared into both --
-   so they are solid: a white disc, a dark chevron, and a shadow to lift them
-   off whatever is behind. Outside the picture where there is room for it,
-   over the picture where there is not. */
+/* Solid white: these sit over a photograph as often as over the backdrop,
+   and a dark translucent circle disappeared into both. */
 .lightbox__nav {
-  /* Anchored to the viewport, not to the picture's changing size. The dialog
-     is the viewport now, so absolute does that and keeps a fixed-position
-     element out of the compositor's way. */
+  /* the dialog is the viewport, so this is anchored to the screen */
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
