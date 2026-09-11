@@ -1045,15 +1045,29 @@ function lightboxAt(i) {
      and hoping empties the frame while the file is still on its way, and
      paging quickly through an album the browser has not fetched yet is then
      a string of dark gaps where the photographs should be. There is nothing
-     to hold on the first open, so that one goes straight in. */
+     to hold on the first open, so that one goes straight in.
+
+     What the picture waits for is the file, not decode(): decode() on an
+     image that is not in the document can sit unsettled for ever -- measured
+     here, on a file already complete with its size known -- and a viewer
+     whose swap is behind that promise simply stops changing its picture. So
+     the load event carries it, and decode only gets a moment to help. */
   const turn = ++lbShow;
   const swap = () => { if (turn === lbShow) img.src = src; };
   if (!img.getAttribute("src") || typeof Image !== "function") swap();
   else {
     const ready = new Image();
+    const settle = () => {
+      const decoded = ready.decode ? ready.decode().catch(() => {}) : null;
+      if (!decoded) return swap();
+      /* whichever comes first: decoded, or long enough that waiting costs
+         more than the flash it was meant to save */
+      Promise.race([decoded, new Promise((go) => setTimeout(go, 120))]).then(swap, swap);
+    };
+    ready.onload = settle;
+    ready.onerror = swap;
     ready.src = src;
-    if (ready.decode) ready.decode().then(swap, swap);
-    else swap();
+    if (ready.complete) settle();
   }
 
   /* and the neighbours, so the next press has nothing to wait for */
@@ -1065,9 +1079,33 @@ function lightboxAt(i) {
   }
 }
 
+/* The two arrows, built rather than written into every page that carries a
+   viewer -- index.html had the dialog and not the buttons, so the home page's
+   figures opened without a way forward while the same figures on the research
+   page had one. A page that has the dialog has the pair. */
+function lightboxArrows(box) {
+  if ($(".lightbox__nav", box)) return;
+  const fig = $("figure", box);
+  if (!fig) return;
+  const chevron = { prev: "M15 5l-7 7 7 7", next: "M9 5l7 7-7 7" };
+  for (const side of ["prev", "next"]) {
+    const btn = document.createElement("button");
+    btn.className = `lightbox__nav lightbox__nav--${side}`;
+    btn.type = "button";
+    btn.hidden = true;
+    btn.setAttribute("aria-label", side === "prev" ? "Previous" : "Next");
+    btn.innerHTML =
+      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+         <path d="${chevron[side]}"/></svg>`;
+    fig.before(btn);
+  }
+}
+
 function wireLightbox(host, selector) {
   const box = $("#lightbox");
   if (!host || !box) return;
+  lightboxArrows(box);
   const img = $("img", box);
 
   host.addEventListener("click", (e) => {
