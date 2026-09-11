@@ -118,6 +118,12 @@ SIM.register((function () {
     hbar: [1.4, 0.56],         /* kg m^2, the diagonal standing in for M(q) */
   };
 
+  /* The diagonal TDC stands M(q) up with, before its H slider. It is the
+     plain nominal rather than either published law's tuned Hbar: the slider
+     is the reader's design variable and has to start from something that is
+     not a consequence of tuning someone else's law. */
+  const TDC_HBAR = [1.0, 0.4];
+
   /* The other law the switch offers, from the lab's other 2024 paper. Its
      sliding variable is scaled up rather than shaped:
 
@@ -137,34 +143,30 @@ SIM.register((function () {
 
      These numbers are this arm's rather than the paper's, for the same
      reason as the block above: the paper's are written for a millisecond
-     clock and diverge on ten. They were searched against three things at
-     once, not just the tracking error. Theorem 1 holds once the loop is
-     inside eps, so eps has to be a width the run comes back inside and
-     stays inside -- it is allowed out, at a step of the load, but a run
-     that never returns is not sliding, it is a gain still climbing. So a
-     candidate had to hold its surface, spend its steady state inside eps,
-     and leave the adaptive gain falling rather than rising over a run three
-     times the length of the figure's.
+     clock and diverge on ten. What they were searched against is worth
+     stating, because it is easy to search against the wrong thing.
 
-     It is a narrow island. Lam to two per cent, or Hbar, takes the loop
-     outside eps and leaves it there, which is why these read as measured
-     numbers and not as round ones: rounding them is a change of regime.
-     That the law needs this on a ten-millisecond hold, where the
-     smooth-gain law next door tunes to round numbers and shrugs at a fifth
-     either way, is worth knowing about it. */
-  /* The diagonal TDC stands M(q) up with, before its H slider. It is the
-     plain nominal rather than either published law's tuned Hbar: the slider
-     is the reader's design variable and has to start from something that is
-     not a consequence of tuning someone else's law. */
-  const TDC_HBAR = [1.0, 0.4];
+     Theorem 1 holds once the loop is inside eps, and eps bounds the law's
+     own s, the one that carries the Lam -- so the band is read at that
+     scale, see sVar. A candidate had to keep every second of the run inside
+     eps except the ones it is entitled to: the reaching phase, and the
+     second a step of the load lands in. Coming back inside is the claim;
+     never leaving is not. And it had to leave the adaptive gain flat rather
+     than climbing over a run five times the figure's, which is what
+     separates a loop that slides from one that has not diverged yet.
 
+     These hold from an unloaded arm to twenty-five kilogrammes, in one step
+     or in four, inside eps the whole way. About a third of them will not
+     take a fifth either way, though, where the smooth-gain law next door
+     shrugs at that: on a coarse hold this law wants its constants found
+     rather than chosen. */
   const SIGVAR = {
-    ke: 2.4, ks: 9.968,        /* the surface, and the linear term on it */
-    lam: 9.78,                 /* Lam > 1, the scaling that buys Lam^-1 */
-    alpha: 15, gam: 6,         /* the cap inside eps, and the rate outside */
-    del: 0.000425, eps: 0.0236,/* the decay inside eps, and the band itself */
+    ke: 2.8, ks: 34.3,         /* the surface, and the linear term on it */
+    lam: 5.1,                  /* Lam > 1, the scaling that buys Lam^-1 */
+    alpha: 5, gam: 6,          /* the cap inside eps, and the rate outside */
+    del: 0.3, eps: 0.08,       /* the decay inside eps, and the band itself */
     pow: 8,                    /* the paper's exponent */
-    hbar: [0.165, 0.066],
+    hbar: [0.27, 0.11],
   };
 
   /* What a zero-order hold does to an ideal sliding mode. On the surface the
@@ -195,6 +197,13 @@ SIM.register((function () {
      PROPOSED carries its own, the other two read the sliders. */
   const slope = (P) => (tdc(P) ? P.l1 : sigvar(P) ? SIGVAR.ke
     : asmc(P) ? ASMC.l1 : P.lam);
+  /* The variable the law actually drives. The sliding-variable law scales its
+     own by Lam -- s = Lam(e' + Ke e) -- and eps bounds that scaled one, so
+     the strip, the readout and the verdict have to be scaled the same way or
+     they are reading eps against a tenth of what it bounds. The phase plane
+     is drawn in e' rather than in s, so there the band goes the other way. */
+  const sScale = (P) => (sigvar(P) ? SIGVAR.lam : 1);
+  const sVar = (P, e, de) => sScale(P) * (de + slope(P) * e);
   const clock = (P) => (asmc(P) ? ASMC.h : P.h);
   const lag = (P) => (asmc(P) ? 0 : P.m);
 
@@ -695,7 +704,7 @@ SIM.register((function () {
       ctx.strokeStyle = style;
       ctx.stroke();
     };
-    const reach = hasBand(P) ? quasiBand(P) : 0;
+    const reach = hasBand(P) ? quasiBand(P) / sScale(P) : 0;
     if (reach) {
     ctx.fillStyle = "rgba(234,88,12,0.09)";
     ctx.beginPath();
@@ -791,7 +800,7 @@ SIM.register((function () {
       ctx.beginPath();
       let started = false;
       for (const row of S.hist) {
-        const a = s.px(row[0]), b = band.at(row[6 + i] + slope(P) * row[4 + i], sTop);
+        const a = s.px(row[0]), b = band.at(sVar(P, row[4 + i], row[6 + i]), sTop);
         started ? ctx.lineTo(a, b) : (ctx.moveTo(a, b), (started = true));
       }
       ctx.stroke();
@@ -980,16 +989,17 @@ SIM.register((function () {
         for (let i = 0; i < 2; i++) {
           if (Math.abs(e[i]) > eTop) eTop = Math.ceil(Math.abs(e[i]) / eStep) * eStep;
           if (Math.abs(de[i]) > dTop) dTop = Math.ceil(Math.abs(de[i]) / dStep) * dStep;
-          const s = de[i] + slope(P) * e[i];
+          const s = sVar(P, e[i], de[i]);
           if (Math.abs(s) > sTop) sTop = Math.ceil(Math.abs(s) / 0.05) * 0.05;
         }
       }
       if (hasBand(P)) {
         /* room for the band the hold implies, so it is on the picture even
-           when the run is holding well inside it */
-        const reach = quasiBand(P) * 1.8;
-        if (reach > dTop) dTop = Math.ceil(reach / 0.05) * 0.05;
-        if (reach > sTop) sTop = Math.ceil(reach / 0.05) * 0.05;
+           when the run is holding well inside it -- in s for the strip, and
+           in e' for the plane, which are a factor of Lam apart */
+        const inS = quasiBand(P) * 1.8, inD = inS / sScale(P);
+        if (inD > dTop) dTop = Math.ceil(inD / 0.05) * 0.05;
+        if (inS > sTop) sTop = Math.ceil(inS / 0.05) * 0.05;
       }
       const step = tauStep(P);
       for (let i = 0; i < 2; i++) {
@@ -1042,17 +1052,25 @@ SIM.register((function () {
         };
       }
 
-      /* The band is the worst of the whole run once the reaching phase is
-         over, not the worst of the last second. The arm is at its lightest
-         before the payload lands, and a light arm is the hard case for a
-         gain written as an acceleration -- reading only the calm end would
-         report sliding for a run that spent its first five seconds well off
-         the surface. */
+      /* Sliding mode's band is the worst of the whole run once the reaching
+         phase is over, not the worst of the last second: (1+m)h eta is what
+         a hold does at every sample, so it has to hold at every sample, and
+         the arm is at its lightest before the payload lands -- a light arm
+         is the hard case for a gain written as an acceleration, and reading
+         only the calm end would report sliding for a run that spent its
+         first five seconds well off the surface.
+
+         The lab's two are read over the last second instead, because what
+         their bounds claim is where the loop settles. A step of the load
+         puts the loop outside the band by design -- that is what the
+         adaptation is for -- and it is coming back inside that the theorem
+         is about, not never having left. */
+      const from = asmc(P) ? S.simT - 1 : 0.5;
       let band = 0;
       for (const row of S.hist) {
-        if (row[0] <= 0.5) continue;
+        if (row[0] <= from) continue;
         for (let j = 0; j < 2; j++) {
-          const s = Math.abs(row[6 + j] + slope(P) * row[4 + j]);
+          const s = Math.abs(sVar(P, row[4 + j], row[6 + j]));
           if (s > band) band = s;
         }
       }
