@@ -773,8 +773,12 @@ function renderGallery() {
   const host = $("#gallery");
   if (!host || typeof GALLERY === "undefined") return;
 
-  /* The albums are curated newest first, so the years fall out in order. */
-  const years = [...new Set(GALLERY.map(albumYear))].sort((x, y) => y - x);
+  /* The albums are curated newest first, so the years fall out in order. An
+     album whose date carries no year is not a year: it has no chip of its
+     own and shows under All, rather than putting a chip marked 0 in the row. */
+  const years = [...new Set(GALLERY.map(albumYear))]
+    .filter((y) => y > 0)
+    .sort((x, y) => y - x);
 
   let list = GALLERY;      /* what the active chip selected */
   let shown = 0;           /* how much of it is in the page */
@@ -827,9 +831,24 @@ function renderGallery() {
      loader but asked for by click. It opens the row, not an album -- what is
      on screen stays on screen -- so the row is a way in, never a surprise. */
   const filters = $("#galfilters");
+  let active = "all";
   if (filters && years.length > 1) {
-    let active = "all";
-    let open = Math.min(GALLERY_YEAR_CHIPS, years.length);
+    /* The year is in the address, so a year can be linked to and survives a
+       reload: gallery.html#2022 opens on 2022 with its chip already on show,
+       however far down the list that year has fallen. */
+    const fromHash = () => {
+      const y = (location.hash || "").replace(/^#/, "");
+      /* a year, not anything Number() is willing to read as one: an empty
+         hash is not the undated albums */
+      return /^\d{4}$/.test(y) && years.includes(Number(y)) ? y : "all";
+    };
+    const reach = (key) =>
+      Math.min(years.length,
+               Math.max(GALLERY_YEAR_CHIPS,
+                        key === "all" ? 0 : years.indexOf(Number(key)) + 1));
+
+    active = fromHash();
+    let open = reach(active);
 
     const chip = (set, label) => `
       <button class="chip${set === active ? " is-active" : ""}" type="button"
@@ -866,6 +885,13 @@ function renderGallery() {
          and drop the keyboard on the body. Only "+ Earlier" rebuilds, and
          it hands the focus on itself. */
       active = btn.dataset.set;
+      /* replaceState rather than location.hash: the same shareable address,
+         without a jump to an anchor that does not exist and without filling
+         the Back button with filter presses. */
+      try {
+        history.replaceState(null, "",
+          active === "all" ? location.pathname + location.search : "#" + active);
+      } catch (e) { /* file:// and the like */ }
       $$(".chip", filters).forEach((c) => {
         const on = c === btn;
         c.classList.toggle("is-active", on);
@@ -873,11 +899,22 @@ function renderGallery() {
       });
       draw(active);
     });
+
+    /* someone edits the address, or follows a link to this page with a
+       different year on it */
+    window.addEventListener("hashchange", () => {
+      const key = fromHash();
+      if (key === active) return;
+      active = key;
+      open = reach(key);
+      renderChips();
+      draw(key);
+    });
   } else if (filters) {
     filters.remove();
   }
 
-  draw("all");
+  draw(active);
 
   /* A print job has no scroll to load the rest, so hand it everything. */
   window.addEventListener("beforeprint", addRest);
