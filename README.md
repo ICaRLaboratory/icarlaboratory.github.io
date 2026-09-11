@@ -13,7 +13,7 @@ research.html       Research areas + funded projects
 members.html        Advisor, graduate students, alumni
 publications.html   Journal / conference papers, filterable, grouped by year, DOI-linked
 lecture.html        Courses
-gallery.html        Event photos, grouped into albums
+gallery.html        Event photos, grouped into albums, filterable by year
 contact.html        Address, email, map
 
 assets/
@@ -70,7 +70,15 @@ the repo, and anything committed here is served publicly by GitHub Pages, EXIF
 and GPS coordinates included. What goes on the site is a web copy in
 `assets/img/gallery/` — graded at full size, resized to 1400px last so the
 image is resampled and JPEG-encoded only once, with the metadata dropped. Then
-list it in `data/gallery.js`, newest album first.
+list it in `data/gallery.js`, newest album first. The year chips above the
+albums are built from the albums' own dates, so a new year appears on its own;
+the row hides itself while every album is from the same year. Only the newest
+`GALLERY_YEAR_CHIPS` (5) years stand on their own -- twenty year chips wrap to
+five rows on a phone -- and "+ Earlier" uncovers the next five, and the five
+after that. The page starts
+with `GALLERY_CHUNK` (6) albums and adds six more each time the scroll comes
+within 600px of the end, so the gallery can grow without the first paint
+growing with it -- `assets/site.js` has both numbers.
 
 **Post a short announcement** — add an entry to `NEWS` in `data/news.js` and a
 band appears at the top of the home page. It shows the `NEWS_MAX_ITEMS` (3)

@@ -50,7 +50,13 @@
 </header>
 
 <section class="band--tight wrap">
+  <!-- The year chips are filled from data/gallery.js; this row drops out
+       entirely while every album is from the same year. -->
+  <div class="filters" id="galfilters"></div>
   <div id="gallery"></div>
+  <!-- The loader's tripwire: albums go in six at a time, and this coming
+       within 600px of the viewport asks for the next six. -->
+  <div id="galmore" aria-hidden="true"></div>
 </section>
 
 <!-- The caption is filled from the photo's alt text before the dialog opens,

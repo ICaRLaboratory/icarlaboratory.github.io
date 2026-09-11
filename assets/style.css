@@ -901,6 +901,12 @@ main:focus { outline: none; }
 .chip:hover { color: var(--text); border-color: var(--line); }
 .chip.is-active { color: var(--bg); background: var(--text); border-color: var(--text); font-weight: 600; }
 
+/* The gallery's "+ Earlier" sits in the same row but does a different job: it
+   opens more year chips rather than filtering. The dashed edge says so, and
+   it never takes the active fill, because it is never a view. */
+.chip--more { border-style: dashed; }
+.chip--more:hover { border-style: dashed; color: var(--text); border-color: var(--line); }
+
 .year-group { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 1.5rem; padding-block: 1.9rem; border-top: 1px solid var(--line-soft); }
 .year-group:first-of-type { border-top: none; padding-top: 0; }
 @media (max-width: 700px) { .year-group { grid-template-columns: 1fr; gap: 0.9rem; } }
@@ -1241,6 +1247,10 @@ main:focus { outline: none; }
   transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.3, 1);
 }
 .shot:hover::after, .shot:focus-visible::after { transform: scaleX(1); }
+
+/* A zero-height box is an unreliable thing to observe, so give it a hairline
+   to be seen by. */
+#galmore { min-height: 1px; }
 
 /* ---------- lightbox ---------- */
 

@@ -708,12 +708,30 @@ function renderCourses() {
 
 /* ---------- gallery ---------- */
 
-function renderGallery() {
-  const host = $("#gallery");
-  if (!host || typeof GALLERY === "undefined") return;
+/* "August 2026" -> 2026. The year is the only part of an album's date the
+   filter needs, and the data keeps that date as plain prose. */
+function albumYear(a) {
+  const m = String(a.date || "").match(/\d{4}/);
+  return m ? Number(m[0]) : 0;
+}
 
-  host.innerHTML = GALLERY.map((a, i) => `
-    <section class="album" data-reveal style="--d:${i * 80}ms">
+/* How many albums go in before the scroll asks for the next lot. Six is about
+   two phone screens, and the loader runs 600px early, so the next six are in
+   place before the bottom of these comes up. The photos inside them are
+   loading="lazy" as always, so nothing is fetched until it is nearly on
+   screen either way. */
+const GALLERY_CHUNK = 6;
+
+/* How many year chips stand on their own before "+ Earlier" takes over the
+   rest. Five plus All is one row on a phone. */
+const GALLERY_YEAR_CHIPS = 5;
+
+/* The stagger is capped like the publication rows', and counts within its own
+   chunk: uncapped, a twentieth album would sit blank for 1.6s after it
+   scrolled into view. */
+function albumCard(a, i) {
+  return `
+    <section class="album" data-reveal style="--d:${Math.min(i, 6) * 80}ms">
       <div class="album__head">
         <h2 class="album__title">${esc(a.title)}</h2>
         ${a.titleKo ? `<div class="album__ko" lang="ko">${esc(a.titleKo)}</div>` : ""}
@@ -725,8 +743,115 @@ function renderGallery() {
             <img src="${esc(p.src)}" alt="${esc(p.alt)}" loading="lazy">
           </button>`).join("")}
       </div>
-    </section>`).join("");
+    </section>`;
+}
 
+function renderGallery() {
+  const host = $("#gallery");
+  if (!host || typeof GALLERY === "undefined") return;
+
+  /* The albums are curated newest first, so the years fall out in order. */
+  const years = [...new Set(GALLERY.map(albumYear))].sort((x, y) => y - x);
+
+  let list = GALLERY;      /* what the active chip selected */
+  let shown = 0;           /* how much of it is in the page */
+
+  const sentinel = $("#galmore");
+  const observer = sentinel && "IntersectionObserver" in window
+    ? new IntersectionObserver(
+        (entries) => { if (entries.some((e) => e.isIntersecting)) addChunk(); },
+        { rootMargin: "600px 0px" }
+      )
+    : null;
+
+  function addChunk() {
+    const next = list.slice(shown, shown + GALLERY_CHUNK);
+    if (!next.length) return;
+    shown += next.length;
+    host.insertAdjacentHTML("beforeend", next.map(albumCard).join(""));
+    initReveal();
+    if (!observer) return;
+    /* Re-observing delivers a fresh callback, which is what keeps a tall
+       screen filling until the sentinel is finally pushed out of range. */
+    observer.unobserve(sentinel);
+    if (shown < list.length) observer.observe(sentinel);
+  }
+
+  function addRest() {
+    if (shown >= list.length) return;
+    host.insertAdjacentHTML("beforeend", list.slice(shown).map(albumCard).join(""));
+    shown = list.length;
+    initReveal();
+    if (observer) observer.unobserve(sentinel);
+  }
+
+  const draw = (key) => {
+    list = key === "all"
+      ? GALLERY
+      : GALLERY.filter((a) => albumYear(a) === Number(key));
+    shown = 0;
+    host.innerHTML = "";
+    if (observer) { observer.unobserve(sentinel); addChunk(); }
+    else addRest();                     /* no observer: the whole list at once */
+  };
+
+  /* The chips are built from the data, not the markup, so a new album brings
+     its year with it. One year of albums needs no filter at all.
+
+     Only the newest GALLERY_YEAR_CHIPS years are on show: twenty year chips
+     wrap to five rows on a phone and push the first photo off the screen.
+     "+ Earlier" hands over the next batch, the same idea as the scroll
+     loader but asked for by click. It opens the row, not an album -- what is
+     on screen stays on screen -- so the row is a way in, never a surprise. */
+  const filters = $("#galfilters");
+  if (filters && years.length > 1) {
+    let active = "all";
+    let open = Math.min(GALLERY_YEAR_CHIPS, years.length);
+
+    const chip = (set, label) => `
+      <button class="chip${set === active ? " is-active" : ""}" type="button"
+              data-set="${set}" aria-pressed="${set === active}"
+              aria-controls="gallery">${label}</button>`;
+
+    const renderChips = () => {
+      filters.innerHTML = [
+        chip("all", "All"),
+        ...years.slice(0, open).map((y) => chip(String(y), String(y))),
+        open < years.length
+          ? `<button class="chip chip--more" type="button" data-more="1"
+                     aria-expanded="false" aria-controls="galfilters">+ Earlier</button>`
+          : "",
+      ].join("");
+    };
+
+    renderChips();
+    filters.addEventListener("click", (e) => {
+      const btn = e.target.closest(".chip");
+      if (!btn) return;
+      if (btn.dataset.more) {
+        const was = open;
+        open = Math.min(open + GALLERY_YEAR_CHIPS, years.length);
+        renderChips();
+        /* The button that was just pressed is gone. Leave the keyboard on the
+           first year it uncovered rather than dropping it on the body. */
+        const uncovered = $$(".chip", filters)[was + 1];
+        if (uncovered) uncovered.focus();
+        return;
+      }
+      active = btn.dataset.set;
+      renderChips();
+      draw(active);
+    });
+  } else if (filters) {
+    filters.remove();
+  }
+
+  draw("all");
+
+  /* A print job has no scroll to load the rest, so hand it everything. */
+  window.addEventListener("beforeprint", addRest);
+
+  /* The listener sits on the host, which the redraws keep, so this is once. */
   wireLightbox(host, ".shot");
 }
 
