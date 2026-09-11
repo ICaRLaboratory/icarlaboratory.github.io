@@ -861,8 +861,16 @@ function renderGallery() {
         if (uncovered) uncovered.focus();
         return;
       }
+      /* Mark the chips in place rather than rebuilding the row: rebuilding
+         would take the button the reader just pressed out of the document
+         and drop the keyboard on the body. Only "+ Earlier" rebuilds, and
+         it hands the focus on itself. */
       active = btn.dataset.set;
-      renderChips();
+      $$(".chip", filters).forEach((c) => {
+        const on = c === btn;
+        c.classList.toggle("is-active", on);
+        if (!c.dataset.more) c.setAttribute("aria-pressed", String(on));
+      });
       draw(active);
     });
   } else if (filters) {
