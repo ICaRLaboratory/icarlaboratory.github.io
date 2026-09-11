@@ -1,8 +1,8 @@
 /* ===============================================================
    One arm, one circle, one payload, four ways of chasing it.
 
-   The plant, the task and the fifteen kilogrammes that land on it at
-   five seconds are in assets/sim-arm-plant.js. What is here is the
+   The plant, the task and the twenty kilogrammes that land on it in
+   two steps are in assets/sim-arm-plant.js. What is here is the
    controllers the tab switches between, sharing that plant, so they
    can be read straight against each other. PD and sliding mode share
    the clock as well; the two laws that estimate the arm rather than
@@ -56,7 +56,7 @@
 
 SIM.register((function () {
   const A = ARMPLANT;
-  const { T_LOAD, WINDOW, KG } = A;
+  const { T_LOAD, WINDOW } = A;
   const H = SIM.hue;
   const JOINT = [
     { name: "SHOULDER", on: H.one, off: H.onePale, w: 2.1 },
@@ -342,7 +342,7 @@ SIM.register((function () {
     const px0 = x + w * 0.40, pw = w * 0.585;
     const py0 = y + h * 0.03, ph = h * 0.94;
     g.roundBox(px0, py0, pw, ph, 5);
-    g.cap(A.loaded(S.simT) ? "ARM  " + KG : "ARM", px0 + pw / 2, py0 - 9);
+    g.cap(A.loaded(S.simT) ? "ARM  " + A.kgLabel(S.simT) : "ARM", px0 + pw / 2, py0 - 9);
     A.drawArm(g, { x: px0, y: py0, w: pw, h: ph }, S);
     g.maths("τ", (colX + colW + px0) / 2, pdY + pdH * 0.45 - 10, 15);
     g.arrow(colX + colW + 2, pdY + pdH * 0.5, px0 - 2, pdY + pdH * 0.5);
@@ -444,7 +444,7 @@ SIM.register((function () {
     const px0 = x + w * 0.40, pw = w * 0.585;
     const py0 = y + h * 0.03, ph = h * 0.94;
     g.roundBox(px0, py0, pw, ph, 5);
-    g.cap(A.loaded(S.simT) ? "ARM  " + KG : "ARM", px0 + pw / 2, py0 - 9);
+    g.cap(A.loaded(S.simT) ? "ARM  " + A.kgLabel(S.simT) : "ARM", px0 + pw / 2, py0 - 9);
     A.drawArm(g, { x: px0, y: py0, w: pw, h: ph }, S);
     g.maths("τ", (colX + colW + px0) / 2, smY + smH * 0.45 - 10, 15);
     g.arrow(colX + colW + 2, smY + smH * 0.5, px0 - 2, smY + smH * 0.5);
@@ -492,7 +492,7 @@ SIM.register((function () {
     g.keyRow([
       { label: JOINT[0].name, stroke: JOINT[0].on, width: 2.1 },
       { label: JOINT[1].name, stroke: JOINT[1].on, width: 1.8 },
-      { label: "BEFORE " + KG, stroke: JOINT[0].off, width: 2.1 },
+      { label: "BEFORE THE LOAD", stroke: JOINT[0].off, width: 2.1 },
     ], p.x + 12, p.y + 34);
 
     ctx.strokeStyle = g.ink(0.16);
@@ -647,7 +647,7 @@ SIM.register((function () {
     g.keyRow([
       { label: JOINT[0].name, stroke: JOINT[0].on, width: 2.1 },
       { label: JOINT[1].name, stroke: JOINT[1].on, width: 1.8 },
-      { label: "BEFORE " + KG, stroke: JOINT[0].off, width: 2.1 },
+      { label: "BEFORE THE LOAD", stroke: JOINT[0].off, width: 2.1 },
     ], p.x + 12, p.y + 34);
 
     ctx.save();
@@ -785,7 +785,10 @@ SIM.register((function () {
     /* one axis and one marker down both strips, so a column is one instant */
     g.seconds(p, s.px, s.top, s.bot, WINDOW, 5);
     g.cap("TIME  (S)", (s.x0 + s.x1) / 2, p.y + p.h - 11, 9, "center", 0.5);
-    if (S.simT >= T_LOAD) g.event(s.px(T_LOAD), s.top, s.bot, KG);
+    /* one marker per step of the load, each named for what it added */
+    for (const l of A.LOAD) {
+      if (S.simT >= l.t) g.event(s.px(l.t), s.top, s.bot, "+" + l.kg + " KG");
+    }
 
     if (pd(P)) drawErrors(g, p, s, s.upper);
     else drawSliding(g, P, p, s, s.upper);
@@ -842,18 +845,22 @@ SIM.register((function () {
       { id: "l1", label: "Error pole <i>ℓ</i><sub>1</sub>",
         min: 5, max: 60, step: 1, value: 30, show: (v) => v + " 1/s",
         hide: (P) => !tdc(P) },
+      /* The slow pole starts slow. Twenty kilogrammes of unmodelled mass
+         goes into the estimate, and the harder this pole is asked to pull
+         the residual in, the more of that estimate error it amplifies: at
+         the 5 1/s it used to start on, no setting of H tracks this load. */
       { id: "l2", label: "Error pole <i>ℓ</i><sub>2</sub>",
-        min: 1, max: 20, step: 1, value: 5, show: (v) => v + " 1/s",
+        min: 1, max: 20, step: 1, value: 2, show: (v) => v + " 1/s",
         hide: (P) => !tdc(P) },
-      /* Half again on the nominal H-bar, because the load is fifteen
-         kilogrammes and the estimate does not hold it at x1.00: wind it
-         back down and the loop drifts off the circle, which is the reader's
-         to find. The window at this load is narrow -- about x1.35 to x1.50,
-         and the step above this one diverges -- so this is the top of it,
-         not the middle, and a heavier payload would want it re-measured
-         rather than nudged. */
+      /* A quarter again on the nominal H-bar, because the estimate does
+         not hold twenty kilogrammes at x1.00: wind it back down and the
+         loop drifts off the circle, which is the reader's to find. With
+         the slow pole where it now starts this tracks from about x0.90 to
+         x1.55 and diverges above that, so the start sits inside the window
+         rather than on its edge. A change of payload wants the window
+         measured again, not this number nudged. */
       { id: "hs", label: "Gain matrix <i>H</i>",
-        min: 0.1, max: 2, step: 0.05, value: 1.5,
+        min: 0.1, max: 2, step: 0.05, value: 1.25,
         show: (v) => "×" + v.toFixed(2),
         hide: (P) => !tdc(P) },
       /* Shared by the three classical laws, and the point of sharing them:
@@ -987,10 +994,11 @@ SIM.register((function () {
            the reference with every state finite. So "stable" is not the
            question, and a criterion that answers it reads 0.998 either way.
            Tracking is the question. The mark is a tenth of the circle being
-           traced, about thirty-five millimetres: plain PD carrying fifteen
-           kilogrammes gets inside that when its gains are wound up and not
-           before, and a TDC is inside it or hundreds of millimetres outside
-           depending on whether its gain matrix suits the load it is holding. */
+           traced, about thirty-five millimetres: plain PD carrying twenty
+           kilogrammes gets inside that with its gains wound right up and
+           not before, and a TDC is inside it or a hundred millimetres
+           outside depending on whether its poles and its gain matrix suit
+           the load it is holding. */
         const off = n ? Math.sqrt(sum / n) > 0.1 * A.CIRCLE.r : false;
         return {
           readouts: { main: err, err: "" },

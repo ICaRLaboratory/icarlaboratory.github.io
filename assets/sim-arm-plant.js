@@ -21,26 +21,39 @@
 
    The task is a circle, traced by the tip once every five seconds,
    and the joint angles that draw it come from the inverse kinematics
-   of the arm. At five seconds -- one full lap in -- fifteen kilogrammes
-   arrive at the end effector, and nothing about any controller
-   changes. Fifteen rather than six or ten: six the laws that estimate
-   the arm rather than model it shrug off without moving, so it
-   separated nothing; ten they still carry at the gain they were
-   written with; fifteen the classical estimate holds only once its
-   gain matrix is raised half again -- which is where its slider now
-   starts -- and the proposed law holds without being told. What each
-   one does about the load is the point of putting them on the same arm.
+   of the arm. The load arrives in two steps -- fifteen kilogrammes at
+   five seconds, one full lap in, and five more at eight -- and nothing
+   about any controller changes at either. Twenty rather than six or
+   ten: six the laws that estimate the arm rather than model it shrug
+   off without moving, so it separated nothing; ten they still carry at
+   the gain they were written with; twenty the classical estimate holds
+   only once its gain matrix is raised and its slow error pole is
+   slowed further -- which is where those two sliders now start -- and
+   the proposed law holds without being told anything. Two steps rather
+   than one because the second lands on a loop that has already settled
+   around the first, which is the question a single step never asks.
+
+   Twenty is also the ceiling. At twenty-five plain PD is outside the
+   mark at every gain it has, and sampled sliding mode leaves its
+   surface at the switching gain it starts on; past thirty-five the
+   smooth-gain law itself comes apart. A load that breaks three of the
+   four laws compares nothing, so this is as heavy as the figure goes.
    =============================================================== */
 
 const ARMPLANT = (function () {
   /* point masses at the end of each link: the smallest model that still
      has a varying inertia and real Coriolis terms */
   const ARM = { m1: 1, m2: 0.7, l1: 1, l2: 0.85 };
-  const PAYLOAD = 15;           /* kg, at the end effector */
-  const T_LOAD = 5;             /* s, one lap in */
+  /* The load arrives in two steps: fifteen kilogrammes one lap in and
+     five more three seconds later. One step asks a law what it does about
+     a load; the second asks it of a loop that has already settled around
+     the first, and that is the harder question. */
+  const LOAD = [{ t: 5, kg: 15 }, { t: 8, kg: 5 }];
+  const PAYLOAD = LOAD.reduce((kg, l) => kg + l.kg, 0);   /* kg, both steps */
+  const T_LOAD = LOAD[0].t;     /* s, one lap in: where the trail changes */
   const WINDOW = 20;            /* s, four laps */
   const CIRCLE = { x: 0.9, y: -0.4, r: 0.35, T: 5, phase: Math.PI };
-  const KG = "+" + PAYLOAD + " KG";
+  const KG = "+" + PAYLOAD + " KG";          /* the whole of it, for a legend */
 
   /* the arm's reach over the whole task, padded for the pedestal and the
      payload marker, so the drawing never has to rescale mid-run */
@@ -48,8 +61,11 @@ const ARMPLANT = (function () {
   const TRAIL = 620;            /* how much of the tip path is drawn */
   const SUB = 1 / 600;          /* integration step, well under any h */
 
-  const loaded = (t) => t >= T_LOAD;
-  const tipMass = (t) => (loaded(t) ? ARM.m2 + PAYLOAD : ARM.m2);
+  const carried = (t) => LOAD.reduce((kg, l) => kg + (t >= l.t ? l.kg : 0), 0);
+  const loaded = (t) => carried(t) > 0;
+  const tipMass = (t) => ARM.m2 + carried(t);
+  /* what is on the arm at this instant, not what will be */
+  const kgLabel = (t) => "+" + carried(t) + " KG";
 
   /* ---------- the task ---------- */
 
@@ -224,11 +240,14 @@ const ARMPLANT = (function () {
       ctx.stroke();
     }
 
-    /* the load, when it is there: a mass at the tip, and said in words */
+    /* the load, when it is there: a mass at the tip, and said in words.
+       The dot carries the second step as area, so the figure shows it
+       arriving and not only the caption. */
     if (loaded(S.simT)) {
       ctx.fillStyle = "#0a0a0a";
-      ctx.beginPath(); ctx.arc(tip.x, tip.y, 9, 0, 7); ctx.fill();
-      g.cap(KG, tip.x + 13, tip.y + 4, 9, "left", 0.75);
+      const r = 9 * Math.sqrt(carried(S.simT) / PAYLOAD);
+      ctx.beginPath(); ctx.arc(tip.x, tip.y, r, 0, 7); ctx.fill();
+      g.cap(kgLabel(S.simT), tip.x + r + 4, tip.y + 4, 9, "left", 0.75);
     } else {
       ctx.fillStyle = "#0a0a0a";
       ctx.beginPath(); ctx.arc(tip.x, tip.y, 4.6, 0, 7); ctx.fill(); ctx.stroke();
@@ -248,8 +267,8 @@ const ARMPLANT = (function () {
   }
 
   return {
-    ARM, PAYLOAD, T_LOAD, WINDOW, CIRCLE, REACH, TRAIL, KG,
-    loaded, tipMass, ref, ik, fk, refJoints,
+    ARM, PAYLOAD, LOAD, T_LOAD, WINDOW, CIRCLE, REACH, TRAIL, KG,
+    loaded, carried, kgLabel, tipMass, ref, ik, fk, refJoints,
     inertia, coriolis, solve2, integrate, drawArm, boxes,
   };
 })();

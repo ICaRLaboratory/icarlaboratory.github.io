@@ -60,8 +60,8 @@ const SITE = {
       modes: {
         pd: {
           note: {
-            en: "A two-link arm tracing a circle under sampled PD feedback, with fifteen kilogrammes landing on it at five seconds: proportional and derivative on each joint, nothing done about the coupling or the load, and the payload costs it centimetres.",
-            ko: "샘플드데이터 PD 제어를 적용한 2관절 로봇 팔의 원 궤적 추종을 보여줍니다. 시작 5초 후 15 kg의 하중을 추가하여, 관절 간 결합과 하중 변화에 대한 보상이 없는 조건에서 추종 성능을 확인합니다.",
+            en: "A two-link arm tracing a circle under sampled PD feedback, with fifteen kilogrammes landing on it at five seconds and five more at eight: proportional and derivative on each joint, nothing done about the coupling or the load, and the payload costs it centimetres.",
+            ko: "샘플드데이터 PD 제어를 적용한 2관절 로봇 팔의 원 궤적 추종을 보여줍니다. 시작 5초 후 15 kg, 8초 후 5 kg의 하중을 추가하여, 관절 간 결합과 하중 변화에 대한 보상이 없는 조건에서 추종 성능을 확인합니다.",
           },
           foot: {
             en: "End-effector error is the distance from the point at the end of the arm to the point the reference asks for, root-mean-squared over the last second, and the verdict reads it against a tenth of the circle being traced. The joint errors are the panels' own and are not in this number.",
@@ -70,8 +70,8 @@ const SITE = {
         },
         smc: {
           note: {
-            en: "The same arm and the same fifteen kilogrammes, driven onto the surface s = e′ + λe instead of towards a point: sliding mode shrugs the load off, and pays for it by straddling that surface in a band that opens as the sampling period grows.",
-            ko: "동일한 로봇 팔에 15 kg의 하중을 추가하는 조건에서 슬라이딩 모드 제어를 적용합니다. 샘플링 주기에 따른 슬라이딩 면 s = e′ + λe = 0 부근의 진동 특성을 비교합니다.",
+            en: "The same arm and the same twenty kilogrammes in the same two steps, driven onto the surface s = e′ + λe instead of towards a point: sliding mode shrugs the load off, and pays for it by straddling that surface in a band that opens as the sampling period grows.",
+            ko: "동일한 로봇 팔에 15 kg과 5 kg의 하중을 두 번에 걸쳐 추가하는 조건에서 슬라이딩 모드 제어를 적용합니다. 샘플링 주기에 따른 슬라이딩 면 s = e′ + λe = 0 부근의 진동 특성을 비교합니다.",
           },
           foot: {
             en: "The band is the largest |s| once the surface has been reached.",
