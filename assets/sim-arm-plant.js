@@ -55,7 +55,6 @@ const ARMPLANT = (function () {
   const T_LOAD = LOAD.length ? LOAD[0].t : Infinity;
   const WINDOW = 20;            /* s, four laps */
   const CIRCLE = { x: 0.9, y: -0.4, r: 0.35, T: 5, phase: Math.PI };
-  const KG = "+" + PAYLOAD + " KG";          /* the whole of it, for a legend */
 
   /* the arm's reach over the whole task, padded for the pedestal and the
      payload marker, so the drawing never has to rescale mid-run */
@@ -269,7 +268,7 @@ const ARMPLANT = (function () {
   }
 
   return {
-    ARM, PAYLOAD, LOAD, T_LOAD, WINDOW, CIRCLE, REACH, TRAIL, KG,
+    ARM, PAYLOAD, LOAD, T_LOAD, WINDOW, CIRCLE, REACH, TRAIL,
     loaded, carried, kgLabel, tipMass, ref, ik, fk, refJoints,
     inertia, coriolis, solve2, integrate, drawArm, boxes,
   };
