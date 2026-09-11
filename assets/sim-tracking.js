@@ -1,7 +1,7 @@
 /* ===============================================================
    One arm, one circle, one payload, four ways of chasing it.
 
-   The plant, the task and the ten kilogrammes that land on it at
+   The plant, the task and the fifteen kilogrammes that land on it at
    five seconds are in assets/sim-arm-plant.js. What is here is the
    controllers the tab switches between, sharing that plant, so they
    can be read straight against each other. PD and sliding mode share
@@ -845,8 +845,15 @@ SIM.register((function () {
       { id: "l2", label: "Error pole <i>ℓ</i><sub>2</sub>",
         min: 1, max: 20, step: 1, value: 5, show: (v) => v + " 1/s",
         hide: (P) => !tdc(P) },
+      /* Half again on the nominal H-bar, because the load is fifteen
+         kilogrammes and the estimate does not hold it at x1.00: wind it
+         back down and the loop drifts off the circle, which is the reader's
+         to find. The window at this load is narrow -- about x1.35 to x1.50,
+         and the step above this one diverges -- so this is the top of it,
+         not the middle, and a heavier payload would want it re-measured
+         rather than nudged. */
       { id: "hs", label: "Gain matrix <i>H</i>",
-        min: 0.1, max: 2, step: 0.05, value: 1,
+        min: 0.1, max: 2, step: 0.05, value: 1.5,
         show: (v) => "×" + v.toFixed(2),
         hide: (P) => !tdc(P) },
       /* Shared by the three classical laws, and the point of sharing them:
@@ -980,9 +987,10 @@ SIM.register((function () {
            the reference with every state finite. So "stable" is not the
            question, and a criterion that answers it reads 0.998 either way.
            Tracking is the question. The mark is a tenth of the circle being
-           traced, about thirty-five millimetres: plain PD carrying ten
+           traced, about thirty-five millimetres: plain PD carrying fifteen
            kilogrammes gets inside that when its gains are wound up and not
-           before, and a TDC that has lost the clock is nowhere near it. */
+           before, and a TDC is inside it or hundreds of millimetres outside
+           depending on whether its gain matrix suits the load it is holding. */
         const off = n ? Math.sqrt(sum / n) > 0.1 * A.CIRCLE.r : false;
         return {
           readouts: { main: err, err: "" },
