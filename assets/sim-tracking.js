@@ -442,16 +442,21 @@ SIM.register((function () {
     /* The controller, as the PD block next door does it: the gains as they
        stand and nothing else. The law is named on the tab and on the cap;
        what belongs in the box is the numbers the reader can move. */
+    /* A constant is printed to three figures rather than to a fixed number
+       of places. The published laws' constants are measured numbers now --
+       Lam is 9.78, not 10 -- and a box that rounds them to the value the
+       loop does not run at is telling the reader something untrue. */
+    const cst = (v) => String(Number(v.toPrecision(3)));
     const rows = tdc(P)
       ? [["ℓ₁", P.l1.toFixed(0)], ["ℓ₂", P.l2.toFixed(0)],
          ["H", "×" + P.hs.toFixed(2)]]
       : sigvar(P)
-        ? [["Λ", SIGVAR.lam.toFixed(0)], ["ε", SIGVAR.eps.toFixed(2)],
-           ["Ke", SIGVAR.ke.toFixed(0)], ["Ks", SIGVAR.ks.toFixed(0)],
+        ? [["Λ", cst(SIGVAR.lam)], ["ε", cst(SIGVAR.eps)],
+           ["Ke", cst(SIGVAR.ke)], ["Ks", cst(SIGVAR.ks)],
            ["k", Math.max(gainNow[0], gainNow[1]).toFixed(3)]]
       : asmc(P)
-        ? [["ρ", ASMC.rho.toFixed(0)], ["λ", ASMC.lam.toFixed(4)],
-           ["ℓ₁", ASMC.l1.toFixed(0)], ["ℓ₂", ASMC.l2.toFixed(0)],
+        ? [["ρ", cst(ASMC.rho)], ["λ", cst(ASMC.lam)],
+           ["ℓ₁", cst(ASMC.l1)], ["ℓ₂", cst(ASMC.l2)],
            ["k", Math.max(gainNow[0], gainNow[1]).toFixed(3)]]
         : [["λ", P.lam.toFixed(0)], ["η", P.eta.toFixed(0)]];
     const smY = y + h * 0.42;

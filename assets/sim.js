@@ -287,6 +287,8 @@ const SIM = (function () {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     const P = {};
     const inputs = {};
+    /* where a slider was before another law's fixed value parked it */
+    const parked = {};
     const outs = {};
     const readouts = {};
     let verdictEl = null;
@@ -381,7 +383,18 @@ const SIM = (function () {
            its own clock shows what the clock is instead of hiding the
            question. */
         const locked = !applies && c.lock ? c.lock(P) : null;
-        if (locked != null) inputs[c.id].value = String(locked);
+        if (locked != null) {
+          /* Park the handle on the fixed value, but keep what the reader had
+             set: coming back to a law that does read this slider should find
+             it where they left it, not where another law's clock put it. */
+          if (parked[c.id] === undefined) parked[c.id] = inputs[c.id].value;
+          inputs[c.id].value = String(locked);
+        } else if (parked[c.id] !== undefined) {
+          inputs[c.id].value = parked[c.id];
+          delete parked[c.id];
+          const raw = +inputs[c.id].value;      /* P was read before this */
+          P[c.id] = c.read ? c.read(raw) : raw;
+        }
         const shown = locked != null ? (c.read ? c.read(locked) : locked) : P[c.id];
         inputs[c.id].disabled = !applies;
         row.classList.toggle("is-off", !applies);
