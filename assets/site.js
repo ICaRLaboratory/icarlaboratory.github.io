@@ -936,7 +936,7 @@ function renderGallery() {
    closure, because the research page wires two hosts into the one dialog and
    the arrows are wired once: they have to move whichever set was opened
    last, not whichever host happened to wire them. */
-let lbSet = [], lbAt = 0;
+let lbSet = [], lbAt = 0, lbShow = 0;
 
 function lightboxAt(i) {
   const box = $("#lightbox");
@@ -949,11 +949,34 @@ function lightboxAt(i) {
   if (!trigger) return;
   lbAt = at;
   const img = $("img", box);
-  img.src = trigger.dataset.src;
+  const src = trigger.dataset.src;
   img.alt = trigger.dataset.alt;
   $("figcaption", box).textContent = trigger.dataset.alt;
   /* one photo is not a set, so the arrows go rather than sit there */
   $$(".lightbox__nav", box).forEach((btn) => { btn.hidden = lbSet.length < 2; });
+
+  /* Hold the photo that is up until the next one can be drawn. Assigning src
+     and hoping empties the frame while the file is still on its way, and
+     paging quickly through an album the browser has not fetched yet is then
+     a string of dark gaps where the photographs should be. There is nothing
+     to hold on the first open, so that one goes straight in. */
+  const turn = ++lbShow;
+  const swap = () => { if (turn === lbShow) img.src = src; };
+  if (!img.getAttribute("src") || typeof Image !== "function") swap();
+  else {
+    const ready = new Image();
+    ready.src = src;
+    if (ready.decode) ready.decode().then(swap, swap);
+    else swap();
+  }
+
+  /* and the neighbours, so the next press has nothing to wait for */
+  for (const j of [at + 1, at - 1]) {
+    const near = lbSet[(j + lbSet.length) % lbSet.length];
+    if (near && near !== trigger && typeof Image === "function") {
+      new Image().src = near.dataset.src;
+    }
+  }
 }
 
 function wireLightbox(host, selector) {
