@@ -885,6 +885,8 @@ main:focus { outline: none; }
 /* ---------- publications ---------- */
 
 .filters { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2.5rem; }
+/* room for the sticky bar when the page scrolls this row into view */
+#galfilters { scroll-margin-top: 92px; }
 .chip {
   font-family: var(--mono);
   font-size: 0.7rem;
@@ -1224,10 +1226,12 @@ main:focus { outline: none; }
   overflow-x: auto;
   overscroll-behavior-x: contain;
   scroll-snap-type: x proximity;
-  scrollbar-width: thin;
-  scrollbar-color: var(--line-soft) transparent;
-  padding-bottom: 0.35rem;   /* the scrollbar's own room */
+  /* No bar under every album: the photograph showing at the edge and the
+     pair of chevrons already say there is more, and a scrollbar drawn under
+     each of six albums is six grey rules the page did not ask for. */
+  scrollbar-width: none;
 }
+.album__grid::-webkit-scrollbar { display: none; }
 .album__grid:focus-visible { outline: 2px solid var(--text); outline-offset: 4px; }
 .shot { scroll-snap-align: start; }
 /* nothing to push: one photograph keeps the width it always had */
@@ -1299,29 +1303,43 @@ main:focus { outline: none; }
 
 /* ---------- lightbox ---------- */
 
+/* The viewer fills the screen and paints its own dark ground.
+
+   It used to be a box the size of the photograph, with ::backdrop supplying
+   the dark. Chrome was reported painting that backdrop *over* the picture
+   after a few quick presses -- the photograph and the page behind it dim,
+   the buttons bright, and it stays dim through a resize, which is a paint
+   order and not a pixel. Nudging the order with a z-index fixed the research
+   page and not the home page, which is the one with a canvas animating
+   behind it.
+
+   An element's own background cannot be painted above its own children, so
+   the dark is the dialog's background now and ::backdrop carries nothing.
+   There is no order left to get wrong. */
 .lightbox {
   border: 0;
   padding: 0;
-  background: transparent;
-  max-width: min(94vw, 1200px);
-  max-height: 92vh;
+  /* inset rather than 100vw: a viewport width includes the scrollbar, and a
+     dialog that wide puts a scrollbar of its own along the foot of it */
+  inset: 0;
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  background: rgba(8, 8, 8, 0.92);
   overflow: visible;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
 }
-.lightbox::backdrop { background: rgba(8, 8, 8, 0.9); }
-/* The picture takes a place of its own in the dialog's stacking context, and
-   the dialog isolates that context from the page's. Left as static content it
-   has been seen painting *under* the backdrop after the dialog has resized a
-   few times -- the photograph and the page behind it both go dim and stay
-   dim, while the arrows and the close button, which are positioned, stay
-   bright. Reported from Chrome on Windows with a screenshot; the dimming does
-   not come back from a resize, which is what a paint order would do. */
-.lightbox { isolation: isolate; }
+.lightbox::backdrop { background: transparent; }
 .lightbox figure { margin: 0; position: relative; z-index: 1; }
-/* and the controls stay above the picture, which now has a layer of its own */
+/* and the controls stay above the picture */
 .lightbox__x, .lightbox__nav { z-index: 2; }
 .lightbox img {
   display: block;
-  max-width: 100%;
+  max-width: min(94vw, 1200px);
   max-height: 82vh;
   width: auto;
   border-radius: var(--r);
@@ -1337,7 +1355,7 @@ main:focus { outline: none; }
 }
 .lightbox__x {
   position: absolute;
-  top: -2.4rem; right: -0.25rem;
+  top: 1rem; right: 1rem;
   width: 34px; height: 34px;
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 50%;
@@ -1356,8 +1374,10 @@ main:focus { outline: none; }
    off whatever is behind. Outside the picture where there is room for it,
    over the picture where there is not. */
 .lightbox__nav {
-  /* Anchor to the viewport, not the dialog's changing image dimensions. */
-  position: fixed;
+  /* Anchored to the viewport, not to the picture's changing size. The dialog
+     is the viewport now, so absolute does that and keeps a fixed-position
+     element out of the compositor's way. */
+  position: absolute;
   top: 50%;
   transform: translateY(-50%);
   display: grid;
@@ -1380,6 +1400,29 @@ main:focus { outline: none; }
 /* the reset makes [hidden] win, but this rule would not without saying so */
 .lightbox__nav[hidden] { display: none; }
 
+/* ---------- back to top ---------- */
+
+.to-top {
+  position: fixed;
+  right: clamp(1rem, 3vw, 2rem);
+  bottom: clamp(1rem, 3vw, 2rem);
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  width: 44px; height: 44px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.16);
+  transition: transform 0.18s, background 0.18s, border-color 0.18s;
+}
+.to-top svg { display: block; width: 20px; height: 20px; }
+.to-top:hover { transform: translateY(-2px); border-color: var(--text); }
+.to-top[hidden] { display: none; }
+
 /* ---------- print ----------
    On paper the black bands are just ink, the sticky bar repeats on every
    sheet, and a link's destination is invisible. This makes the publication
@@ -1398,7 +1441,7 @@ main:focus { outline: none; }
             --bg: #fff; --text: #000; --dim: #333; --faint: #555;
             --line: #bbb; --line-soft: #ddd; --panel: transparent; }
 
-  .nav, .hero__art, .lightbox, .filters, .cta-row, .icon-btn,
+  .nav, .hero__art, .lightbox, .filters, .cta-row, .icon-btn, .to-top,
   .map, .banner, .card__media { display: none !important; }
 
   .hero { min-height: auto; background: none !important; }

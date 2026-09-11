@@ -758,7 +758,8 @@ function albumCard(a, i) {
       <div class="album__head">
         <h2 class="album__title">${esc(a.title)}</h2>
         ${a.titleKo ? `<div class="album__ko" lang="ko">${esc(a.titleKo)}</div>` : ""}
-        <div class="album__meta">${esc(a.date)}${a.place ? " &middot; " + esc(a.place) : ""}</div>
+        <div class="album__meta">${esc(a.date)}${a.place ? " &middot; " + esc(a.place) : ""}${
+          a.photos.length > 1 ? " &middot; " + a.photos.length + " photos" : ""}</div>
       </div>
       <div class="album__strip">
         <div class="album__grid" tabindex="0" role="group"
@@ -981,6 +982,14 @@ function renderGallery() {
         if (!c.dataset.more) c.setAttribute("aria-pressed", String(on));
       });
       draw(active);
+      /* The albums above the reader just got shorter. If the row they pressed
+         has gone off the top of the screen, they are now looking at the space
+         the rest of the gallery used to fill, which reads as a filter that
+         broke. Bring the row back to where they can see it -- and only then,
+         because a page that jumps when it did not need to is worse. */
+      if (filters.getBoundingClientRect().top < 0) {
+        filters.scrollIntoView({ block: "start", behavior: "smooth" });
+      }
     });
 
     /* someone edits the address, or follows a link to this page with a
@@ -1037,7 +1046,11 @@ function lightboxAt(i) {
   const img = $("img", box);
   const src = trigger.dataset.src;
   img.alt = trigger.dataset.alt;
-  $("figcaption", box).textContent = trigger.dataset.alt;
+  /* where this one sits in the set: paging through six photographs without
+     it is walking a corridor with no doors numbered */
+  $("figcaption", box).textContent = lbSet.length > 1
+    ? `${trigger.dataset.alt}  ·  ${at + 1} / ${lbSet.length}`
+    : trigger.dataset.alt;
   /* one photo is not a set, so the arrows go rather than sit there */
   $$(".lightbox__nav", box).forEach((btn) => { btn.hidden = lbSet.length < 2; });
 
@@ -1176,6 +1189,54 @@ function renderContact() {
 
 /* ---------- boot ---------- */
 
+/* A way back up from the foot of a long page. The publication list runs to
+   thirty-seven journal articles; the lecture page and the gallery grow the
+   same way. It earns its place only on a page long enough to get lost in,
+   and only once the reader is well down it. */
+function initToTop() {
+  if ($(".to-top")) return;
+  const btn = document.createElement("button");
+  btn.className = "to-top";
+  btn.type = "button";
+  btn.hidden = true;
+  btn.setAttribute("aria-label", "Back to top");
+  btn.innerHTML =
+    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+       <path d="M12 19V5M5 12l7-7 7 7"/></svg>`;
+  document.body.append(btn);
+
+  const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
+  btn.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: calm.matches ? "auto" : "smooth" });
+    /* the keyboard goes back to the top too, not just the page */
+    const main = $("#main");
+    if (main) main.focus({ preventScroll: true });
+  });
+
+  /* A mark a screen and a half down the page, watched rather than polled.
+     If the page is shorter than that the mark is past the end of it, the
+     reader can never scroll above it, and the button never appears -- which
+     is the rule for short pages, for free. */
+  const mark = document.createElement("div");
+  mark.setAttribute("aria-hidden", "true");
+  mark.style.cssText = "position:absolute;top:150vh;left:0;width:1px;height:1px";
+  document.body.append(mark);
+
+  const sync = () => {
+    const past = mark.getBoundingClientRect().top < 0;
+    const room = document.documentElement.scrollHeight - window.innerHeight;
+    btn.hidden = !past || room < window.innerHeight;
+  };
+  if (typeof IntersectionObserver === "function") {
+    new IntersectionObserver(sync, { threshold: [0, 1] }).observe(mark);
+  }
+  /* the observer answers the scrolling; these answer everything else */
+  window.addEventListener("scroll", sync, { passive: true });
+  window.addEventListener("resize", sync);
+  sync();
+}
+
 function boot(page) {
   if ($("#nav") && !$("#nav").firstElementChild) renderNav(page);
   fillFields();
@@ -1190,4 +1251,5 @@ function boot(page) {
   renderContact();
   renderFooter();
   initReveal();
+  initToTop();
 }
