@@ -903,6 +903,9 @@ function renderGallery() {
     /* someone edits the address, or follows a link to this page with a
        different year on it */
     window.addEventListener("hashchange", () => {
+      /* In-page navigation (notably the skip link's #main) is not a
+         filter request. Keep the current albums and keyboard targets. */
+      if (document.getElementById(location.hash.slice(1))) return;
       const key = fromHash();
       if (key === active) return;
       active = key;

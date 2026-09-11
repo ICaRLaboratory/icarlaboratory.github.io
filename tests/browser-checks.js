@@ -117,6 +117,61 @@ window.testsDone = false;
         }
       }
     }
+    await navigate('../gallery.html');
+    const galleryDoc = frame.contentDocument;
+    const yearChip = galleryDoc.querySelector('#galfilters [data-set]:not([data-set="all"])');
+    if (!yearChip) throw new Error('Gallery filter fixture needs multiple years');
+    yearChip.focus();
+    yearChip.click();
+    const selectedYear = yearChip.dataset.set;
+    const selectedAlbums = [...galleryDoc.querySelectorAll('#gallery .album')];
+    check('year selection retains keyboard focus', galleryDoc.activeElement === yearChip);
+    galleryDoc.querySelector('.skip').click();
+    await settle();
+    check('skip-to-content preserves selected gallery year',
+      galleryDoc.querySelector('#galfilters [aria-pressed="true"]')?.dataset.set === selectedYear);
+    check('skip-to-content preserves filtered albums',
+      selectedAlbums.every(album => album.isConnected));
+
+    // Exercise the real delegated viewer with deterministic aspect ratios,
+    // independent of which photos happen to be in the production albums.
+    const fixture = galleryDoc.createElement('section');
+    fixture.className = 'album';
+    const imageURL = (width, height) => 'data:image/svg+xml,' + encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><rect width="100%" height="100%" fill="teal"/></svg>`);
+    for (const [width, height] of [[1200, 700], [400, 800]]) {
+      const shot = galleryDoc.createElement('button');
+      shot.className = 'shot';
+      shot.dataset.src = imageURL(width, height);
+      shot.dataset.alt = `${width} by ${height}`;
+      fixture.append(shot);
+    }
+    galleryDoc.querySelector('#gallery').append(fixture);
+    const box = galleryDoc.querySelector('#lightbox');
+    const image = box.querySelector('img');
+    const nextPhoto = box.querySelector('.lightbox__nav--next');
+    for (const width of [320, 768, 1361, 1920]) {
+      frame.style.width = width + 'px';
+      await settle();
+      fixture.firstElementChild.click();
+      await image.decode();
+      const before = nextPhoto.getBoundingClientRect();
+      nextPhoto.click();
+      await image.decode();
+      const after = nextPhoto.getBoundingClientRect();
+      check(`lightbox: ${width}px navigation stays fixed across aspect ratios`,
+        Math.abs(before.x - after.x) < 1 && Math.abs(before.y - after.y) < 1);
+      const target = galleryDoc.elementFromPoint(before.x + before.width / 2, before.y + before.height / 2);
+      check(`lightbox: ${width}px repeated pointer position still hits Next`,
+        target?.closest('.lightbox__nav--next') === nextPhoto);
+      target?.dispatchEvent(new frame.contentWindow.MouseEvent('click', { bubbles: true }));
+      check(`lightbox: ${width}px repeated click wraps without closing`,
+        box.open && image.alt === fixture.firstElementChild.dataset.alt);
+      box.close();
+      // close cleanup is queued by the browser; let it finish before reopening.
+      await settle();
+    }
+    fixture.remove();
   } catch (error) {
     window.testResults.push({ name: 'test harness', pass: false, error: String(error) });
   } finally {

@@ -1301,7 +1301,8 @@ main:focus { outline: none; }
    off whatever is behind. Outside the picture where there is room for it,
    over the picture where there is not. */
 .lightbox__nav {
-  position: absolute;
+  /* Anchor to the viewport, not the dialog's changing image dimensions. */
+  position: fixed;
   top: 50%;
   transform: translateY(-50%);
   display: grid;
@@ -1317,20 +1318,12 @@ main:focus { outline: none; }
   transition: transform 0.18s, background 0.18s;
 }
 .lightbox__nav svg { display: block; width: 22px; height: 22px; }
-.lightbox__nav--prev { left: -3.9rem; }
-.lightbox__nav--next { right: -3.9rem; }
+.lightbox__nav--prev { left: max(0.5rem, calc((100vw - 1200px) / 2 - 3.9rem)); }
+.lightbox__nav--next { right: max(0.5rem, calc((100vw - 1200px) / 2 - 3.9rem)); }
 .lightbox__nav:hover { transform: translateY(-50%) scale(1.09); }
 .lightbox__nav:active { transform: translateY(-50%) scale(0.96); }
 /* the reset makes [hidden] win, but this rule would not without saying so */
 .lightbox__nav[hidden] { display: none; }
-/* Outside the picture needs somewhere to be outside of. The dialog runs to
-   94vw, so below about 1340px the margin is thinner than the button and it
-   would hang off the screen: from there down the arrows sit over the picture
-   instead. */
-@media (max-width: 1360px) {
-  .lightbox__nav--prev { left: 0.5rem; }
-  .lightbox__nav--next { right: 0.5rem; }
-}
 
 /* ---------- print ----------
    On paper the black bands are just ink, the sticky bar repeats on every

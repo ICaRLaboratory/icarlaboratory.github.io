@@ -156,7 +156,8 @@ SIM.register((function () {
      separates a loop that slides from one that has not diverged yet.
 
      These hold from an unloaded arm to twenty-five kilogrammes, in one step
-     or in four, inside eps the whole way. About a third of them will not
+     or in four, returning inside eps after the reaching phase and the
+     load-step transients described above. About a third of them will not
      take a fifth either way, though, where the smooth-gain law next door
      shrugs at that: on a coarse hold this law wants its constants found
      rather than chosen. */
