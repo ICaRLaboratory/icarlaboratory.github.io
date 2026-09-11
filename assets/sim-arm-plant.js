@@ -50,7 +50,9 @@ const ARMPLANT = (function () {
      the first, and that is the harder question. */
   const LOAD = [{ t: 5, kg: 15 }, { t: 8, kg: 5 }];
   const PAYLOAD = LOAD.reduce((kg, l) => kg + l.kg, 0);   /* kg, both steps */
-  const T_LOAD = LOAD[0].t;     /* s, one lap in: where the trail changes */
+  /* where the trail changes colour: the first step, or never if the list is
+     emptied to run the arm unloaded */
+  const T_LOAD = LOAD.length ? LOAD[0].t : Infinity;
   const WINDOW = 20;            /* s, four laps */
   const CIRCLE = { x: 0.9, y: -0.4, r: 0.35, T: 5, phase: Math.PI };
   const KG = "+" + PAYLOAD + " KG";          /* the whole of it, for a legend */

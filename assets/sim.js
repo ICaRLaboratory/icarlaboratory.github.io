@@ -375,10 +375,18 @@ const SIM = (function () {
            case it stays, switched off, so the reader can see that it is
            beside the point rather than missing. */
         const applies = c.applies ? c.applies(P) : true;
+        /* A control the mode does not expose can still name the value that
+           mode runs at. `lock` gives that value on the slider's own scale:
+           the handle is parked there and switched off, so a law that keeps
+           its own clock shows what the clock is instead of hiding the
+           question. */
+        const locked = !applies && c.lock ? c.lock(P) : null;
+        if (locked != null) inputs[c.id].value = String(locked);
+        const shown = locked != null ? (c.read ? c.read(locked) : locked) : P[c.id];
         inputs[c.id].disabled = !applies;
         row.classList.toggle("is-off", !applies);
-        outs[c.id].textContent = !applies ? (c.off || "—")
-          : c.show ? c.show(P[c.id], P) : String(P[c.id]);
+        outs[c.id].textContent = !applies && locked == null ? (c.off || "—")
+          : c.show ? c.show(shown, P) : String(shown);
       }
       for (const r of def.readouts) {
         if (rows[r.id]) rows[r.id].hidden = r.hide ? r.hide(P) : false;

@@ -71,9 +71,11 @@ SIM.register((function () {
   /* The two that estimate the arm instead of modelling it. Both hold an
      order of magnitude tighter than the laws that model it, which is what
      they share here: the planes they are drawn on. They do not share a
-     clock. TDC runs on the slider and degrades as the period grows; the
-     published law would diverge there, so it keeps the millisecond clock it
-     is written for. */
+     clock's readings. All four run on the same ten milliseconds: the
+     sampling period and the delay are the machine, not the design, and a
+     comparison that lets one law pick a finer machine is not a comparison.
+     What each law is free to choose is its own constants, and the lab's two
+     were tuned again for this clock -- see the blocks below. */
   const tde = (P) => tdc(P) || asmc(P);
   /* only a switch implies a band for the hold to open */
   const hasBand = (P) => smc(P) || asmc(P);
@@ -97,17 +99,23 @@ SIM.register((function () {
 
      phibar being the estimate's own error. Two things are left out. The
      RBFNN that paper puts in place of the fixed alpha needs trained weights,
-     and a file of them has no place on a site with no build step. And the
-     estimate is only as good as h is small -- N(t) is taken for N(t-h) --
-     so this law keeps its own millisecond clock rather than the slider the
-     other two share. The panel prints that clock, and the sliding mode next
-     door can be set to the same 1 ms to be read against it. */
+     and a file of them has no place on a site with no build step.
+
+     And the constants are not the paper's. The estimate is only as good as
+     h is small -- N(t) is taken for N(t-h) -- and the paper's numbers are
+     written for a millisecond clock, where they diverge outright on ten.
+     The law is the paper's; these five are this arm's, searched on the
+     figure's own run and then checked: the surface is gentler, the gain
+     flatter, and less of the last estimate error is undone, which is what a
+     ten-millisecond hold asks for. Within a fifth of each of them the loop
+     still slides, and it holds the same half-millimetre whether the run is
+     twenty seconds or a hundred. */
   const ASMC = {
-    h: 0.001,                  /* s, the rate the estimate needs */
-    l1: 30, l2: 5,             /* the surface, and the linear term on it */
-    rho: 10, lam: 0.0213,      /* the gain, the paper's own two numbers */
-    alpha: 0.3,                /* how much of the last estimate error is undone */
-    hbar: [1.0, 0.4],          /* kg m^2, the diagonal standing in for M(q) */
+    h: 0.010,                  /* s, the clock the whole tab runs on */
+    l1: 3, l2: 20,             /* the surface, and the linear term on it */
+    rho: 35, lam: 0.04,        /* the gain */
+    alpha: 0.03,               /* how much of the last estimate error is undone */
+    hbar: [1.4, 0.56],         /* kg m^2, the diagonal standing in for M(q) */
   };
 
   /* The other law the switch offers, from the lab's other 2024 paper. Its
@@ -127,20 +135,36 @@ SIM.register((function () {
      outside eps and a steep function of |s| inside it, which is where the
      chattering would otherwise be.
 
-     The paper's own numbers, except two this arm sets: Hbar again, and eps.
-     Theorem 1 holds once the loop is inside eps, so eps has to be a width
-     the run really stays within -- and no wider, or the switching term sits
-     dormant at zero, which is what the published 0.1 does on an arm whose
-     errors are an order smaller than the one the paper used. Measured, |s|
-     holds under 0.019, so 0.02 is the band: the theorem's premise is met
-     and what the panels shade is a bound rather than a threshold. */
+     These numbers are this arm's rather than the paper's, for the same
+     reason as the block above: the paper's are written for a millisecond
+     clock and diverge on ten. They were searched against three things at
+     once, not just the tracking error. Theorem 1 holds once the loop is
+     inside eps, so eps has to be a width the run comes back inside and
+     stays inside -- it is allowed out, at a step of the load, but a run
+     that never returns is not sliding, it is a gain still climbing. So a
+     candidate had to hold its surface, spend its steady state inside eps,
+     and leave the adaptive gain falling rather than rising over a run three
+     times the length of the figure's.
+
+     It is a narrow island. Lam to two per cent, or Hbar, takes the loop
+     outside eps and leaves it there, which is why these read as measured
+     numbers and not as round ones: rounding them is a change of regime.
+     That the law needs this on a ten-millisecond hold, where the
+     smooth-gain law next door tunes to round numbers and shrugs at a fifth
+     either way, is worth knowing about it. */
+  /* The diagonal TDC stands M(q) up with, before its H slider. It is the
+     plain nominal rather than either published law's tuned Hbar: the slider
+     is the reader's design variable and has to start from something that is
+     not a consequence of tuning someone else's law. */
+  const TDC_HBAR = [1.0, 0.4];
+
   const SIGVAR = {
-    ke: 30, ks: 5,             /* the surface, and the linear term on it */
-    lam: 6,                    /* Lam > 1, the scaling that buys Lam^-1 */
-    alpha: 1, gam: 500,        /* the cap inside eps, and the rate outside */
-    del: 0.01, eps: 0.02,      /* the decay inside eps, and the band itself */
+    ke: 2.4, ks: 9.968,        /* the surface, and the linear term on it */
+    lam: 9.78,                 /* Lam > 1, the scaling that buys Lam^-1 */
+    alpha: 15, gam: 6,         /* the cap inside eps, and the rate outside */
+    del: 0.000425, eps: 0.0236,/* the decay inside eps, and the band itself */
     pow: 8,                    /* the paper's exponent */
-    hbar: [0.25, 0.1],
+    hbar: [0.165, 0.066],
   };
 
   /* What a zero-order hold does to an ideal sliding mode. On the surface the
@@ -214,8 +238,9 @@ SIM.register((function () {
          has moved across it, so the acceleration and the estimate are both
          read off the arm -- neither of these is told the payload landed. */
       const h = clock(P);
-      /* TDC's gain matrix is a slider; each published law keeps its own. */
-      const hb = tdc(P) ? ASMC.hbar.map((v) => v * P.hs)
+      /* TDC's gain matrix is a slider over its own nominal; each published
+         law keeps its own, tuned with the rest of its constants. */
+      const hb = tdc(P) ? TDC_HBAR.map((v) => v * P.hs)
         : sigvar(P) ? SIGVAR.hbar : ASMC.hbar;
       /* the sliding-variable law switches on the whole vector, not per joint */
       const sAll = sigvar(P) ? [0, 1].map((i) => SIGVAR.lam *
@@ -842,6 +867,7 @@ SIM.register((function () {
         min: 2, max: 60, step: 2, value: 20, show: (v) => v + " rad/s²",
         hide: (P) => !smc(P) },
       /* TDC is the classical law, so its design is the reader's to move. */
+      /* (its nominal gain matrix is TDC_HBAR, up by the H slider) */
       { id: "l1", label: "Error pole <i>ℓ</i><sub>1</sub>",
         min: 5, max: 60, step: 1, value: 30, show: (v) => v + " 1/s",
         hide: (P) => !tdc(P) },
@@ -863,21 +889,23 @@ SIM.register((function () {
         min: 0.1, max: 2, step: 0.05, value: 1.25,
         show: (v) => "×" + v.toFixed(2),
         hide: (P) => !tdc(P) },
-      /* Shared by the three classical laws, and the point of sharing them:
-         the same clock and the same delay, so all three are answering the
-         same question. The published law brings its own clock and its own
-         constants, so it shows no sliders at all: the tab is the whole
-         control, and the figure prints the clock it is running on. */
+      /* The clock and the delay are not a design: they are the machine the
+         design has to live on, and all four laws live on the same one. The
+         three classical laws read these two sliders. The lab's own laws are
+         tuned for the clock they were given rather than tracking it, so on
+         those tabs the sliders stay on screen, parked at that clock and
+         locked -- the reader can see what every law is answering for
+         instead of having to take it on trust. */
       { id: "h", label: "Sampling period <i>h</i>",
         min: 1, max: 100, step: 1, value: 10,
         read: (v) => v / 1000, show: (v) => Math.round(v * 1000) + " ms",
-        hide: (P) => asmc(P) },
+        applies: (P) => !asmc(P), lock: () => Math.round(ASMC.h * 1000) },
       { id: "m", label: "Feedback delay <i>m</i>",
         min: 0, max: 3, step: 1, value: 0,
         show: (v, P) => (v === 0 ? "0"
           : v + (v > 1 ? " samples" : " sample") + "  ·  " +
             Math.round(v * P.h * 1000) + " ms"),
-        hide: (P) => asmc(P) },
+        applies: (P) => !asmc(P), lock: () => 0 },
     ],
 
     readouts: [
