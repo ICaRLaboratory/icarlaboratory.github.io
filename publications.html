@@ -51,7 +51,10 @@
 </header>
 
 <section class="band--tight wrap">
-  <p class="muted" id="pubcounts" style="font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;margin:0 0 1.5rem"></p>
+  <div class="publication-overview">
+    <p class="muted" id="pubcounts"></p>
+    <nav id="profiles" aria-label="Research profiles"></nav>
+  </div>
   <div class="publication-tools" role="search" aria-label="Publication search and filters">
     <label class="publication-search-label" for="pubsearch">Search publications</label>
     <input id="pubsearch" type="search" placeholder="Title, authors, or venue" aria-describedby="pubsearch-hint" aria-controls="publist">
@@ -72,7 +75,6 @@
   </div>
   <div class="publication-results-bar">
     <p id="pubresults" role="status" aria-live="polite" aria-atomic="true"></p>
-    <nav id="profiles" aria-label="Research profiles"></nav>
   </div>
   <p id="pubempty" hidden>No publications match. Try another search or reset the filters.</p>
   <p class="pub-note">* corresponding author</p>

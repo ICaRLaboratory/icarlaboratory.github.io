@@ -1,4 +1,19 @@
-/* One search surface, with secondary profile links beside the result count. */
+/* Profile shortcuts sit above, separate from the search and result controls. */
+.publication-overview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem 1.5rem;
+  margin-bottom: 1rem;
+}
+#pubcounts {
+  flex: 1 1 24rem;
+  margin: 0;
+  font: .72rem var(--mono);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
 .publication-tools {
   padding: 1.25rem;
   border: 1px solid var(--line);
@@ -81,17 +96,24 @@
   margin: .75rem 0;
 }
 #pubresults { font: .8rem var(--mono); margin: 0; }
-#profiles { display: flex; flex-wrap: wrap; gap: 1rem; }
+#profiles { display: flex; flex-wrap: wrap; gap: .5rem; }
 #profiles a {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  gap: .5rem;
   min-height: 44px;
-  color: var(--dim);
+  padding: .5rem .875rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
   font-size: .8rem;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  text-decoration: none;
 }
-#profiles a:hover { color: var(--text); }
+#profiles a span { color: var(--dim); }
+#profiles a:hover { border-color: var(--dim); background: var(--bg); }
+#profiles a:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
 #pubempty { padding: 1rem; border: 1px solid var(--line); border-radius: 8px; }
 @media (max-width: 760px) {
   .publication-tools { padding: 1rem; }
