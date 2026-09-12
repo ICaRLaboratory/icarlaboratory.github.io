@@ -4,6 +4,7 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
+import { runLightboxChecks } from '../tests/lightbox-interactions.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const python = process.env.PYTHON || 'python3';
@@ -80,6 +81,7 @@ async function run() {
   await page.waitForFunction(() => window.testsDone === true, { }, { timeout: 60_000 });
   const results = await page.evaluate(() => window.testResults);
   if (!Array.isArray(results) || results.length === 0) throw new Error('Harness returned no test results');
+  results.push(...await runLightboxChecks(browser, base));
   for (const result of results) {
     console.log(`${result?.pass === true ? 'PASS' : 'FAIL'} ${result?.name}${result?.error ? ': ' + result.error : ''}`);
   }

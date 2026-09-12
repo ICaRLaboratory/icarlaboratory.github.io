@@ -153,14 +153,22 @@ window.testsDone = false;
     const box = galleryDoc.querySelector('#lightbox');
     const image = box.querySelector('img');
     const nextPhoto = box.querySelector('.lightbox__nav--next');
+    const waitForPhoto = async src => {
+      const deadline = Date.now() + 3000;
+      while (image.getAttribute('src') !== src) {
+        if (Date.now() > deadline) throw new Error('Viewer did not display requested image');
+        await new Promise(resolve => setTimeout(resolve, 20));
+      }
+      await image.decode();
+    };
     for (const width of [320, 768, 1361, 1920]) {
       frame.style.width = width + 'px';
       await settle();
       fixture.firstElementChild.click();
-      await image.decode();
+      await waitForPhoto(fixture.firstElementChild.dataset.src);
       const before = nextPhoto.getBoundingClientRect();
       nextPhoto.click();
-      await image.decode();
+      await waitForPhoto(fixture.lastElementChild.dataset.src);
       const after = nextPhoto.getBoundingClientRect();
       check(`lightbox: ${width}px navigation stays fixed across aspect ratios`,
         Math.abs(before.x - after.x) < 1 && Math.abs(before.y - after.y) < 1);
@@ -168,6 +176,7 @@ window.testsDone = false;
       check(`lightbox: ${width}px repeated pointer position still hits Next`,
         target?.closest('.lightbox__nav--next') === nextPhoto);
       target?.dispatchEvent(new frame.contentWindow.MouseEvent('click', { bubbles: true }));
+      if (box.open) await waitForPhoto(fixture.firstElementChild.dataset.src);
       check(`lightbox: ${width}px repeated click wraps without closing`,
         box.open && image.alt === fixture.firstElementChild.dataset.alt);
       box.close();
@@ -175,6 +184,7 @@ window.testsDone = false;
       await settle();
     }
     fixture.remove();
+    await window.runStripChecks(frame, check);
   } catch (error) {
     window.testResults.push({ name: 'test harness', pass: false, error: String(error) });
   } finally {

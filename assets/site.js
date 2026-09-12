@@ -767,13 +767,13 @@ function albumCard(a, i) {
             </button>`).join("")}
         </div>
         <button class="album__page album__page--prev" type="button" hidden
-                aria-label="Earlier photos in this album">
+                aria-label="Earlier photos in ${esc(a.title)}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M15 5l-7 7 7 7"/></svg>
         </button>
         <button class="album__page album__page--next" type="button" hidden
-                aria-label="More photos in this album">
+                aria-label="More photos in ${esc(a.title)}">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M9 5l7 7-7 7"/></svg>
@@ -797,7 +797,8 @@ function wireStrips(scope) {
     $$(".album__page", strip).forEach((btn) => {
       const dir = btn.classList.contains("album__page--next") ? 1 : -1;
       btn.addEventListener("click", () => {
-        grid.scrollBy({ left: dir * grid.clientWidth * 0.8, behavior: "smooth" });
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        grid.scrollBy({ left: dir * grid.clientWidth * 0.8, behavior: reduced ? "instant" : "smooth" });
         settleStrip(strip);        /* the scroll event alone can be missed */
       });
     });
@@ -827,8 +828,13 @@ function syncStrip(strip) {
   const at = Math.round(grid.scrollLeft);
   const prev = $(".album__page--prev", strip), next = $(".album__page--next", strip);
   /* 12px of slack: an overrun too small to see is not worth a button */
-  if (prev) prev.hidden = room <= 12 || at <= 8;
-  if (next) next.hidden = room <= 12 || at >= room - 8;
+  const hidePrev = room <= 12 || at <= 8;
+  const hideNext = room <= 12 || at >= room - 8;
+  /* Move focus before hiding an endpoint control; otherwise it falls to body. */
+  if ((hidePrev && document.activeElement === prev) ||
+      (hideNext && document.activeElement === next)) grid.focus({ preventScroll: true });
+  if (prev) prev.hidden = hidePrev;
+  if (next) next.hidden = hideNext;
 }
 
 function renderGallery() {
@@ -1001,7 +1007,7 @@ function renderGallery() {
    replaces the cards' innerHTML but never the host, so this survives it. */
 /* Module scope, not the closure: the research page wires two hosts into the
    one dialog and the arrows are wired once. */
-let lbSet = [], lbAt = 0, lbShow = 0;
+let lbSet = [], lbAt = 0, lbShow = 0, lbCancel = null;
 
 function lightboxAt(i) {
   const box = $("#lightbox");
@@ -1013,33 +1019,66 @@ function lightboxAt(i) {
   lbAt = at;
   const img = $("img", box);
   const src = trigger.dataset.src;
-  img.alt = trigger.dataset.alt;
-  /* where this one sits in the set */
-  $("figcaption", box).textContent = lbSet.length > 1
+  const caption = lbSet.length > 1
     ? `${trigger.dataset.alt}  ·  ${at + 1} / ${lbSet.length}`
     : trigger.dataset.alt;
-  /* one photo is not a set, so the arrows go rather than sit there */
   $$(".lightbox__nav", box).forEach((btn) => { btn.hidden = lbSet.length < 2; });
 
-  /* Hold the photo that is up until the next one has loaded, or the frame
-     empties while the file is on its way. Waits on load, not decode():
-     decode() on a detached image can stay pending for ever (measured, on a
-     file already complete), which stops the viewer changing picture. */
+  // Keep the displayed image and its description together until the next
+  // request is ready. A newer request or close invalidates every old callback.
   const turn = ++lbShow;
-  const swap = () => { if (turn === lbShow) img.src = src; };
-  if (!img.getAttribute("src") || typeof Image !== "function") swap();
-  else {
-    const ready = new Image();
-    const settle = () => {
-      const decoded = ready.decode ? ready.decode().catch(() => {}) : null;
-      if (!decoded) return swap();
-      Promise.race([decoded, new Promise((go) => setTimeout(go, 120))]).then(swap, swap);
-    };
-    ready.onload = settle;
-    ready.onerror = swap;
-    ready.src = src;
-    if (ready.complete) settle();
-  }
+  if (lbCancel) lbCancel();
+  const status = $(".lightbox__status", box);
+  const feedback = $(".lightbox__feedback", box);
+  const retry = $(".lightbox__retry", box);
+  if (document.activeElement === retry) $(".lightbox__x", box).focus({ preventScroll: true });
+  retry.hidden = true;
+  feedback.hidden = false;
+  status.textContent = "Loading photo…";
+  status.hidden = false;
+  $("figure", box).setAttribute("aria-busy", "true");
+  const ready = new Image();
+  let settled = false;
+  let finished = false;
+  let decodeTimer;
+  const cleanup = () => {
+    clearTimeout(deadline);
+    clearTimeout(decodeTimer);
+    ready.onload = ready.onerror = null;
+  };
+  const finish = (ok) => {
+    if (finished || turn !== lbShow || !box.open) return;
+    finished = true;
+    cleanup();
+    lbCancel = null;
+    $("figure", box).setAttribute("aria-busy", "false");
+    if (!ok) {
+      status.textContent = "Photo could not be loaded.";
+      retry.hidden = false;
+      return;
+    }
+    img.src = src;
+    img.alt = trigger.dataset.alt;
+    $("figcaption", box).textContent = caption;
+    status.hidden = true;
+    feedback.hidden = true;
+  };
+  const deadline = setTimeout(() => { settled = true; finish(false); }, 15000);
+  lbCancel = cleanup;
+  const loaded = () => {
+    if (settled) return;
+    settled = true;
+    if (!ready.naturalWidth) { finish(false); return; }
+    // Decoding may stall on a detached image; load plus a bounded decode wait
+    // is enough to keep the viewer responsive without exposing a blank frame.
+    const decoded = ready.decode ? ready.decode().catch(() => {}) : Promise.resolve();
+    Promise.race([decoded, new Promise(resolve => { decodeTimer = setTimeout(resolve, 120); })])
+      .then(() => finish(true));
+  };
+  ready.onload = loaded;
+  ready.onerror = () => { if (!settled) { settled = true; finish(false); } };
+  ready.src = src;
+  if (ready.complete) loaded();
 
   /* and the neighbours, so the next press has nothing to wait for */
   for (const j of [at + 1, at - 1]) {
@@ -1074,7 +1113,24 @@ function wireLightbox(host, selector) {
   const box = $("#lightbox");
   if (!host || !box) return;
   lightboxArrows(box);
+  if (!$(".lightbox__status", box)) {
+    const feedback = document.createElement("div");
+    feedback.className = "lightbox__feedback";
+    feedback.hidden = true;
+    const status = document.createElement("p");
+    status.className = "lightbox__status";
+    status.setAttribute("role", "status");
+    const retry = document.createElement("button");
+    retry.className = "lightbox__retry";
+    retry.type = "button";
+    retry.textContent = "Retry";
+    retry.hidden = true;
+    retry.addEventListener("click", () => lightboxAt(lbAt));
+    feedback.append(status, retry);
+    box.append(feedback);
+  }
   const img = $("img", box);
+  img.draggable = false;
 
   host.addEventListener("click", (e) => {
     const trigger = e.target.closest(selector);
@@ -1084,8 +1140,8 @@ function wireLightbox(host, selector) {
        walks the page it is on. */
     const scope = trigger.closest(".album") || host;
     lbSet = $$(selector, scope);
-    lightboxAt(lbSet.indexOf(trigger));
     box.showModal();
+    lightboxAt(lbSet.indexOf(trigger));
   });
   if (box.dataset.wired) return;        /* the dialog's own controls, once */
   box.dataset.wired = "1";
@@ -1098,10 +1154,13 @@ function wireLightbox(host, selector) {
   /* swipe: touch and pen only, a mouse drag on an image is the browser's */
   let from = null;
   box.addEventListener("pointerdown", (e) => {
-    from = e.pointerType === "mouse" ? null : { x: e.clientX, y: e.clientY };
+    // A second finger belongs to zoom, never to photo navigation. Controls
+    // retain their own click actions rather than also starting a swipe.
+    from = e.pointerType === "mouse" || !e.isPrimary || e.target.closest("button")
+      ? null : { id: e.pointerId, x: e.clientX, y: e.clientY };
   });
   box.addEventListener("pointerup", (e) => {
-    if (!from) return;
+    if (!from || from.id !== e.pointerId) return;
     const dx = e.clientX - from.x, dy = e.clientY - from.y;
     from = null;
     /* far enough to be meant, and more across than down */
@@ -1118,7 +1177,19 @@ function wireLightbox(host, selector) {
     e.preventDefault();
     lightboxAt(lbAt + step);
   });
-  box.addEventListener("close", () => { img.removeAttribute("src"); lbSet = []; });
+  box.addEventListener("close", () => {
+    ++lbShow;
+    if (lbCancel) lbCancel();
+    lbCancel = null;
+    img.removeAttribute("src");
+    img.alt = "";
+    $("figcaption", box).textContent = "";
+    $("figure", box).setAttribute("aria-busy", "false");
+    $(".lightbox__status", box).hidden = true;
+    $(".lightbox__feedback", box).hidden = true;
+    lbSet = [];
+    from = null;
+  });
 }
 
 /* ---------- contact ---------- */

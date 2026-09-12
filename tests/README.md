@@ -7,7 +7,14 @@ repositories and local bare remotes; they never publish this checkout.
 
 CI checks JavaScript/Bash syntax, news unit tests, publishing safeguards,
 self-hosted font coverage and asset checksums, and the real `browser-checks.html` harness in headless
-Chromium. Failed assertions, empty results, uncaught page errors, console errors
+Chromium. The harness also checks gallery strip endpoint focus, album-specific
+button names, and reduced-motion scrolling. `lightbox-interactions.mjs` uses
+native double/triple clicks and touch input, compares image screenshots before
+and after rapid navigation, and exercises delayed/failed image loads, Retry,
+and close-during-load cleanup. Network failures in its image fixtures are
+intentional; unexpected page errors still fail the checks.
+
+Failed assertions, empty results, uncaught page errors, console errors
 from this site's own files, and local HTTP errors fail the browser step. Console
 errors from another origin do not: the contact page embeds a map, and that
 service having a bad day is not a fault in this repository. The runner binds Python's

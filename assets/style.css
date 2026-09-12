@@ -1294,9 +1294,8 @@ main:focus { outline: none; }
 
 /* ---------- lightbox ---------- */
 
-/* The viewer fills the screen and paints its own dark ground: Chrome was
-   reported painting ::backdrop over the picture, and an element's background
-   cannot be painted above its own children. */
+/* Fullscreen geometry keeps the controls fixed as photo dimensions change.
+   The background belongs to the viewer; the image stays on its own layer. */
 .lightbox {
   border: 0;
   padding: 0;
@@ -1311,6 +1310,12 @@ main:focus { outline: none; }
   overflow: visible;
   place-items: center;
   isolation: isolate;
+  /* Rapid arrow clicks must not select the photograph: ::selection paints
+     a dark highlight over selected images, even though no overlay moved. */
+  -webkit-user-select: none;
+  user-select: none;
+  /* Horizontal swipes belong to the viewer; retain vertical pan and zoom. */
+  touch-action: pan-y pinch-zoom;
 }
 /* only when open: a plain `display` here would override the closed dialog's
    own `display: none` and leave the dark ground over the page */
@@ -1335,6 +1340,34 @@ main:focus { outline: none; }
   color: rgba(255, 255, 255, 0.65);
   text-align: center;
 }
+.lightbox__feedback {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  position: absolute;
+  z-index: 3;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  max-width: calc(100% - 2rem);
+  color: #fff;
+  background: #080808;
+  border-radius: var(--r);
+  font-size: 0.8rem;
+}
+.lightbox__feedback[hidden], .lightbox__status[hidden], .lightbox__retry[hidden] { display: none; }
+.lightbox__status { margin: 0; }
+.lightbox__retry {
+  color: #080808;
+  background: #fff;
+  border: 0;
+  border-radius: var(--r);
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+
 .lightbox__x {
   position: absolute;
   top: 1rem; right: 1rem;
