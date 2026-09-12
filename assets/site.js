@@ -42,8 +42,11 @@ function initLang() {
   const forced = new URLSearchParams(location.search).get("lang");
   let saved = null;
   try { saved = localStorage.getItem(LANG_KEY); } catch (e) { /* private mode */ }
-  if (forced === "ko" || forced === "en") LANG = forced;
-  else if (saved === "ko" || saved === "en") LANG = saved;
+  /* Explicit URLs win and carry their preference to unqualified pages. */
+  if (forced === "ko" || forced === "en") {
+    LANG = forced;
+    try { localStorage.setItem(LANG_KEY, forced); } catch (e) { /* private mode */ }
+  } else if (saved === "ko" || saved === "en") LANG = saved;
 }
 
 /* renderNav() runs from the page body before boot(), so the language has
@@ -65,10 +68,14 @@ function setProse(el, v) {
 }
 
 function setLang(next) {
-  if (next === LANG) return;
+  if (next !== "ko" && next !== "en") return;
+  const changed = next !== LANG;
   LANG = next;
   try { localStorage.setItem(LANG_KEY, next); } catch (e) { /* ignore */ }
-  applyLang();
+  const url = new URL(location.href);
+  url.searchParams.set("lang", next);
+  history.replaceState(history.state, "", url);
+  if (changed) applyLang();
 }
 
 /* Re-renders only what the toggle touches, so nothing that holds an
@@ -189,13 +196,16 @@ function renderNav(current) {
     navlinks.toggleAttribute("inert", collapsed);
   };
   setMenuOpen(false);
-  menuBtn.addEventListener("click", () => {
-    setMenuOpen(!navlinks.classList.contains("is-open"));
+  menuBtn.addEventListener("click", (e) => {
+    const open = !navlinks.classList.contains("is-open");
+    setMenuOpen(open);
+    if (open && mobileNav.matches && e.detail === 0) $("a", navlinks)?.focus();
   });
   navlinks.addEventListener("click", (e) => {
     if (e.target.closest("a")) setMenuOpen(false);
   });
-  host.addEventListener("keydown", (e) => {
+  document.addEventListener("keydown", (e) => {
+    if (e.defaultPrevented || document.querySelector("dialog:modal")) return;
     if (e.key === "Escape" && navlinks.classList.contains("is-open")) {
       setMenuOpen(false);
       menuBtn.focus();

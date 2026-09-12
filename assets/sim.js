@@ -311,6 +311,7 @@ const SIM = (function () {
             ${c.choices.map((o) => `
               <button type="button" class="chip${o.value === c.value ? " is-active" : ""}"
                       role="radio" aria-checked="${o.value === c.value}"
+                      tabindex="${o.value === c.value && !o.off ? 0 : -1}"
                       ${o.off ? "disabled" : ""}
                       data-value="${o.value}">${o.label}</button>`).join("")}
           </div>
@@ -539,9 +540,22 @@ const SIM = (function () {
           for (const b of inputs[c.id].querySelectorAll("[role=radio]")) {
             b.classList.toggle("is-active", b === btn);
             b.setAttribute("aria-checked", String(b === btn));
+            b.tabIndex = b === btn ? 0 : -1;
           }
           retune();
           start();
+        });
+        inputs[c.id].addEventListener("keydown", (ev) => {
+          if (ev.altKey || ev.ctrlKey || ev.metaKey) return;
+          const step = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[ev.key];
+          if (step === undefined) return;
+          const buttons = Array.from(inputs[c.id].querySelectorAll("[role=radio]:not(:disabled)"));
+          const index = buttons.indexOf(ev.target.closest("[role=radio]"));
+          if (index < 0) return;
+          ev.preventDefault();
+          const next = buttons[(index + step + buttons.length) % buttons.length];
+          next.focus();
+          next.click();
         });
       } else {
         inputs[c.id].addEventListener("input", () => { retune(); start(); });

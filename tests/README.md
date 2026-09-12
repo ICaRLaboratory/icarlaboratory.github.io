@@ -14,6 +14,9 @@ and after rapid navigation, and exercises delayed/failed image loads, Retry,
 and close-during-load cleanup. Network failures in its image fixtures are
 intentional; unexpected page errors still fail the checks.
 
+Native interaction checks also cover mobile-menu keyboard navigation, language
+selection across reloads and page navigation, and simulator radio-group keys.
+
 Failed assertions, empty results, uncaught page errors, console errors
 from this site's own files, and local HTTP errors fail the browser step. Console
 errors from another origin do not: the contact page embeds a map, and that

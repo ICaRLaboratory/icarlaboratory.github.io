@@ -5,6 +5,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { runLightboxChecks } from '../tests/lightbox-interactions.mjs';
+import { runLanguageChecks } from '../tests/language-interactions.mjs';
+import { runMenuChecks } from '../tests/menu-interactions.mjs';
+import { runSimKeyboardChecks } from '../tests/sim-keyboard-interactions.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const python = process.env.PYTHON || 'python3';
@@ -82,6 +85,9 @@ async function run() {
   const results = await page.evaluate(() => window.testResults);
   if (!Array.isArray(results) || results.length === 0) throw new Error('Harness returned no test results');
   results.push(...await runLightboxChecks(browser, base));
+  results.push(...await runLanguageChecks(browser, base));
+  results.push(...await runMenuChecks(browser, base));
+  results.push(...await runSimKeyboardChecks(browser, base));
   for (const result of results) {
     console.log(`${result?.pass === true ? 'PASS' : 'FAIL'} ${result?.name}${result?.error ? ': ' + result.error : ''}`);
   }
