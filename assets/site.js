@@ -1024,8 +1024,7 @@ function lightboxAt(i) {
     : trigger.dataset.alt;
   $$(".lightbox__nav", box).forEach((btn) => { btn.hidden = lbSet.length < 2; });
 
-  // Keep the displayed image and its description together until the next
-  // request is ready. A newer request or close invalidates every old callback.
+  // Swap image and metadata together; ignore superseded requests.
   const turn = ++lbShow;
   if (lbCancel) lbCancel();
   const status = $(".lightbox__status", box);
@@ -1069,8 +1068,7 @@ function lightboxAt(i) {
     if (settled) return;
     settled = true;
     if (!ready.naturalWidth) { finish(false); return; }
-    // Decoding may stall on a detached image; load plus a bounded decode wait
-    // is enough to keep the viewer responsive without exposing a blank frame.
+    // Bound decode waits: detached images can stall.
     const decoded = ready.decode ? ready.decode().catch(() => {}) : Promise.resolve();
     Promise.race([decoded, new Promise(resolve => { decodeTimer = setTimeout(resolve, 120); })])
       .then(() => finish(true));
@@ -1151,11 +1149,10 @@ function wireLightbox(host, selector) {
     const step = btn.classList.contains("lightbox__nav--next") ? 1 : -1;
     btn.addEventListener("click", () => lightboxAt(lbAt + step));
   });
-  /* swipe: touch and pen only, a mouse drag on an image is the browser's */
+  /* Touch and pen swipes only. */
   let from = null;
   box.addEventListener("pointerdown", (e) => {
-    // A second finger belongs to zoom, never to photo navigation. Controls
-    // retain their own click actions rather than also starting a swipe.
+    // Ignore secondary fingers and gestures starting on controls.
     from = e.pointerType === "mouse" || !e.isPrimary || e.target.closest("button")
       ? null : { id: e.pointerId, x: e.clientX, y: e.clientY };
   });

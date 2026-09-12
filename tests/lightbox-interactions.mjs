@@ -1,5 +1,4 @@
-// Native pointer input matters: dispatching click() does not perform the
-// browser's double/triple-click selection default action.
+// Native clicks exercise browser selection; synthetic clicks do not.
 export async function runLightboxChecks(browser, base) {
   const results = [];
   const check = (name, pass) => results.push({ name, pass: !!pass });
@@ -123,8 +122,7 @@ async function runLoadingChecks(browser, base, errors) {
       check('Retry recovers with matching caption', (await page.locator('#lightbox figcaption').textContent()).includes('Retry photo'));
       check('Retry does not leave focus on a hidden control', await page.evaluate(() => document.activeElement.getClientRects().length > 0 && document.activeElement !== document.body));
     }
-    // Force load to arrive just before the 15s deadline, with decode still
-    // pending afterwards. Fast-forwarded browser timers keep this deterministic.
+    // Load before the deadline, then finish decoding after timeout.
     const beforeTimeout = await page.locator('#lightbox img').getAttribute('src');
     await page.clock.install();
     await page.evaluate(() => {

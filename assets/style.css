@@ -1294,8 +1294,7 @@ main:focus { outline: none; }
 
 /* ---------- lightbox ---------- */
 
-/* Fullscreen geometry keeps the controls fixed as photo dimensions change.
-   The background belongs to the viewer; the image stays on its own layer. */
+/* Keep controls fixed across photo sizes. */
 .lightbox {
   border: 0;
   padding: 0;
@@ -1310,11 +1309,10 @@ main:focus { outline: none; }
   overflow: visible;
   place-items: center;
   isolation: isolate;
-  /* Rapid arrow clicks must not select the photograph: ::selection paints
-     a dark highlight over selected images, even though no overlay moved. */
+  /* Prevent rapid clicks from painting ::selection over photos. */
   -webkit-user-select: none;
   user-select: none;
-  /* Horizontal swipes belong to the viewer; retain vertical pan and zoom. */
+  /* Reserve horizontal swipes; allow vertical pan and zoom. */
   touch-action: pan-y pinch-zoom;
 }
 /* only when open: a plain `display` here would override the closed dialog's
