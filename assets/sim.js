@@ -293,7 +293,8 @@ const SIM = (function () {
     const readouts = {};
     let verdictEl = null;
     let raf = null;
-    let live = true;
+    let live = false;
+    let playing = true;       /* playback intent survives temporary suspension */
     let invited = false;      /* the reader has asked to watch it run */
 
     /* --- the panel: sliders, readouts, footnote --- */
@@ -448,6 +449,7 @@ const SIM = (function () {
     }
 
     function retune() {
+      playing = true;
       readParams();
       words();
       def.reset(P);
@@ -509,7 +511,7 @@ const SIM = (function () {
     const still = () => reduced.matches && !invited;
 
     function start() {
-      if (!live) return;
+      if (!live || document.hidden || !playing) return;
       if (still()) { runToEnd(); draw(); show(def.live ? def.live(P) : null); }
       else if (def.done(P)) { draw(); show(def.live ? def.live(P) : null); }
       else if (raf === null) raf = requestAnimationFrame(frame);
@@ -519,15 +521,16 @@ const SIM = (function () {
     /* One button, named for what it will do next. */
     function syncPlay() {
       if (!playBtn) return;
-      playBtn.textContent = raf !== null ? "Pause" : def.done(P) ? "Replay" : "Play";
+      playBtn.textContent = def.done(P) ? "Replay" : playing ? "Pause" : "Play";
     }
 
     if (playBtn) {
       playBtn.addEventListener("click", () => {
-        if (raf !== null) { stop(); syncPlay(); return; }
+        if (playing && !def.done(P)) { playing = false; stop(); syncPlay(); return; }
         invited = true;
+        playing = true;
         if (def.done(P)) retune();          /* a finished run starts again */
-        raf = requestAnimationFrame(frame);
+        start();
         syncPlay();
       });
     }
@@ -564,7 +567,7 @@ const SIM = (function () {
 
     /* the setting can be changed while the page is open */
     if (reduced.addEventListener) {
-      reduced.addEventListener("change", () => { stop(); retune(); start(); });
+      reduced.addEventListener("change", () => { stop(); start(); });
     }
 
     /* The canvas can be measured at zero -- a tab that has not been shown,
@@ -588,7 +591,7 @@ const SIM = (function () {
 
     return {
       /* a hidden canvas is not worth a frame */
-      show() { live = true; retune(); start(); },
+      show() { live = true; draw(); start(); },
       hide() { live = false; stop(); },
       pause() { stop(); syncPlay(); },
       resume: start,

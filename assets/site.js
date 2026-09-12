@@ -195,7 +195,15 @@ function renderNav(current) {
     menuBtn.setAttribute("aria-expanded", String(open));
     navlinks.toggleAttribute("inert", collapsed);
   };
-  setMenuOpen(false);
+  const syncMenuLayout = () => {
+    setMenuOpen(false);
+    // Keep native focus order aligned with the mobile dropdown.
+    const focused = document.activeElement;
+    if (mobileNav.matches) menuBtn.after(navlinks);
+    else $(".lang", host).before(navlinks);
+    if (navlinks.contains(focused)) focused.focus({ preventScroll: true });
+  };
+  syncMenuLayout();
   menuBtn.addEventListener("click", (e) => {
     const open = !navlinks.classList.contains("is-open");
     setMenuOpen(open);
@@ -211,9 +219,7 @@ function renderNav(current) {
       menuBtn.focus();
     }
   });
-  mobileNav.addEventListener("change", () => {
-    setMenuOpen(false);
-  });
+  mobileNav.addEventListener("change", syncMenuLayout);
 
   if (!navScrollBound) {
     navScrollBound = true;

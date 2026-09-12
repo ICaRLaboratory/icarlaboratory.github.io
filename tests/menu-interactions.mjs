@@ -146,5 +146,26 @@ export async function runMenuChecks(browser, base) {
     assert.equal(await page.locator('#menuBtn').getAttribute('aria-expanded'), 'false');
     assert.equal(await page.locator('#navlinks').evaluate(el => el.inert), true);
   });
+  for (const width of [320, 390, 768]) {
+    await check('Mobile Menu: pointer opening joins reversible native tab order at ' + width, async page => {
+      await page.locator('#menuBtn').click();
+      await page.keyboard.press('Tab');
+      const links = page.locator('#navlinks a');
+      assert.equal(await links.first().evaluate(el => el === document.activeElement), true,
+        'Pointer opening then Tab must enter the menu');
+      await page.keyboard.press('Shift+Tab');
+      assert.equal(await page.locator('#menuBtn').evaluate(el => el === document.activeElement), true,
+        'Reverse traversal must return to Menu');
+      await page.keyboard.press('Tab');
+      for (let i = 0; i < await links.count(); i++) {
+        assert.equal(await links.nth(i).evaluate(el => el === document.activeElement), true);
+        await page.keyboard.press('Tab');
+      }
+      assert.equal(await page.evaluate(() => document.activeElement.matches('main a')), true,
+        'Last link must exit to content without a menu loop');
+      await page.keyboard.press('Shift+Tab');
+      assert.equal(await links.last().evaluate(el => el === document.activeElement), true);
+    }, width);
+  }
   return results;
 }
