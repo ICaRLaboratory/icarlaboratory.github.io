@@ -9,6 +9,8 @@ import { runLanguageChecks } from '../tests/language-interactions.mjs';
 import { runMenuChecks } from '../tests/menu-interactions.mjs';
 import { runSimKeyboardChecks } from '../tests/sim-keyboard-interactions.mjs';
 import { runSimStateChecks } from '../tests/sim-state-interactions.mjs';
+import { runPublicationChecks } from '../tests/publication-interactions.mjs';
+import { runResearchChecks } from '../tests/research-interactions.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const python = process.env.PYTHON || 'python3';
@@ -90,6 +92,8 @@ async function run() {
   results.push(...await runMenuChecks(browser, base));
   results.push(...await runSimKeyboardChecks(browser, base));
   results.push(...await runSimStateChecks(browser, base));
+  results.push(...await runPublicationChecks(browser, base));
+  results.push(...await runResearchChecks(browser, base));
   for (const result of results) {
     console.log(`${result?.pass === true ? 'PASS' : 'FAIL'} ${result?.name}${result?.error ? ': ' + result.error : ''}`);
   }

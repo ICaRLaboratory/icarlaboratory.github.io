@@ -26,6 +26,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preload" href="assets/fonts/jetbrains-mono-subset.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/research.css">
 <script src="data/site.js"></script>
 <script src="data/members.js"></script>
 <script src="data/publications.js"></script>
@@ -47,16 +48,21 @@
     <p class="eyebrow">Research</p>
     <h1 class="h2" data-reveal style="max-width:34ch">Control algorithms. Robotics. Embedded systems.</h1>
     <p class="lede" data-reveal style="--d:90ms;margin-top:1.25rem"><span data-site="researchLede"></span></p>
+    <nav class="research-nav" aria-label="On this page">
+      <a href="#research-areas">Research areas</a>
+      <a href="#interactive">Interactive</a>
+      <a href="#funded-projects">Funded projects</a>
+    </nav>
   </div>
 </header>
 
-<section class="band--tight wrap">
-  <h2 class="sr-only">Research areas</h2>
+<section class="band--tight wrap research-target" id="research-areas" tabindex="-1" aria-labelledby="research-areas-heading">
+  <h2 class="sr-only" id="research-areas-heading">Research areas</h2>
   <div class="grid grid--areas" id="areas-full"></div>
 </section>
 
-<section class="band band--line wrap">
-  <p class="eyebrow">Interactive</p>
+<section class="band band--line wrap research-target" id="interactive" tabindex="-1" aria-labelledby="interactive-heading">
+  <p class="eyebrow" id="interactive-heading">Interactive</p>
   <h2 class="h2" data-reveal style="max-width:20ch">Control it yourself.</h2>
 
   <!-- The tabs, the notes and the panels are all built by assets/sim.js from
@@ -66,11 +72,16 @@
   <div id="simpanels"></div>
 </section>
 
-<section class="band band--line wrap">
-  <p class="eyebrow">Funded projects</p>
+<section class="band band--line wrap research-target" id="funded-projects" tabindex="-1" aria-labelledby="funded-projects-heading">
+  <p class="eyebrow" id="funded-projects-heading">Funded projects</p>
   <h2 class="h2" data-reveal style="max-width:18ch">Where the funding goes.</h2>
   <div id="projects" style="margin-top:2.5rem"></div>
 </section>
+
+<nav class="research-nav research-next wrap band--tight" aria-label="Research next steps">
+  <a href="publications.html">Publications</a>
+  <a href="contact.html">Contact</a>
+</nav>
 
 <dialog class="lightbox" id="lightbox" aria-labelledby="lightboxcap" aria-label="Figure viewer">
   <button class="lightbox__x" type="button" aria-label="Close">&times;</button>

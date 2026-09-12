@@ -21,6 +21,16 @@ panel changes, conditional playback resumption, Replay, parameter changes and
 reduced motion. Document visibility changes are simulated in these checks; they
 do not certify physical browser-tab switching.
 
+Publication checks cover title/author/venue search, combined type/year filters,
+result announcements, empty/reset states, safe query rendering and URL restoration.
+Research checks cover native section-link navigation, focus, deep links and
+contextual routes to Publications and Contact. Both include narrow-screen checks.
+Publication URLs use `q`, `type` (`journal`, `conference`, `domestic`, `all`) and
+`year`. A plain page starts with Journal; searching from the untouched default
+uses All. An explicitly chosen type remains selected while typing. A `q` URL
+without `type` also uses All. Reset restores Journal and removes only these
+publication parameters; unrelated parameters and the fragment are preserved.
+
 Failed assertions, empty results, uncaught page errors, console errors
 from this site's own files, and local HTTP errors fail the browser step. Console
 errors from another origin do not: the contact page embeds a map, and that

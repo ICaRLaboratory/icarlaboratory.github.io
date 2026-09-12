@@ -26,6 +26,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preload" href="assets/fonts/jetbrains-mono-subset.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/publications.css">
 <script src="data/site.js"></script>
 <script src="data/members.js"></script>
 <script src="data/publications.js"></script>
@@ -52,12 +53,24 @@
 <section class="band--tight wrap">
   <p class="muted" id="pubcounts" style="font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;margin:0 0 1.5rem"></p>
   <div id="profiles"></div>
-  <div class="filters" id="pubfilters">
+  <div class="publication-tools">
+    <label for="pubsearch">Search publications</label>
+    <input id="pubsearch" type="search" placeholder="Title, authors, or venue" aria-describedby="pubsearch-hint" aria-controls="publist">
+    <p id="pubsearch-hint" class="muted">Search starts in All; selecting a type limits the search.</p>
+  </div>
+  <div class="filters" id="pubfilters" role="group" aria-label="Publication type">
     <button class="chip is-active" type="button" data-set="journal" aria-pressed="true" aria-controls="publist">Journal</button>
     <button class="chip" type="button" data-set="conference" aria-pressed="false" aria-controls="publist">Conference</button>
     <button class="chip" type="button" data-set="domestic" aria-pressed="false" aria-controls="publist">Domestic</button>
     <button class="chip" type="button" data-set="all" aria-pressed="false" aria-controls="publist">All</button>
   </div>
+  <div class="publication-refine">
+    <label for="pubyear">Year</label>
+    <select id="pubyear" aria-controls="publist"><option value="">All years</option></select>
+    <button class="chip" id="pubreset" type="button" aria-controls="publist">Reset filters</button>
+  </div>
+  <p id="pubresults" role="status" aria-live="polite" aria-atomic="true"></p>
+  <p id="pubempty" hidden>No publications match. Try another search or reset the filters.</p>
   <p class="pub-note">* corresponding author</p>
   <div id="publist"></div>
 </section>

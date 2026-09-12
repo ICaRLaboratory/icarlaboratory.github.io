@@ -1,0 +1,43 @@
+/* Publication-only controls; shared chips and paper rows keep their styling. */
+.publication-tools {
+  margin: 1.5rem 0 1rem;
+  max-width: 44rem;
+}
+.publication-tools label,
+.publication-refine label {
+  display: block;
+  font-family: var(--mono);
+  font-size: .75rem;
+  font-weight: 600;
+}
+.publication-tools label { margin-bottom: .5rem; }
+#pubsearch,
+#pubyear {
+  min-height: 44px;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  padding: .6rem .85rem;
+}
+#pubsearch { display: block; width: 100%; }
+#pubsearch::placeholder { color: var(--dim); opacity: 1; }
+#pubsearch:focus-visible,
+#pubyear:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 3px;
+}
+#pubsearch-hint { margin: .5rem 0 0; font-size: .875rem; }
+#pubfilters { margin-bottom: 1rem; }
+#pubfilters .chip,
+#pubreset { min-height: 44px; }
+.publication-refine {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .75rem;
+}
+#pubresults { font: .8rem var(--mono); margin: 1.25rem 0; color: var(--dim); }
+#pubempty { padding: 1rem; border: 1px solid var(--line); border-radius: 8px; }

@@ -1,0 +1,18 @@
+/* Native fragment navigation; leave room for the site's sticky header. */
+.research-target { scroll-margin-top: 6rem; }
+
+.research-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 1.5rem;
+  margin-top: 1.75rem;
+  font-size: .875rem;
+}
+
+.research-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration: underline;
+  text-underline-offset: .25em;
+}

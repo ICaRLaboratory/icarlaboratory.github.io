@@ -405,8 +405,24 @@ function renderPublications() {
     all: every,
   };
 
-  const draw = (key) => {
-    host.innerHTML = groupByYear(sets[key])
+  let type = "journal";
+  let explicitType = false;
+  const search = $("#pubsearch");
+  const yearSelect = $("#pubyear");
+  const years = [...new Set(every.map((p) => String(p.year)))].sort((a, b) => b - a);
+  years.forEach((year) => yearSelect.add(new Option(year, year)));
+  const draw = () => {
+    const query = search.value.trim().toLocaleLowerCase();
+    const papers = sets[type].filter((p) =>
+      (!yearSelect.value || String(p.year) === yearSelect.value) &&
+      [p.title, p.authors, p.venue].some((value) => value.toLocaleLowerCase().includes(query)));
+    $("#pubresults").textContent = `${papers.length} ${papers.length === 1 ? "publication" : "publications"}`;
+    $("#pubempty").hidden = papers.length !== 0;
+    $$(".chip", $("#pubfilters")).forEach((c) => {
+      c.classList.toggle("is-active", c.dataset.set === type);
+      c.setAttribute("aria-pressed", String(c.dataset.set === type));
+    });
+    host.innerHTML = groupByYear(papers)
       .map(([year, papers]) => `
         <section class="year-group">
           <h2 class="year-label">${year}</h2>
@@ -416,18 +432,77 @@ function renderPublications() {
     initReveal();
   };
 
+  /* q without type searches All; no q/type starts Journal. A chosen type
+     remains explicit, even Journal. Clearing a query keeps the current type;
+     Reset restores the untouched default. Only q/year/type belong to us. */
+  let editingSearch = false;
+  const readURL = () => {
+    const params = new URL(location.href).searchParams;
+    search.value = params.get("q") || "";
+    explicitType = Object.hasOwn(sets, params.get("type"));
+    type = explicitType ? params.get("type") : search.value.trim() ? "all" : "journal";
+    yearSelect.value = years.includes(params.get("year")) ? params.get("year") : "";
+    editingSearch = false;
+    draw();
+  };
+  const saveURL = (replace = false) => {
+    const url = new URL(location.href);
+    const values = {
+      q: search.value,
+      year: yearSelect.value,
+      type: explicitType || type !== "journal" ? type : "",
+    };
+    Object.entries(values).forEach(([key, value]) => {
+      if (value) url.searchParams.set(key, value);
+      else url.searchParams.delete(key);
+    });
+    if (url.href !== location.href) {
+      history[replace ? "replaceState" : "pushState"](history.state, "", url);
+    }
+  };
   const filters = $("#pubfilters");
   if (filters) {
     filters.addEventListener("click", (e) => {
       const btn = e.target.closest(".chip");
-      if (!btn) return;
-      $$(".chip", filters).forEach((c) => {
-        c.classList.toggle("is-active", c === btn);
-        c.setAttribute("aria-pressed", String(c === btn));
-      });
-      draw(btn.dataset.set);
+      if (!btn || !Object.hasOwn(sets, btn.dataset.set)) return;
+      type = btn.dataset.set;
+      explicitType = true;
+      editingSearch = false;
+      draw();
+      saveURL();
     });
   }
+  yearSelect.addEventListener("change", () => {
+    editingSearch = false;
+    draw();
+    saveURL();
+  });
+  $("#pubreset").addEventListener("click", () => {
+    type = "journal";
+    explicitType = false;
+    editingSearch = false;
+    search.value = "";
+    yearSelect.value = "";
+    draw();
+    saveURL();
+  });
+  search.addEventListener("input", () => {
+    if (!explicitType && search.value.trim()) type = "all";
+    draw();
+    /* One history entry per editing session, not per keystroke. */
+    saveURL(editingSearch);
+    editingSearch = true;
+  });
+  search.addEventListener("change", () => { editingSearch = false; });
+  search.addEventListener("blur", () => { editingSearch = false; });
+  window.addEventListener("popstate", () => {
+    const language = new URL(location.href).searchParams.get("lang");
+    if (language === "ko" || language === "en") {
+      initLang();
+      applyLang();
+    }
+    readURL();
+  });
 
   const counts = $("#pubcounts");
   if (counts) {
@@ -455,7 +530,19 @@ function renderPublications() {
       </div>`;
   }
 
-  draw("journal");
+  const updateProse = () => {
+    setProse($("#pubsearch-hint"), {
+      en: "Search starts in All; selecting a type limits the search.",
+      ko: "검색은 전체(All)에서 시작하며, 유형을 선택하면 검색 범위가 제한됩니다.",
+    });
+    setProse($("#pubempty"), {
+      en: "No publications match. Try another search or reset the filters.",
+      ko: "검색 결과가 없습니다. 검색어를 바꾸거나 필터를 초기화하세요.",
+    });
+  };
+  document.addEventListener("icar:lang", updateProse);
+  updateProse();
+  readURL();
 }
 
 /* ---------- home ---------- */
