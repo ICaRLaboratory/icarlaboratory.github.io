@@ -78,6 +78,15 @@ function setLang(next) {
   if (changed) applyLang();
 }
 
+/* Same-document history applies language on every page, independently of
+   page-specific filters. Never rewrite the restored URL or redraw unchanged
+   prose regions, which may contain keyboard focus. */
+window.addEventListener("popstate", () => {
+  const previous = LANG;
+  initLang();
+  if (LANG !== previous) applyLang();
+});
+
 /* Re-renders only what the toggle touches, so nothing that holds an
    event listener (the nav, the lightbox) is rebuilt. */
 function applyLang() {
@@ -412,10 +421,12 @@ function renderPublications() {
   const years = [...new Set(every.map((p) => String(p.year)))].sort((a, b) => b - a);
   years.forEach((year) => yearSelect.add(new Option(year, year)));
   const draw = () => {
-    const query = search.value.trim().toLocaleLowerCase();
-    const papers = sets[type].filter((p) =>
-      (!yearSelect.value || String(p.year) === yearSelect.value) &&
-      [p.title, p.authors, p.venue].some((value) => value.toLocaleLowerCase().includes(query)));
+    const tokens = search.value.toLowerCase().match(/\S+/g) || [];
+    const papers = sets[type].filter((p) => {
+      const text = [p.title, p.authors, p.venue].join(" ").toLowerCase();
+      return (!yearSelect.value || String(p.year) === yearSelect.value) &&
+        tokens.every((token) => text.includes(token));
+    });
     $("#pubresults").textContent = `${papers.length} ${papers.length === 1 ? "publication" : "publications"}`;
     $("#pubempty").hidden = papers.length !== 0;
     $$(".chip", $("#pubfilters")).forEach((c) => {
@@ -495,14 +506,7 @@ function renderPublications() {
   });
   search.addEventListener("change", () => { editingSearch = false; });
   search.addEventListener("blur", () => { editingSearch = false; });
-  window.addEventListener("popstate", () => {
-    const language = new URL(location.href).searchParams.get("lang");
-    if (language === "ko" || language === "en") {
-      initLang();
-      applyLang();
-    }
-    readURL();
-  });
+  window.addEventListener("popstate", readURL);
 
   const counts = $("#pubcounts");
   if (counts) {
@@ -512,22 +516,16 @@ function renderPublications() {
       (dom ? ` · ${dom} at Korean venues` : "");
   }
 
-  const banner = $("#profiles");
-  if (banner) {
+  const profiles = $("#profiles");
+  if (profiles) {
     const links = [
-      ADVISOR.scholar && ["Google Scholar", ADVISOR.scholar, "btn--primary"],
-      ADVISOR.orcid && ["ORCID", `https://orcid.org/${esc(ADVISOR.orcid)}`, "btn--ghost"],
+      ADVISOR.scholar && ["Google Scholar", ADVISOR.scholar],
+      ADVISOR.orcid && ["ORCID", `https://orcid.org/${ADVISOR.orcid}`],
     ].filter(Boolean);
-    banner.innerHTML = `
-      <div class="banner invert">
-        <div>
-          <div class="banner__t">The complete record, kept up to date</div>
-          <div class="banner__s">Profiles for ${esc(ADVISOR.nameEn)}</div>
-        </div>
-        <div class="banner__a">${links
-          .map(([n, u, c]) => `<a class="btn ${c}" href="${esc(u)}" target="_blank" rel="noopener">${n}</a>`)
-          .join("")}</div>
-      </div>`;
+    profiles.setAttribute("aria-label", `Profiles for ${ADVISOR.nameEn}`);
+    profiles.innerHTML = links.map(([name, url]) =>
+      `<a href="${esc(url)}" target="_blank" rel="noopener">${name}<span aria-hidden="true"> ↗</span></a>`
+    ).join("");
   }
 
   const updateProse = () => {

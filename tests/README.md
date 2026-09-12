@@ -15,7 +15,8 @@ and close-during-load cleanup. Network failures in its image fixtures are
 intentional; unexpected page errors still fail the checks.
 
 Native interaction checks also cover mobile-menu keyboard and mixed pointer/keyboard
-navigation, language selection across reloads and page navigation, and simulator
+navigation, language selection across reloads, page navigation and same-document
+Back/Forward (Research anchors, Skip and Gallery year hashes), and simulator
 radio-group keys. Simulator state checks cover pause/history preservation across
 panel changes, conditional playback resumption, Replay, parameter changes and
 reduced motion. Document visibility changes are simulated in these checks; they
@@ -30,6 +31,11 @@ Publication URLs use `q`, `type` (`journal`, `conference`, `domestic`, `all`) an
 uses All. An explicitly chosen type remains selected while typing. A `q` URL
 without `type` also uses All. Reset restores Journal and removes only these
 publication parameters; unrelated parameters and the fragment are preserved.
+Search splits whitespace-separated words and requires every word to match across
+title, authors or venue, ignoring case. It does not add fuzzy or quoted-phrase syntax.
+Compact-layout checks cover KO/EN at 320, 390, 768 and 1280px: search/result placement,
+native control order, 44px targets, clipping, and attributed Scholar/ORCID links.
+The browser suite has a 180-second overall deadline for its expanded native checks.
 
 Failed assertions, empty results, uncaught page errors, console errors
 from this site's own files, and local HTTP errors fail the browser step. Console

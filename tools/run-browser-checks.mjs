@@ -10,6 +10,7 @@ import { runMenuChecks } from '../tests/menu-interactions.mjs';
 import { runSimKeyboardChecks } from '../tests/sim-keyboard-interactions.mjs';
 import { runSimStateChecks } from '../tests/sim-state-interactions.mjs';
 import { runPublicationChecks } from '../tests/publication-interactions.mjs';
+import { runPublicationLayoutChecks } from '../tests/publication-layout-interactions.mjs';
 import { runResearchChecks } from '../tests/research-interactions.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -21,7 +22,7 @@ const { signal } = controller;
 const interrupt = () => controller.abort(new Error('Browser checks interrupted'));
 process.once('SIGINT', interrupt);
 process.once('SIGTERM', interrupt);
-const deadline = setTimeout(() => controller.abort(new Error('Browser checks exceeded 90 seconds')), 90_000);
+const deadline = setTimeout(() => controller.abort(new Error('Browser checks exceeded 180 seconds')), 180_000);
 let browser;
 let server;
 let serverLog = '';
@@ -93,6 +94,7 @@ async function run() {
   results.push(...await runSimKeyboardChecks(browser, base));
   results.push(...await runSimStateChecks(browser, base));
   results.push(...await runPublicationChecks(browser, base));
+  results.push(...await runPublicationLayoutChecks(browser, base));
   results.push(...await runResearchChecks(browser, base));
   for (const result of results) {
     console.log(`${result?.pass === true ? 'PASS' : 'FAIL'} ${result?.name}${result?.error ? ': ' + result.error : ''}`);

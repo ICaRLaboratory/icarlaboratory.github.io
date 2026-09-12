@@ -1,43 +1,108 @@
-/* Publication-only controls; shared chips and paper rows keep their styling. */
+/* One search surface, with secondary profile links beside the result count. */
 .publication-tools {
-  margin: 1.5rem 0 1rem;
-  max-width: 44rem;
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel);
 }
-.publication-tools label,
-.publication-refine label {
+.publication-search-label {
   display: block;
-  font-family: var(--mono);
-  font-size: .75rem;
+  margin-bottom: .5rem;
+  font-size: .875rem;
   font-weight: 600;
 }
-.publication-tools label { margin-bottom: .5rem; }
-#pubsearch,
-#pubyear {
+#pubsearch, #pubyear {
   min-height: 44px;
+  min-width: 0;
   max-width: 100%;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 6px;
   background: var(--bg);
   color: var(--text);
   font: inherit;
-  padding: .6rem .85rem;
+  padding: .6rem .75rem;
 }
-#pubsearch { display: block; width: 100%; }
+#pubsearch { display: block; width: 100%; min-height: 48px; }
 #pubsearch::placeholder { color: var(--dim); opacity: 1; }
-#pubsearch:focus-visible,
-#pubyear:focus-visible {
+.publication-refine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem 1rem;
+  margin-top: .875rem;
+}
+#pubfilters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .25rem;
+  margin: 0;
+  padding: .25rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+}
+#pubfilters .chip {
+  min-height: 44px;
+  padding: .5rem .7rem;
+  border: 0;
+  border-radius: 4px;
+  font-size: .65rem;
+  letter-spacing: .06em;
+}
+.publication-year { display: flex; align-items: center; gap: .5rem; }
+.publication-year label { font-size: .8rem; color: var(--dim); }
+#pubyear { font-size: .875rem; }
+#pubreset {
+  min-height: 44px;
+  margin-left: auto;
+  padding: .4rem .25rem;
+  border: 0;
+  background: transparent;
+  color: var(--dim);
+  font: inherit;
+  font-size: .8rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+#pubreset:hover { color: var(--text); }
+#pubsearch:focus-visible, #pubyear:focus-visible, #pubreset:focus-visible {
   outline: 2px solid var(--text);
   outline-offset: 3px;
 }
-#pubsearch-hint { margin: .5rem 0 0; font-size: .875rem; }
-#pubfilters { margin-bottom: 1rem; }
-#pubfilters .chip,
-#pubreset { min-height: 44px; }
-.publication-refine {
+#pubsearch-hint { margin: .75rem 0 0; font-size: .8rem; }
+#pubsearch-hint:lang(ko) { word-break: keep-all; overflow-wrap: anywhere; }
+.publication-results-bar {
   display: flex;
-  align-items: center;
   flex-wrap: wrap;
-  gap: .75rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: .25rem 1rem;
+  margin: .75rem 0;
 }
-#pubresults { font: .8rem var(--mono); margin: 1.25rem 0; color: var(--dim); }
+#pubresults { font: .8rem var(--mono); margin: 0; }
+#profiles { display: flex; flex-wrap: wrap; gap: 1rem; }
+#profiles a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--dim);
+  font-size: .8rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+#profiles a:hover { color: var(--text); }
 #pubempty { padding: 1rem; border: 1px solid var(--line); border-radius: 8px; }
+@media (max-width: 760px) {
+  .publication-tools { padding: 1rem; }
+  #pubfilters { width: 100%; }
+  #pubfilters .chip { padding-inline: .25rem; }
+}
+@media (max-width: 380px) {
+  #pubfilters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .publication-results-bar { gap: 0; }
+  #profiles { width: 100%; }
+}
+@media print {
+  .publication-tools, #profiles { display: none; }
+}

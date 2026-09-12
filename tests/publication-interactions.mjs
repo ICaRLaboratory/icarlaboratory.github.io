@@ -175,5 +175,71 @@ export async function runPublicationChecks(browser, base) {
     assert.equal(await page.locator('#pubsearch-hint').getAttribute('lang'), null);
     assert.equal(await page.getByRole('searchbox', { name: 'Search publications' }).inputValue(), 'robot');
   });
+  await check('Publication search uses case-insensitive token AND across title, authors and venue (not phrase matching)', async page => {
+    const search = page.getByRole('searchbox', { name: 'Search publications' });
+    for (const query of ['  ADAPTIVE   TRACKING  ', 'CONTACTLESS   JO   ELECTRONICS', '  contactless\tjo   electronics  ']) {
+      await search.fill(query);
+      const expected = await page.evaluate(q => {
+        const tokens = q.trim().toLowerCase().split(/\s+/);
+        return [...JOURNAL_PAPERS, ...CONFERENCE_PAPERS]
+          .filter(p => tokens.every(token => `${p.title} ${p.authors} ${p.venue}`.toLowerCase().includes(token)))
+          .map(p => p.title).sort();
+      }, query);
+      assert.ok(expected.length > 0, 'Query exercises known matching real publication data');
+      assert.deepEqual((await page.locator('#publist .pub__title').allTextContents()).map(s => s.trim()).sort(), expected);
+      assert.equal(await search.evaluate(el => el === document.activeElement), true);
+      assert.equal(new URL(page.url()).searchParams.get('q'), query, 'Whitespace normalization is search-only; preserve the entered URL query');
+    }
+    await search.fill('contactless jo electronics no-such-token');
+    assert.equal(await page.locator('#publist .pub').count(), 0, 'Every token must match, not any token');
+    await search.fill('   ');
+    assert.equal(await page.locator('#publist .pub').count(), await page.evaluate(() => JOURNAL_PAPERS.length + CONFERENCE_PAPERS.length));
+  });
+  await check('Token AND search intersects explicit type/year and survives coalesced history, language changes and reset', async page => {
+    const search = page.getByRole('searchbox', { name: 'Search publications' });
+    const year = page.getByLabel('Year', { exact: true });
+    await page.goto(`${base}/publications.html?lang=ko&keep=a&keep=b#main`);
+    await page.evaluate(() => history.replaceState({ marker: 'tokens' }, ''));
+    const initial = page.url();
+    const count = await page.evaluate(() => history.length);
+    await search.pressSequentially('contactless jo electronics');
+    assert.equal(await page.evaluate(() => history.length), count + 1);
+    assert.equal(await page.locator('#publist .pub').count(), 1);
+    await year.selectOption('2026');
+    await page.locator('[data-set="journal"]').click();
+    await page.locator('[data-lang="en"]').click();
+    assert.equal(await page.locator('#publist .pub').count(), 1);
+    await page.reload();
+    assert.equal(await search.inputValue(), 'contactless jo electronics');
+    assert.equal(await year.inputValue(), '2026');
+    assert.equal(await page.locator('[data-set="journal"]').getAttribute('aria-pressed'), 'true');
+    await search.focus();
+    await page.goBack();
+    assert.equal(await page.locator('[data-set="all"]').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('[data-lang="ko"]').getAttribute('aria-pressed'), 'true');
+    assert.equal(await search.evaluate(el => el === document.activeElement), true);
+    await page.goBack();
+    assert.equal(await year.inputValue(), '');
+    await page.goBack();
+    assert.equal(page.url(), initial);
+    assert.deepEqual(await page.evaluate(() => history.state), { marker: 'tokens' });
+    assert.equal(await search.inputValue(), '');
+    await page.goForward();
+    assert.equal(await search.inputValue(), 'contactless jo electronics');
+    assert.equal(await page.locator('#publist .pub').count(), 1);
+    await page.locator('[data-set="conference"]').click();
+    assert.equal(await page.locator('#publist .pub').count(), 0);
+    await page.locator('[data-set="all"]').click();
+    await year.selectOption('2025');
+    assert.equal(await page.locator('#publist .pub').count(), 0);
+    await page.locator('#pubreset').click();
+    assert.equal(await search.inputValue(), '');
+    assert.equal(await year.inputValue(), '');
+    assert.equal(await page.locator('[data-set="journal"]').getAttribute('aria-pressed'), 'true');
+    const url = new URL(page.url());
+    assert.deepEqual(url.searchParams.getAll('keep'), ['a', 'b']);
+    assert.equal(url.hash, '#main');
+    assert.deepEqual(await page.evaluate(() => history.state), { marker: 'tokens' });
+  });
   return results;
 }

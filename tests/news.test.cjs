@@ -4,7 +4,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 const { test } = require('node:test');
 
-const context = vm.createContext({ URLSearchParams, location: { search: '' } });
+const context = vm.createContext({ URLSearchParams, location: { search: '' }, window: new EventTarget() });
 vm.runInContext(fs.readFileSync(path.join(__dirname, '../data/news.js'), 'utf8'), context);
 vm.runInContext(fs.readFileSync(path.join(__dirname, '../assets/site.js'), 'utf8'), context);
 
