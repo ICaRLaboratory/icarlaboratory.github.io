@@ -51,8 +51,11 @@ Automated contrast checks do not replace manual accessibility review.
 at 320, 360, 768 and 1280px, in screen and print media. It measures actual label
 text bounds, value containment, and unchanged contact text/links at normal and
 200% root-font size. Root-font scaling simulates text enlargement, not native zoom.
-Enlarged-layout checks cover shared header navigation and Home/Publications paper
-lists in both languages at 320, 360, 768 and 1280px. The suite checks normal 16px
+Enlarged-layout checks cover shared header navigation, Home/Publications paper
+lists, and Lecture title/year spacing in both languages at 320, 360, 768 and 1280px.
+Lecture checks preserve course text and desktop side-by-side years while allowing
+narrow layouts to wrap; actual text bounds are checked as well as element bounds.
+The suite checks normal 16px
 text and launches Chromium with actual defaultFontSize=24/32 preferences; these
 are browser default-font checks, not page zoom or physical mobile OS settings.
 The browser suite has a 180-second overall deadline for its expanded native checks.

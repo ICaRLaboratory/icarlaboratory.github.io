@@ -979,12 +979,14 @@ main:focus { outline: none; }
 
 .course {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: 1rem;
+  gap: 0.35rem 1rem;
   padding: 0.85rem 0;
   border-bottom: 1px solid var(--line-soft);
 }
 .course:last-child { border-bottom: none; }
+.course > span:first-child { flex: 1 1 16rem; min-width: 0; overflow-wrap: anywhere; }
 .course__name { font-weight: 540; font-size: 0.97rem; }
 .course__ko { color: var(--faint); font-size: 0.85rem; margin-left: 0.45rem; word-break: keep-all; }
 .course__years { margin-left: auto; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; color: var(--faint); white-space: nowrap; }

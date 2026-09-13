@@ -11,7 +11,7 @@ async function runFontChecks(browser, base, fontSize) {
   {
     const context = await browser.newContext({ reducedMotion: 'reduce' });
     try {
-      for (const lang of ['en', 'ko']) for (const file of ['index.html', 'publications.html']) {
+      for (const lang of ['en', 'ko']) for (const file of ['index.html', 'publications.html', 'lecture.html']) {
         let preserved;
         for (const width of [320, 360, 768, 1280]) {
           const name = `enlarged browser preference ${fontSize}px ${lang} ${file} ${width}px`;
@@ -29,6 +29,7 @@ async function runFontChecks(browser, base, fontSize) {
               brand: document.querySelector('.nav .brand').textContent.replace(/\s+/g, ' ').trim(),
               links: [...document.querySelectorAll('.nav a, .pub a')].map(a => [a.textContent, a.getAttribute('href'), a.target, a.rel]),
               papers: [...document.querySelectorAll('.pub')].map(el => el.textContent),
+              courses: [...document.querySelectorAll('.course')].map(el => el.textContent),
             }));
             preserved ??= content;
             assert.deepEqual(content, preserved, 'Text and link attributes must survive reflow');
@@ -47,6 +48,26 @@ async function runFontChecks(browser, base, fontSize) {
                 ? [`${el.className}: width ${el.clientWidth}, scroll ${el.scrollWidth}, right ${r.right}, parent ${parent.right}`] : [];
             }));
             assert.deepEqual(overflow, [], 'Publication descendants must not clip');
+            if (file === 'lecture.html') {
+              const courses = await page.locator('.course').evaluateAll(rows => rows.map(row => {
+                const bounds = row.getBoundingClientRect();
+                const rects = [...row.querySelectorAll('span')].flatMap(span => {
+                  const range = document.createRange();
+                  range.selectNodeContents(span);
+                  return [...range.getClientRects()];
+                });
+                const title = row.firstElementChild.getBoundingClientRect();
+                const year = row.querySelector('.course__years').getBoundingClientRect();
+                return { text: row.textContent, fits: rects.every(r => r.left >= bounds.left - 1 && r.right <= bounds.right + 1),
+                  separate: year.left >= title.right || year.top >= title.bottom,
+                  sameLine: year.top < title.bottom };
+              }));
+              assert.ok(courses.length > 0, 'Actual course data is rendered');
+              for (const course of courses) {
+                assert.ok(course.fits && course.separate, `Course title and year fit without overlap: ${course.text}`);
+                if (fontSize === 16 && width === 1280) assert.ok(course.sameLine, 'Normal desktop retains side-by-side years');
+              }
+            }
             // Reach the skip link natively from a fresh document, then activate it.
             await page.keyboard.press('Tab');
             assert.equal(await page.locator('.skip').evaluate(el => el === document.activeElement), true);
