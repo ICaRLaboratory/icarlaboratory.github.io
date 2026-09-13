@@ -22,15 +22,15 @@
   gap: .8rem;
   min-height: 48px;
   padding: .65rem 1.1rem;
-  border: 1px solid #0a0a0a;
+  border: 1px solid #d4d4d8;
   border-radius: 999px;
-  background: #0a0a0a;
-  color: #fff;
+  background: #f2f2f0;
+  color: #3f3f46;
   font-weight: 600;
   text-decoration: none;
 }
-.research-nav--sections a:hover { background: #333; border-color: #333; }
-.research-nav--sections a:focus-visible { outline: 2px solid #0a0a0a; outline-offset: 4px; }
+.research-nav--sections a:hover { border-color: #71717a; }
+.research-nav--sections a:focus-visible { border-color: #71717a; outline: 2px solid #3f3f46; outline-offset: 4px; }
 .research-nav--sections svg {
   width: 1em;
   height: 1em;

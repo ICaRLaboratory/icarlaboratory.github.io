@@ -397,6 +397,8 @@ const SIM = (function () {
         row.classList.toggle("is-off", !applies);
         outs[c.id].textContent = !applies && locked == null ? (c.off || "—")
           : c.show ? c.show(shown, P) : String(shown);
+        /* Announce the displayed units, not the slider's internal scale. */
+        inputs[c.id].setAttribute("aria-valuetext", outs[c.id].textContent);
       }
       for (const r of def.readouts) {
         if (rows[r.id]) rows[r.id].hidden = r.hide ? r.hide(P) : false;

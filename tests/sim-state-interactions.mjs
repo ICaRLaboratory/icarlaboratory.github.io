@@ -75,6 +75,55 @@ export async function runSimStateChecks(browser, base) {
     catch (error) { results.push({ name, pass: false, error: error.message }); }
   }
   try {
+    await check('formatted slider values stay accessible through keyboard, mode and Replay resets', async () => {
+      await open();
+      const synced = async () => {
+        const values = await page.locator('#simpanels input[type=range]').evaluateAll(inputs =>
+          inputs.map(input => ({ id: input.id, text: input.getAttribute('aria-valuetext'),
+            shown: document.getElementById(input.id + '-val').textContent })));
+        for (const value of values) assert.equal(value.text, value.shown, `${value.id} exposes its formatted output`);
+      };
+      await tab('contact');
+      const stiffness = page.locator('#sim-contact-ke');
+      const assertStiffness = async (raw, formatted) => {
+        assert.equal(await stiffness.inputValue(), raw, 'native logarithmic scale is preserved');
+        assert.equal(await page.locator('#sim-contact-ke-val').textContent(), formatted);
+        assert.equal(await stiffness.getAttribute('aria-valuetext'), formatted);
+        await synced();
+      };
+      await assertStiffness('33', '2.0 kN/m');
+      await stiffness.focus();
+      await page.keyboard.press('ArrowRight');
+      await assertStiffness('34', '2.5 kN/m');
+      await page.locator('#sim-contact-mode [data-value=impedance]').click();
+      assert.equal(await page.locator('#sim-contact-md').getAttribute('aria-valuetext'), "the machine's own");
+      await assertStiffness('34', '2.5 kN/m');
+      await page.locator('#sim-contact-mode [data-value=admittance]').click();
+      await assertStiffness('34', '2.5 kN/m');
+      await tick(6000);
+      assert.equal(await play('contact').textContent(), 'Replay');
+      await play('contact').click();
+      await assertStiffness('34', '2.5 kN/m');
+      await stiffness.focus();
+      await page.keyboard.press('End');
+      await assertStiffness('61', '1.3 MN/m');
+      await page.keyboard.press('Home');
+      await assertStiffness('30', '1.0 kN/m');
+      await tab('track');
+      await page.locator('#sim-track-m').focus();
+      await page.keyboard.press('ArrowRight');
+      await page.locator('#sim-track-h').focus();
+      await page.keyboard.press('ArrowRight');
+      assert.equal(await page.locator('#sim-track-m-val').textContent(), '1 sample  ·  11 ms');
+      await synced();
+      await page.locator('#sim-track-law [data-value=asmc]').click();
+      assert.equal(await page.locator('#sim-track-h').isDisabled(), true);
+      await synced();
+      await page.locator('#sim-track-law [data-value=pd]').click();
+      assert.equal(await page.locator('#sim-track-h').inputValue(), '11');
+      assert.equal(await page.locator('#sim-track-m-val').textContent(), '1 sample  ·  11 ms');
+      await synced();
+    });
     await check('Pause survives real panel clicks without resetting either model', async () => {
       await open();
       await tick(12);

@@ -112,13 +112,21 @@ export async function runResearchChecks(browser, base) {
               weight: Number(s.fontWeight), padding: parseFloat(s.paddingLeft),
               fits: r.left >= 0 && r.right <= innerWidth && r.height >= 44 && el.scrollWidth <= el.clientWidth };
           });
-          assert.equal(style.background, 'rgb(10, 10, 10)', `${name}: dark chip surface`);
-          assert.equal(style.color, 'rgb(255, 255, 255)', `${name}: white label`);
+          assert.equal(style.background, 'rgb(242, 242, 240)', `${name}: subdued chip surface`);
+          assert.equal(style.color, 'rgb(63, 63, 70)', `${name}: dark gray label`);
           assert.ok(style.size >= 16 && style.weight >= 600 && style.padding >= 16, 'Prominent, padded labels');
           assert.ok(style.fits, 'Whole chip fits the viewport');
           assert.equal(await link.locator('svg[aria-hidden="true"]').count(), 1, 'Decorative direction cue');
           assert.equal(await page.getByRole('link', { name, exact: true }).count(), 1, 'Arrow does not change accessible name');
         }
+        await links.first().hover();
+        await page.waitForFunction(() => getComputedStyle(document.querySelector('.research-nav--sections a')).borderTopColor === 'rgb(113, 113, 122)');
+        const hover = await links.first().evaluate(el => {
+          const s = getComputedStyle(el);
+          return { background: s.backgroundColor, border: s.borderTopColor };
+        });
+        assert.deepEqual(hover, { background: 'rgb(242, 242, 240)', border: 'rgb(113, 113, 122)' }, 'Hover strengthens only the border');
+        await page.mouse.move(0, 0);
         for (let i = 0; i < 30; i++) {
           await page.keyboard.press('Tab');
           if (await links.first().evaluate(el => el === document.activeElement)) break;

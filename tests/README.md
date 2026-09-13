@@ -20,13 +20,14 @@ Back/Forward (Research anchors, Skip and Gallery year hashes), and simulator
 radio-group keys. Simulator state checks cover pause/history preservation across
 panel changes, conditional playback resumption, Replay, parameter changes and
 reduced motion. Document visibility changes are simulated in these checks; they
-do not certify physical browser-tab switching.
+do not certify physical browser-tab switching. Slider checks compare displayed physical
+values/units with accessible value text, including keyboard changes and mode resets.
 
 Publication checks cover title/author/venue/DOI search, combined type/year filters,
 result announcements, empty/reset states, safe query rendering and URL restoration.
 Research checks cover native section-link navigation, focus, deep links and
 contextual routes to Publications and Contact. Both include narrow-screen checks.
-Research section chips also check dark surfaces, readable labels, decorative arrows,
+Research section chips also check subdued gray surfaces, readable labels, decorative arrows,
 keyboard focus and viewport fit in KO/EN at 320, 360, 768 and 1280px.
 Publication URLs use `q`, `type` (`journal`, `conference`, `domestic`, `all`) and
 `year`. Initial selection and Reset use All. An explicitly chosen type remains
@@ -50,6 +51,10 @@ Automated contrast checks do not replace manual accessibility review.
 at 320, 360, 768 and 1280px, in screen and print media. It measures actual label
 text bounds, value containment, and unchanged contact text/links at normal and
 200% root-font size. Root-font scaling simulates text enlargement, not native zoom.
+Enlarged-layout checks cover shared header navigation and Home/Publications paper
+lists in both languages at 320, 360, 768 and 1280px. The suite checks normal 16px
+text and launches Chromium with actual defaultFontSize=24/32 preferences; these
+are browser default-font checks, not page zoom or physical mobile OS settings.
 The browser suite has a 180-second overall deadline for its expanded native checks.
 
 Failed assertions, empty results, uncaught page errors, console errors

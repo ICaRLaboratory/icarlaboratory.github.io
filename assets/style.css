@@ -428,6 +428,7 @@ main:focus { outline: none; }
 
 .nav__inner {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 1rem;
   min-height: 68px;
@@ -485,10 +486,16 @@ main:focus { outline: none; }
 
 /* mobile nav */
 @media (max-width: 920px) {
+  /* Let the brand use spare room without making its unwrapped width force
+     ordinary phone controls onto another row. Enlarged text can still wrap. */
+  .nav .brand { flex: 1 1 0; min-width: min-content; }
   .nav__toggle { display: grid; }
   .nav__links {
-    position: fixed;
-    inset: 68px 0 auto 0;
+    /* Follow the actual bar height when enlarged text wraps its controls. */
+    position: absolute;
+    inset: 100% 0 auto 0;
+    max-height: calc(100dvh - 100%);
+    overflow-y: auto;
     flex-direction: column;
     align-items: stretch;
     gap: 0;
@@ -504,6 +511,10 @@ main:focus { outline: none; }
   .nav__links.is-open { opacity: 1; transform: none; pointer-events: auto; }
   .nav__links a { padding: 0.8rem 0.25rem; font-size: 1rem; border-radius: 0; border-bottom: 1px solid var(--line-soft); }
   .nav__links a[aria-current="page"]::after { left: 0.25rem; right: auto; width: 22px; bottom: 0.35rem; }
+}
+
+@media (max-width: 460px) {
+  .nav__inner { column-gap: 0.5rem; }
 }
 
 /* ---------- hero ---------- */
@@ -910,7 +921,7 @@ main:focus { outline: none; }
 
 .year-group { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 1.5rem; padding-block: 1.9rem; border-top: 1px solid var(--line-soft); }
 .year-group:first-of-type { border-top: none; padding-top: 0; }
-@media (max-width: 700px) { .year-group { grid-template-columns: 1fr; gap: 0.9rem; } }
+@media (max-width: 700px) { .year-group { grid-template-columns: minmax(0, 1fr); gap: 0.9rem; } }
 
 .year-label {
   margin: 0;
@@ -927,7 +938,7 @@ main:focus { outline: none; }
 @media (max-width: 700px) { .year-label { position: static; font-size: 1.5rem; color: var(--accent); } }
 
 .pub-list { list-style: none; margin: 0; padding: 0; }
-.pub { padding: 0.95rem 0; border-bottom: 1px solid var(--line-soft); }
+.pub { padding: 0.95rem 0; border-bottom: 1px solid var(--line-soft); overflow-wrap: anywhere; }
 .pub:last-child { border-bottom: none; }
 .pub__title { font-size: 1rem; font-weight: 550; line-height: 1.5; letter-spacing: -0.01em; }
 .pub__authors { font-size: 0.86rem; color: var(--dim); margin-top: 0.35rem; }
