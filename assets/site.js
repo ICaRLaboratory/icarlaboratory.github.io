@@ -414,7 +414,7 @@ function renderPublications() {
     all: every,
   };
 
-  let type = "journal";
+  let type = "all";
   let explicitType = false;
   const search = $("#pubsearch");
   const yearSelect = $("#pubyear");
@@ -443,15 +443,15 @@ function renderPublications() {
     initReveal();
   };
 
-  /* q without type searches All; no q/type starts Journal. A chosen type
-     remains explicit, even Journal. Clearing a query keeps the current type;
-     Reset restores the untouched default. Only q/year/type belong to us. */
+  /* All is the default with or without a query. A chosen type remains
+     explicit. Clearing a query keeps that type; Reset restores All.
+     Only q/year/type belong to us. */
   let editingSearch = false;
   const readURL = () => {
     const params = new URL(location.href).searchParams;
     search.value = params.get("q") || "";
     explicitType = Object.hasOwn(sets, params.get("type"));
-    type = explicitType ? params.get("type") : search.value.trim() ? "all" : "journal";
+    type = explicitType ? params.get("type") : "all";
     yearSelect.value = years.includes(params.get("year")) ? params.get("year") : "";
     editingSearch = false;
     draw();
@@ -461,7 +461,7 @@ function renderPublications() {
     const values = {
       q: search.value,
       year: yearSelect.value,
-      type: explicitType || type !== "journal" ? type : "",
+      type: explicitType || type !== "all" ? type : "",
     };
     Object.entries(values).forEach(([key, value]) => {
       if (value) url.searchParams.set(key, value);
@@ -489,7 +489,7 @@ function renderPublications() {
     saveURL();
   });
   $("#pubreset").addEventListener("click", () => {
-    type = "journal";
+    type = "all";
     explicitType = false;
     editingSearch = false;
     search.value = "";
@@ -498,7 +498,6 @@ function renderPublications() {
     saveURL();
   });
   search.addEventListener("input", () => {
-    if (!explicitType && search.value.trim()) type = "all";
     draw();
     /* One history entry per editing session, not per keystroke. */
     saveURL(editingSearch);

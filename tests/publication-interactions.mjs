@@ -11,9 +11,13 @@ export async function runPublicationChecks(browser, base) {
     catch (error) { results.push({ name, pass: false, error: error.message }); }
     finally { await page.close(); }
   };
-  await check('Publication search opens all types from untouched Journal and respects explicit type', async page => {
-    const data = await page.evaluate(() => ({ journals: JOURNAL_PAPERS.length, paper: CONFERENCE_PAPERS[0] }));
-    assert.equal(await page.locator('#publist .pub').count(), data.journals);
+  await check('Publication defaults to All and respects explicit type', async page => {
+    const data = await page.evaluate(() => ({ journals: JOURNAL_PAPERS.length, total: JOURNAL_PAPERS.length + CONFERENCE_PAPERS.length, paper: CONFERENCE_PAPERS[0] }));
+    assert.equal(await page.locator('#publist .pub').count(), data.total);
+    assert.equal(await page.locator('[data-set="all"]').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('#pubfilters [aria-pressed="true"]').count(), 1);
+    await page.reload();
+    assert.equal(await page.locator('[data-set="all"]').getAttribute('aria-pressed'), 'true');
     const search = page.getByRole('searchbox', { name: 'Search publications' });
     await search.fill(data.paper.title);
     assert.equal(await page.locator('[data-set="all"]').getAttribute('aria-pressed'), 'true');
@@ -47,7 +51,7 @@ export async function runPublicationChecks(browser, base) {
     assert.equal(await reset.evaluate(el => el === document.activeElement), true);
     assert.equal(await search.inputValue(), '');
     assert.equal(await year.inputValue(), '');
-    assert.equal(await page.locator('[data-set="journal"]').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('[data-set="all"]').getAttribute('aria-pressed'), 'true');
     assert.equal(await page.locator('#pubempty').isVisible(), false);
   });
   await check('Publication URL restores combined filters, preserves unrelated state and supports history', async page => {
@@ -58,7 +62,7 @@ export async function runPublicationChecks(browser, base) {
     await search.fill(paper.title);
     let url = new URL(page.url());
     assert.equal(url.searchParams.get('q'), paper.title);
-    assert.equal(url.searchParams.get('type'), 'all');
+    assert.equal(url.searchParams.get('type'), null);
     await page.getByLabel('Year', { exact: true }).selectOption(String(paper.year));
     await page.getByRole('button', { name: 'Conference', exact: true }).click();
     url = new URL(page.url());
@@ -84,7 +88,7 @@ export async function runPublicationChecks(browser, base) {
     assert.equal(await page.locator('[data-set="all"]').getAttribute('aria-pressed'), 'true');
     assert.equal(await page.locator('#publist .pub').count(), 1);
     await page.goto(`${base}/publications.html?type=__proto__&year=2026oops&lang=en#main`);
-    assert.equal(await page.locator('[data-set="journal"]').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('[data-set="all"]').getAttribute('aria-pressed'), 'true');
     assert.equal(await page.getByLabel('Year', { exact: true }).inputValue(), '');
     assert.ok(await page.locator('#publist .pub').count() > 0);
     await page.goto(`${base}/publications.html?type=conference&type=journal&q=${encodeURIComponent(paper.title)}&q=ignored&year=${paper.year}&year=invalid&lang=en#main`);
@@ -126,7 +130,7 @@ export async function runPublicationChecks(browser, base) {
     assert.equal(await page.evaluate(() => history.length), before + 1);
     await page.goBack();
     assert.equal(await search.inputValue(), '');
-    assert.equal(await page.locator('[data-set="journal"]').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('[data-set="all"]').getAttribute('aria-pressed'), 'true');
     await page.goForward();
     assert.equal(await search.inputValue(), 'control');
     const conference = page.getByRole('button', { name: 'Conference', exact: true });
@@ -235,7 +239,7 @@ export async function runPublicationChecks(browser, base) {
     await page.locator('#pubreset').click();
     assert.equal(await search.inputValue(), '');
     assert.equal(await year.inputValue(), '');
-    assert.equal(await page.locator('[data-set="journal"]').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('[data-set="all"]').getAttribute('aria-pressed'), 'true');
     const url = new URL(page.url());
     assert.deepEqual(url.searchParams.getAll('keep'), ['a', 'b']);
     assert.equal(url.hash, '#main');
