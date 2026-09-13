@@ -221,7 +221,7 @@ const ADVISOR = {
     },
     {
       period: "2018.03 – 2019.08",
-      role: { en: "Staff Engineer", ko: "스태프 엔지니어" },
+      role: { en: "Staff Engineer", ko: "책임연구원" },
       org: { en: "Samsung Electronics", ko: "삼성전자" },
       note: "",
     },

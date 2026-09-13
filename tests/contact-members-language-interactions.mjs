@@ -55,6 +55,8 @@ export async function runContactMembersLanguageChecks(browser, base) {
       : ['Ph.D. Candidate', 'M.S. Candidate', 'M.S. Candidate', 'M.S.', 'M.S.']);
     assert.equal(await page.locator('#advisor .timeline').last().locator('.tl-note').first().textContent(), lang === 'ko'
       ? '정보전자융합공학부' : 'Division of IT Convergence Engineering (ITCE)');
+    assert.equal(await page.locator('#advisor .timeline').first().locator('.tl-role').last().textContent(), lang === 'ko'
+      ? '책임연구원' : 'Staff Engineer');
     const thesis = await page.locator('#advisor .timeline').last().locator('.tl-note').nth(1).textContent();
     assert.equal(thesis, lang === 'ko'
       ? '학위논문: “Stability Analysis of Systems with Time-varying Delays via Slack Matrix Based Approaches” · 지도교수: PooGyeon Park 교수'
