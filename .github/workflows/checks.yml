@@ -58,10 +58,11 @@ jobs:
       - name: Install development-only Chromium checks outside the site
         shell: bash
         run: |
-          npm install --prefix "$RUNNER_TEMP/icar-browser" --no-save --package-lock=false --ignore-scripts --no-audit --no-fund playwright@1.63.0
+          npm install --prefix "$RUNNER_TEMP/icar-browser" --no-save --package-lock=false --ignore-scripts --no-audit --no-fund playwright@1.63.0 axe-core@4.13.0
           node "$RUNNER_TEMP/icar-browser/node_modules/playwright/cli.js" install --with-deps chromium
 
       - name: Run the real browser harness (runner manages local HTTP server)
         env:
           PLAYWRIGHT_MODULE: ${{ runner.temp }}/icar-browser/node_modules/playwright/index.mjs
+          AXE_SCRIPT: ${{ runner.temp }}/icar-browser/node_modules/axe-core/axe.min.js
         run: node tools/run-browser-checks.mjs

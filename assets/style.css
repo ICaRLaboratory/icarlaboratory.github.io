@@ -29,7 +29,7 @@
 
   --text:   #0a0a0a;
   --dim:    #55555c;
-  --faint:  #71717a;
+  --faint:  #666670;
 
   /* black IS the accent -- every --accent below resolves to ink,
      and flips to paper inside .invert */
@@ -65,7 +65,7 @@
 
   --text:   #fafafa;
   --dim:    #a7a7ae;
-  --faint:  #74747c;
+  --faint:  #92929a;
 
   --accent:   var(--text);
   --accent-2: #9a9aa2;
@@ -1449,7 +1449,7 @@ main:focus { outline: none; }
             --bg: #fff; --text: #000; --dim: #333; --faint: #555;
             --line: #bbb; --line-soft: #ddd; --panel: transparent; }
 
-  .nav, .hero__art, .lightbox, .filters, .cta-row, .icon-btn, .to-top,
+  #nav, .nav, .hero__art, .lightbox, .filters, .cta-row, .icon-btn, .to-top,
   .map, .banner, .card__media { display: none !important; }
 
   .hero { min-height: auto; background: none !important; }

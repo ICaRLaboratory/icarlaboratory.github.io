@@ -38,6 +38,12 @@ boundaries, immediate visibility after search updates, editing-session history,
 and print-only query/type/year summaries.
 Compact-layout checks cover KO/EN at 320, 390, 768 and 1280px: search/result placement,
 native control order, 44px targets, clipping, and attributed Scholar/ORCID links.
+`accessibility-interactions.mjs` checks actual text contrast with axe-core on all
+seven main pages in KO/EN at 320 and 1280px. A current-date news fixture keeps
+announcement contrast covered after real news expires. The same pages are checked
+in print media for a removed navigation slot and restored screen navigation.
+Axe is injected only by the test runner, never loaded by the published pages.
+Automated contrast checks do not replace manual accessibility review.
 The browser suite has a 180-second overall deadline for its expanded native checks.
 
 Failed assertions, empty results, uncaught page errors, console errors
@@ -54,9 +60,10 @@ with Node.js 22+ and Python 3:
 ```bash
 deps=$(mktemp -d)
 trap 'rm -rf "$deps"' EXIT
-npm install --prefix "$deps" --no-save --package-lock=false --ignore-scripts --no-audit --no-fund playwright@1.63.0
+npm install --prefix "$deps" --no-save --package-lock=false --ignore-scripts --no-audit --no-fund playwright@1.63.0 axe-core@4.13.0
 node "$deps/node_modules/playwright/cli.js" install chromium
-PLAYWRIGHT_MODULE="$deps/node_modules/playwright/index.mjs" node tools/run-browser-checks.mjs
+PLAYWRIGHT_MODULE="$deps/node_modules/playwright/index.mjs" \
+AXE_SCRIPT="$deps/node_modules/axe-core/axe.min.js" node tools/run-browser-checks.mjs
 ```
 
 On a fresh Linux machine, use `install --with-deps chromium` instead to install

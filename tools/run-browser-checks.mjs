@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Development-only: PLAYWRIGHT_MODULE points to a temporary install's index.mjs.
 import { spawn } from 'node:child_process';
+import { readFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -12,11 +13,15 @@ import { runSimStateChecks } from '../tests/sim-state-interactions.mjs';
 import { runPublicationChecks } from '../tests/publication-interactions.mjs';
 import { runPublicationLayoutChecks } from '../tests/publication-layout-interactions.mjs';
 import { runResearchChecks } from '../tests/research-interactions.mjs';
+import { runAccessibilityChecks } from '../tests/accessibility-interactions.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const python = process.env.PYTHON || 'python3';
 const modulePath = process.env.PLAYWRIGHT_MODULE;
 const { chromium } = await import(modulePath ? pathToFileURL(resolve(modulePath)).href : 'playwright');
+const axePath = process.env.AXE_SCRIPT;
+if (!axePath) throw new Error('Set AXE_SCRIPT to the development-only axe-core/axe.min.js path (see tests/README.md).');
+const axeSource = await readFile(axePath, 'utf8');
 const controller = new AbortController();
 const { signal } = controller;
 const interrupt = () => controller.abort(new Error('Browser checks interrupted'));
@@ -96,6 +101,7 @@ async function run() {
   results.push(...await runPublicationChecks(browser, base));
   results.push(...await runPublicationLayoutChecks(browser, base));
   results.push(...await runResearchChecks(browser, base));
+  results.push(...await runAccessibilityChecks(browser, base, axeSource));
   for (const result of results) {
     console.log(`${result?.pass === true ? 'PASS' : 'FAIL'} ${result?.name}${result?.error ? ': ' + result.error : ''}`);
   }
