@@ -245,5 +245,46 @@ export async function runPublicationChecks(browser, base) {
     assert.equal(url.hash, '#main');
     assert.deepEqual(await page.evaluate(() => history.state), { marker: 'tokens' });
   });
+  await check('Publication highlights literal matches without changing citation text or links', async page => {
+    const search = page.locator('#pubsearch');
+    await search.fill('CONTACTLESS JO ELECTRONICS');
+    for (const field of ['.pub__title', '.pub__authors', '.pub__venue em']) {
+      assert.ok(await page.locator(`#publist ${field} mark`).count() > 0);
+    }
+    const snapshot = await page.locator('#publist').innerText();
+    const href = await page.locator('#publist .pub__link').first().getAttribute('href');
+    await page.reload();
+    assert.equal(await page.locator('#publist').innerText(), snapshot);
+    assert.equal(await page.locator('#publist .pub__link').first().getAttribute('href'), href);
+    await page.locator('[data-lang="ko"]').click();
+    assert.ok(await page.locator('#publist mark').count() > 0);
+    await search.fill('S. Y. Lee');
+    assert.ok(await page.locator('#publist .pub__authors b mark').count() > 0);
+    await search.fill('');
+    assert.equal(await page.locator('#publist mark').count(), 0);
+    const literal = await page.evaluate(() => {
+      const host = document.createElement('div');
+      const field = document.createElement('span');
+      field.className = 'pub__title';
+      const text = '<img src=x onerror=alert(1)> & [a+b] control controller';
+      field.textContent = text;
+      host.append(field);
+      highlightPublicationMatches(host, ['<img', '&', '[a+b]', 'control', 'controller']);
+      return { text: host.textContent, expected: text, images: host.querySelectorAll('img').length, marks: [...host.querySelectorAll('mark')].map(m => m.textContent) };
+    });
+    assert.equal(literal.text, literal.expected);
+    assert.equal(literal.images, 0);
+    assert.deepEqual(literal.marks, ['<img', '&', '[a+b]', 'control', 'controller']);
+  });
+  await check('Publication filter order and Domestic explanation agree in both languages', async page => {
+    assert.deepEqual(await page.locator('#pubfilters button').evaluateAll(bs => bs.map(b => b.dataset.set)), ['all', 'journal', 'conference', 'domestic']);
+    const domestic = page.locator('[data-set="domestic"]');
+    assert.equal(await domestic.getAttribute('aria-describedby'), 'pubdomestic-hint');
+    assert.match(await page.locator('#pubdomestic-hint').innerText(), /Korean journals and conferences/);
+    await page.locator('[data-lang="ko"]').click();
+    assert.match(await page.locator('#pubdomestic-hint').innerText(), /국내 학술지·학술대회/);
+    await domestic.click();
+    assert.equal(await domestic.getAttribute('aria-pressed'), 'true');
+  });
   return results;
 }

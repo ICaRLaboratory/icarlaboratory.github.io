@@ -37,7 +37,7 @@ export async function runPublicationLayoutChecks(browser, base) {
       assert.deepEqual(profiles.map(a => a.href), [advisor.scholar, `https://orcid.org/${advisor.orcid}`]);
       assert.ok(profiles.every(a => a.rel.split(/\s+/).includes('noopener')));
       assert.ok((await page.locator('#profiles').getAttribute('aria-label')).includes(advisor.name));
-      const selectors = ['#pubsearch', ...['journal', 'conference', 'domestic', 'all'].map(type => `#pubfilters [data-set="${type}"]`), '#pubyear', '#pubreset'];
+      const selectors = ['#pubsearch', ...['all', 'journal', 'conference', 'domestic'].map(type => `#pubfilters [data-set="${type}"]`), '#pubyear', '#pubreset'];
       await search.focus();
       for (const selector of selectors) {
         const el = page.locator(selector);

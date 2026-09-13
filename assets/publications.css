@@ -148,7 +148,10 @@
 }
 #pubempty { padding: 1rem; border: 1px solid var(--line); border-radius: 8px; }
 @media (max-width: 760px) {
-  .publication-tools { padding: 1rem; }
+  .pagehead { padding-block: 2rem 1.25rem; }
+  .publication-tools { padding: .875rem 1rem; }
+  .publication-refine { margin-top: .625rem; gap: .5rem 1rem; }
+  #pubsearch-hint { margin-top: .5rem; }
   #pubfilters { width: 100%; }
   #pubfilters .chip { padding-inline: .25rem; }
 }
@@ -157,6 +160,12 @@
   .publication-results-bar { gap: 0; }
   #profiles { width: 100%; }
 }
+#publist .publication-match {
+  background: #fff0b3;
+  color: inherit;
+  border-radius: 2px;
+}
 @media print {
+  #publist .publication-match { background: transparent; }
   .publication-tools, #profiles { display: none; }
 }

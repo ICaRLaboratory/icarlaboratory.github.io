@@ -400,6 +400,35 @@ function pubRef(doi) {
       <span class="pub__venue"><em>${esc(p.venue)}</em> &middot; ${esc(p.detail)} &middot; ${link}</span>`;
 }
 
+/* Mark literal matches in text nodes only, preserving links and author markup. */
+function highlightPublicationMatches(host, tokens) {
+  if (!tokens.length) return;
+  const pattern = [...new Set(tokens)].sort((a, b) => b.length - a.length)
+    .map(token => token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
+  const matches = new RegExp(pattern, "gi");
+  $$(".pub__title, .pub__authors, .pub__venue em", host).forEach(field => {
+    const walker = document.createTreeWalker(field, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(node => {
+      const text = node.nodeValue;
+      const fragment = document.createDocumentFragment();
+      let end = 0;
+      for (const match of text.matchAll(matches)) {
+        fragment.append(text.slice(end, match.index));
+        const mark = document.createElement("mark");
+        mark.className = "publication-match";
+        mark.textContent = match[0];
+        fragment.append(mark);
+        end = match.index + match[0].length;
+      }
+      if (!end) return;
+      fragment.append(text.slice(end));
+      node.replaceWith(fragment);
+    });
+  });
+}
+
 function renderPublications() {
   const host = $("#publist");
   if (!host) return;
@@ -440,6 +469,7 @@ function renderPublications() {
           <ol class="pub-list">${papers.map(pubRow).join("")}</ol>
         </section>`)
       .join("");
+    highlightPublicationMatches(host, tokens);
     initReveal();
   };
 
@@ -534,9 +564,16 @@ function renderPublications() {
 
   const updateProse = () => {
     setProse($("#pubsearch-hint"), {
-      en: "Search starts in All; selecting a type limits the search.",
-      ko: "검색은 전체(All)에서 시작하며, 유형을 선택하면 검색 범위가 제한됩니다.",
+      en: "All is the default; select a filter to narrow your search.",
+      ko: "기본값은 전체(All)이며, 필터로 검색 범위를 좁힐 수 있습니다.",
     });
+    const domesticHint = document.createElement("span");
+    domesticHint.id = "pubdomestic-hint";
+    setProse(domesticHint, {
+      en: "Domestic: Korean journals and conferences.",
+      ko: "Domestic: 국내 학술지·학술대회.",
+    });
+    $("#pubsearch-hint").append(" ", domesticHint);
     setProse($("#pubempty"), {
       en: "No publications match. Try another search or reset the filters.",
       ko: "검색 결과가 없습니다. 검색어를 바꾸거나 필터를 초기화하세요.",
