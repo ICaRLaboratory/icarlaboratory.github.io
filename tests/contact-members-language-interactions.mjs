@@ -16,7 +16,7 @@ export async function runContactMembersLanguageChecks(browser, base) {
     } finally { await context.close(); }
   }
   async function contact(page, lang) {
-    assert.equal(await page.locator('[data-site="contactLabName"]').textContent(), lang === 'ko' ? 'ICaR 연구실' : 'Intelligent Control and Robotics Laboratory');
+    assert.equal(await page.locator('[data-site="contactLabName"]').textContent(), lang === 'ko' ? '지능제어 및 로보틱스 연구실' : 'Intelligent Control and Robotics Laboratory');
     assert.equal(await page.locator('main .contact-row').count(), 5, 'Only one address row');
     assert.equal(await page.locator('[data-site="address"]').textContent(), lang === 'ko'
       ? '05006 서울특별시 광진구 능동로 209 (군자동) 세종대학교 대양 AI센터 515호'
@@ -53,6 +53,8 @@ export async function runContactMembersLanguageChecks(browser, base) {
     assert.deepEqual(await page.locator('.person__role').allTextContents(), lang === 'ko'
       ? ['박사과정', '석사과정', '석사과정', '석사', '석사']
       : ['Ph.D. Candidate', 'M.S. Candidate', 'M.S. Candidate', 'M.S.', 'M.S.']);
+    assert.equal(await page.locator('#advisor .timeline').last().locator('.tl-note').first().textContent(), lang === 'ko'
+      ? '정보전자융합공학부' : 'Division of IT Convergence Engineering (ITCE)');
     const thesis = await page.locator('#advisor .timeline').last().locator('.tl-note').nth(1).textContent();
     assert.equal(thesis, lang === 'ko'
       ? '학위논문: “Stability Analysis of Systems with Time-varying Delays via Slack Matrix Based Approaches” · 지도교수: PooGyeon Park 교수'

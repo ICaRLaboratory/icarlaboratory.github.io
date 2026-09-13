@@ -232,7 +232,7 @@ const ADVISOR = {
       period: "2011.03 – 2018.02",
       degree: { en: "Ph.D.", ko: "박사" },
       org: { en: "POSTECH", ko: "포항공과대학교" },
-      dept: { en: "Division of IT Convergence Engineering (ITCE)", ko: "IT융합공학과 (ITCE)" },
+      dept: { en: "Division of IT Convergence Engineering (ITCE)", ko: "정보전자융합공학부" },
       note: {
         en: "Dissertation: “Stability Analysis of Systems with Time-varying Delays via Slack Matrix Based Approaches” · Advisor: Prof. PooGyeon Park",
         ko: "학위논문: “Stability Analysis of Systems with Time-varying Delays via Slack Matrix Based Approaches” · 지도교수: PooGyeon Park 교수",

@@ -131,7 +131,7 @@ function fillFields(root = document) {
     tagline: SITE.tagline,
     intro: SITE.intro,
     labName: SITE.labName,
-    contactLabName: { en: SITE.labName, ko: "ICaR 연구실" },
+    contactLabName: { en: SITE.labName, ko: "지능제어 및 로보틱스 연구실" },
     labShort: SITE.labShort,
     department: SITE.department,
     university: SITE.university,
