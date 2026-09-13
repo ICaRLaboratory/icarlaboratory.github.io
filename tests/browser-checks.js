@@ -113,9 +113,9 @@ window.testsDone = false;
           if (clipped.length) window.testResults.at(-1).elements = clipped.slice(0, 4)
             .map(el => el.tagName + '.' + el.className);
           if (page === 'contact.html') {
-            const address = pageDoc.querySelector('[data-site="addressKo"]');
-            check(`Korean address keeps ko language in ${lang} mode at ${width}px`,
-              address.closest('[lang]')?.lang === 'ko');
+            const address = pageDoc.querySelector('[data-site="address"]');
+            check(`Selected address keeps ${lang} language at ${width}px`,
+              address.closest('[lang]')?.lang === lang);
           }
         }
       }

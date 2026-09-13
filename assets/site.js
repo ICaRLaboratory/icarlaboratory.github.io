@@ -27,7 +27,8 @@ const initials = (name) =>
 
 /* text bound through data-site="field" */
 /* ---------- language ----------
-   Only descriptive prose is translated. Headings, technical terms,
+   Descriptive prose and Contact/Members profile fields are translated.
+   Shared navigation, technical terms,
    keywords and the hero figure stay English on both sides, so the page
    is mixed-language in Korean mode: the <html lang> stays "en" and the
    Korean runs are tagged individually, which is what a screen reader
@@ -115,11 +116,22 @@ function applyLang() {
   });
 }
 
+/* Bind translated leaf text in place: links, focus and reveal nodes survive. */
+function localized(value) {
+  if (!isPair(value)) return esc(value);
+  return `<span data-en="${esc(value.en)}" data-ko="${esc(value.ko || value.en)}"${LANG === "ko" && value.ko ? ' lang="ko"' : ""}>${esc(t(value))}</span>`;
+}
+
 function fillFields(root = document) {
+  $$("[data-alt-en][data-alt-ko]", root).forEach(el => {
+    el.alt = LANG === "ko" ? el.dataset.altKo : el.dataset.altEn;
+  });
+  $$("[data-en][data-ko]", root).forEach(el => setProse(el, { en: el.dataset.en, ko: el.dataset.ko }));
   const map = {
     tagline: SITE.tagline,
     intro: SITE.intro,
     labName: SITE.labName,
+    contactLabName: { en: SITE.labName, ko: "ICaR 연구실" },
     labShort: SITE.labShort,
     department: SITE.department,
     university: SITE.university,
@@ -127,7 +139,6 @@ function fillFields(root = document) {
     email: SITE.contact.email,
     office: SITE.contact.office,
     address: SITE.contact.address,
-    addressKo: SITE.contact.addressKo,
     mapUrl: SITE.contact.mapUrl,
     homeNote: SITE.homeNote,
     researchLede: SITE.researchLede,
@@ -258,7 +269,7 @@ function renderFooter() {
             </span>
           </div>
           <p class="muted" style="font-size:.88rem;max-width:34ch;margin:0">${
-            esc(SITE.labName)}, ${esc(SITE.department)}, ${esc(SITE.university)}.</p>
+            esc(SITE.labName)}, ${esc(SITE.department.en)}, ${esc(SITE.university)}.</p>
         </div>
         <div>
           <h2>Navigate</h2>
@@ -267,8 +278,8 @@ function renderFooter() {
         <div>
           <h2>Find us</h2>
           <ul>
-            <li>${esc(c.office)}</li>
-            <li>${esc(c.address)}</li>
+            <li>${esc(c.office.en)}</li>
+            <li>${esc(c.address.en)}</li>
             <li><a href="mailto:${esc(c.email)}">${esc(c.email)}</a></li>
             <li><a href="${esc(c.mapUrl)}" target="_blank" rel="noopener">Open in Maps &rarr;</a></li>
           </ul>
@@ -276,7 +287,7 @@ function renderFooter() {
       </div>
       <div class="wrap footer__bottom">
         <span>&copy; ${new Date().getFullYear()} ${esc(SITE.labShort)} Lab &middot; ${esc(SITE.university)}</span>
-        <span lang="ko">${esc(c.addressKo)}</span>
+        <span lang="ko">${esc(c.address.ko)}</span>
       </div>
     </footer>`;
 }
@@ -773,13 +784,17 @@ function renderProjects() {
 
 /* ---------- members ---------- */
 
+function personAlt(p) {
+  return `alt="${esc(LANG === "ko" ? p.nameKo || p.nameEn : p.nameEn)}" data-alt-en="${esc(p.nameEn)}" data-alt-ko="${esc(p.nameKo || p.nameEn)}"`;
+}
+
 function personCard(p, i, opts = {}) {
   const avatar = p.photo
-    ? `<img src="${esc(p.photo)}" alt="${esc(p.nameEn)}" loading="lazy">`
+    ? `<img src="${esc(p.photo)}" ${personAlt(p)} loading="lazy">`
     : esc(initials(p.nameEn));
 
   const line2 = opts.alumni
-    ? `Graduated ${esc(p.graduated)}${p.now ? " &middot; " + esc(p.now) : ""}`
+    ? `${localized({ en: "Graduated", ko: "졸업" })} ${esc(p.graduated)}${p.now ? " &middot; " + localized(p.now) : ""}`
     : p.email
     ? esc(p.email)
     : "";
@@ -793,10 +808,10 @@ function personCard(p, i, opts = {}) {
     <div class="person" data-reveal style="--d:${i * 60}ms">
       <div class="avatar">${avatar}</div>
       <div>
-        <div class="person__name">${esc(p.nameEn)}<span class="person__ko" lang="ko">${esc(p.nameKo || "")}</span></div>
-        <div class="person__role">${esc(p.degree)}</div>
+        <div class="person__name">${localized({ en: p.nameEn, ko: p.nameKo || p.nameEn })}</div>
+        <div class="person__role">${localized(p.degree)}</div>
         <!-- always rendered, so a card without a role keeps the same rhythm -->
-        <div class="badge-slot">${p.role ? `<span class="badge">${esc(p.role)}</span>` : ""}</div>
+        <div class="badge-slot">${p.role ? `<span class="badge">${localized(p.role)}</span>` : ""}</div>
         <div class="person__meta">${(p.interests || []).map(esc).join(" &middot; ")}</div>
         ${line2 ? `<div class="person__meta faint">${line2}</div>` : ""}
         ${profiles.length ? `<div class="person__links">${profiles
@@ -812,36 +827,36 @@ function renderMembers() {
     const a = ADVISOR;
     const timeline = (list, allPast) => list.map((c, i) => `
       <div class="tl-item ${allPast || i > 0 ? "tl-item--past" : ""}">
-        <div class="tl-period">${esc(c.period)}</div>
-        <div class="tl-role">${esc(c.role || c.degree)}</div>
-        <div class="tl-org">${esc(c.org)}</div>
-        ${c.dept ? `<div class="tl-note">${esc(c.dept)}</div>` : ""}
-        ${c.note ? `<div class="tl-note">${esc(c.note)}</div>` : ""}
+        <div class="tl-period">${localized(c.period)}</div>
+        <div class="tl-role">${localized(c.role || c.degree)}</div>
+        <div class="tl-org">${localized(c.org)}</div>
+        ${c.dept ? `<div class="tl-note">${localized(c.dept)}</div>` : ""}
+        ${c.note ? `<div class="tl-note">${localized(c.note)}</div>` : ""}
       </div>`).join("");
 
     advHost.innerHTML = `
       <div data-reveal>
         <div class="portrait">
           ${a.photo
-            ? `<img src="${esc(a.photo)}" alt="${esc(a.nameEn)}">`
+            ? `<img src="${esc(a.photo)}" ${personAlt(a)}>`
             : `<span class="portrait__initials">${esc(initials(a.nameEn))}</span>`}
         </div>
         <dl class="contact-list">
-          <div class="contact-row"><dt>Email</dt><dd><a href="mailto:${esc(a.email)}">${esc(a.email)}</a></dd></div>
-          <div class="contact-row"><dt>Office</dt><dd>${esc(a.office)}</dd></div>
+          <div class="contact-row"><dt>${localized({ en: "Email", ko: "이메일" })}</dt><dd><a href="mailto:${esc(a.email)}">${esc(a.email)}</a></dd></div>
+          <div class="contact-row"><dt>${localized({ en: "Office", ko: "연구실 위치" })}</dt><dd>${localized(a.office)}</dd></div>
           <div class="contact-row"><dt>ORCID</dt><dd><a href="https://orcid.org/${esc(a.orcid)}" target="_blank" rel="noopener">${esc(a.orcid)}</a></dd></div>
           ${a.scholar ? `<div class="contact-row"><dt>Scholar</dt><dd><a href="${esc(a.scholar)}" target="_blank" rel="noopener">Google Scholar</a></dd></div>` : ""}
         </dl>
       </div>
       <div data-reveal style="--d:120ms">
-        <h2 class="h2">${esc(a.nameEn)} <span class="faint" lang="ko" style="font-size:.5em">${esc(a.nameKo)}</span></h2>
-        <p class="lede" style="margin-top:.75rem">${esc(a.title)}, ${esc(a.affiliation)}</p>
+        <h2 class="h2">${localized({ en: a.nameEn, ko: a.nameKo || a.nameEn })}</h2>
+        <p class="lede" style="margin-top:.75rem">${localized(a.title)}, ${localized(a.affiliation)}</p>
         <div class="tags" style="margin-top:1.5rem">
           ${a.interests.map((k) => `<span class="tag">${esc(k)}</span>`).join("")}
         </div>
-        <h3 class="eyebrow" style="margin-top:3rem">Appointments</h3>
+        <h3 class="eyebrow" style="margin-top:3rem">${localized({ en: "Appointments", ko: "경력" })}</h3>
         <div class="timeline">${timeline(a.career, false)}</div>
-        <h3 class="eyebrow" style="margin-top:3rem">Education</h3>
+        <h3 class="eyebrow" style="margin-top:3rem">${localized({ en: "Education", ko: "학력" })}</h3>
         <div class="timeline">${timeline(a.education, true)}</div>
       </div>`;
   }
@@ -1366,7 +1381,7 @@ function renderContact() {
   if (links) {
     links.innerHTML = `
       <a class="btn btn--primary" href="mailto:${esc(c.email)}">${esc(c.email)}</a>
-      <a class="btn" href="${esc(c.mapUrl)}" target="_blank" rel="noopener">Open in Google Maps</a>`;
+      <a class="btn" href="${esc(c.mapUrl)}" target="_blank" rel="noopener">${localized({ en: "Open in Google Maps", ko: "Google 지도에서 보기" })}</a>`;
   }
 }
 

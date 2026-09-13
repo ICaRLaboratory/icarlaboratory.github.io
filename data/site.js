@@ -2,10 +2,10 @@
    Lab-wide information: identity, contact, advisor profile,
    research areas.
 
-   Descriptive prose carries a { en, ko } pair and follows the language
-   toggle. Everything else — headings, technical terms, keywords, the
-   hero figure — stays English in both languages, so a plain string here
-   is shown as-is on both sides.
+   Descriptive prose and Contact/Members profile fields carry { en, ko }
+   pairs and follow the language toggle. Shared navigation, technical terms,
+   research keywords and the hero figure stay English. Plain strings are
+   shown as-is in both languages.
    --------------------------------------------------------------- */
 
 const SITE = {
@@ -19,7 +19,8 @@ const SITE = {
     en: "ICaR Lab at Sejong University conducts research in control algorithms, robotics and embedded systems. Our work addresses stability analysis and controller synthesis, robot motion and interaction, and real-time computing and on-device intelligence. Each field has its own research questions, with opportunities for joint work across them. We combine mathematical analysis, algorithm design and system experiments according to the problem at hand.",
     ko: "세종대학교 ICaR 연구실은 제어 알고리즘, 로보틱스, 임베디드 시스템을 연구합니다. 시스템 안정성 해석과 제어기 설계, 로봇의 운동 및 환경 상호작용, 실시간 연산과 온디바이스 AI를 주요 연구 주제로 다룹니다. 각 분야의 이론과 기술을 발전시키는 한편, 분야 간 융합 연구를 수행합니다.",
   },
-  department: "Department of Artificial Intelligence and Information Technology",
+  // Official names: https://dept.sejong.ac.kr/aiitdpt/intro/department-introduction.do
+  department: { en: "Department of Artificial Intelligence and Information Technology", ko: "지능정보융합학과" },
   university: "Sejong University",
   since: 2019,
 
@@ -109,9 +110,11 @@ const SITE = {
   },
 
   contact: {
-    office: "Room 515, Daeyang AI Center",
-    address: "209 Neungdong-ro, Gwangjin-gu, Seoul 05006, Republic of Korea",
-    addressKo: "05006 서울특별시 광진구 능동로 209 (군자동) 세종대학교 대양 AI센터 515호",
+    office: { en: "Room 515, Daeyang AI Center", ko: "대양 AI센터 515호" },
+    address: {
+      en: "209 Neungdong-ro, Gwangjin-gu, Seoul 05006, Republic of Korea",
+      ko: "05006 서울특별시 광진구 능동로 209 (군자동) 세종대학교 대양 AI센터 515호",
+    },
     email: "lsy@sejong.ac.kr",
     /* the pin the old site used */
     coords: "37.551049,127.075719",
@@ -178,11 +181,13 @@ const SITE = {
 const ADVISOR = {
   nameEn: "Seok Young Lee",
   nameKo: "이석영",
-  title: "Associate Professor",
-  affiliation:
-    "Department of Artificial Intelligence and Information Technology, Sejong University",
+  title: { en: "Associate Professor", ko: "부교수" },
+  affiliation: {
+    en: `${SITE.department.en}, ${SITE.university}`,
+    ko: `세종대학교 ${SITE.department.ko}`,
+  },
   email: "lsy@sejong.ac.kr",
-  office: "Room 515, Daeyang AI Center",
+  office: SITE.contact.office,
   photo: "assets/img/advisor.jpg",
   orcid: "0000-0002-9071-4837",
   scholar: "https://scholar.google.com/citations?user=ME5-sE0AAAAJ",
@@ -197,27 +202,27 @@ const ADVISOR = {
 
   career: [
     {
-      period: "2026.09 – present",
-      role: "Associate Professor",
-      org: "Sejong University",
-      note: "Dept. of Artificial Intelligence and Information Technology",
+      period: { en: "2026.09 – present", ko: "2026.09 – 현재" },
+      role: { en: "Associate Professor", ko: "부교수" },
+      org: { en: "Sejong University", ko: "세종대학교" },
+      note: { en: "Dept. of Artificial Intelligence and Information Technology", ko: "지능정보융합학과" },
     },
     {
       period: "2025.03 – 2026.08",
-      role: "Assistant Professor",
-      org: "Sejong University",
-      note: "Dept. of Artificial Intelligence and Information Technology",
+      role: { en: "Assistant Professor", ko: "조교수" },
+      org: { en: "Sejong University", ko: "세종대학교" },
+      note: { en: "Dept. of Artificial Intelligence and Information Technology", ko: "지능정보융합학과" },
     },
     {
       period: "2019.09 – 2025.02",
-      role: "Assistant Professor",
-      org: "Soonchunhyang University",
-      note: "Dept. of Electronic Engineering",
+      role: { en: "Assistant Professor", ko: "조교수" },
+      org: { en: "Soonchunhyang University", ko: "순천향대학교" },
+      note: { en: "Dept. of Electronic Engineering", ko: "전자공학과" },
     },
     {
       period: "2018.03 – 2019.08",
-      role: "Staff Engineer",
-      org: "Samsung Electronics",
+      role: { en: "Staff Engineer", ko: "스태프 엔지니어" },
+      org: { en: "Samsung Electronics", ko: "삼성전자" },
       note: "",
     },
   ],
@@ -225,17 +230,19 @@ const ADVISOR = {
   education: [
     {
       period: "2011.03 – 2018.02",
-      degree: "Ph.D.",
-      org: "POSTECH",
-      dept: "Division of IT Convergence Engineering (ITCE)",
-      note:
-        "Dissertation: “Stability Analysis of Systems with Time-varying Delays via Slack Matrix Based Approaches” · Advisor: Prof. PooGyeon Park",
+      degree: { en: "Ph.D.", ko: "박사" },
+      org: { en: "POSTECH", ko: "포항공과대학교" },
+      dept: { en: "Division of IT Convergence Engineering (ITCE)", ko: "IT융합공학과 (ITCE)" },
+      note: {
+        en: "Dissertation: “Stability Analysis of Systems with Time-varying Delays via Slack Matrix Based Approaches” · Advisor: Prof. PooGyeon Park",
+        ko: "학위논문: “Stability Analysis of Systems with Time-varying Delays via Slack Matrix Based Approaches” · 지도교수: PooGyeon Park 교수",
+      },
     },
     {
       period: "2007.03 – 2011.02",
-      degree: "B.S.",
-      org: "POSTECH",
-      dept: "Electrical Engineering",
+      degree: { en: "B.S.", ko: "학사" },
+      org: { en: "POSTECH", ko: "포항공과대학교" },
+      dept: { en: "Electrical Engineering", ko: "전자전기공학과" },
       note: "",
     },
   ],

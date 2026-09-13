@@ -47,6 +47,14 @@ announcement contrast covered after real news expires. The same pages are checke
 in print media for a removed navigation slot and restored screen navigation.
 Axe is injected only by the test runner, never loaded by the published pages.
 Automated contrast checks do not replace manual accessibility review.
+`contact-members-language-interactions.mjs` checks single-language names/address,
+Contact labels/office/lab/department, advisor affiliation, degrees, role and thesis
+labels, portrait alternatives, both toggle directions, default/stored/query language,
+reload, cross-page navigation and native Back/Forward. Links, map iframe, focused
+links and visible member reveal nodes retain their identity. Research interests,
+dates and original English facts are preserved. The old always-Korean extra address
+assertion now checks the selected address’s effective language. Shared footer and
+navigation language policy remains unchanged.
 `contact-layout-interactions.mjs` checks Contact and Members contact rows in KO/EN
 at 320, 360, 768 and 1280px, in screen and print media. It measures actual label
 text bounds, value containment, and unchanged contact text/links at normal and

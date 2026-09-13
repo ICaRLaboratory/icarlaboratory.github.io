@@ -3,17 +3,17 @@
 
    `photo` is optional -- leave it out and the card shows a
    generated monogram instead. Drop files in assets/img/.
-   `nameKo` is shown as the small grey name beside the English one.
+   `nameEn` / `nameKo` follow the selected language; a missing Korean name falls back to English.
    `scholar` and `orcid` are optional; each prints as a link on the card.
    ORCIDs came from the authors' own records on their papers (via Crossref).
    Emails use " at " instead of "@" to slow down scrapers.
    --------------------------------------------------------------- */
 
 const DEG = {
-  phd:    "Ph.D. Candidate",
-  ms:     "M.S. Candidate",
-  msDone: "M.S.",
-  ug:     "Undergraduate Researcher",
+  phd:    { en: "Ph.D. Candidate", ko: "박사과정" },
+  ms:     { en: "M.S. Candidate", ko: "석사과정" },
+  msDone: { en: "M.S.", ko: "석사" },
+  ug:     { en: "Undergraduate Researcher", ko: "학부연구생" },
 };
 
 const TOPIC = {
@@ -29,7 +29,7 @@ const GRAD_STUDENTS = [
     orcid: "0009-0008-5503-241X",
     photo: "assets/img/jinwoong-lee.jpg",
     degree: DEG.phd,
-    role: "Lab Manager",
+    role: { en: "Lab Manager", ko: "연구실 매니저" },
     email: "jinwoonggg at sju.ac.kr",
     interests: [TOPIC.robotics, TOPIC.control],
   },

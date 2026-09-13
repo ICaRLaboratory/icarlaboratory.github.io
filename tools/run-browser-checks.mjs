@@ -14,6 +14,7 @@ import { runPublicationChecks } from '../tests/publication-interactions.mjs';
 import { runPublicationLayoutChecks } from '../tests/publication-layout-interactions.mjs';
 import { runResearchChecks } from '../tests/research-interactions.mjs';
 import { runAccessibilityChecks } from '../tests/accessibility-interactions.mjs';
+import { runContactMembersLanguageChecks } from '../tests/contact-members-language-interactions.mjs';
 import { runContactLayoutChecks } from '../tests/contact-layout-interactions.mjs';
 import { runEnlargedLayoutChecks, runNativeEnlargedLayoutChecks } from '../tests/enlarged-layout-interactions.mjs';
 
@@ -29,7 +30,7 @@ const { signal } = controller;
 const interrupt = () => controller.abort(new Error('Browser checks interrupted'));
 process.once('SIGINT', interrupt);
 process.once('SIGTERM', interrupt);
-const deadline = setTimeout(() => controller.abort(new Error('Browser checks exceeded 180 seconds')), 180_000);
+const deadline = setTimeout(() => controller.abort(new Error('Browser checks exceeded 300 seconds')), 300_000);
 let browser;
 let server;
 let serverLog = '';
@@ -104,6 +105,7 @@ async function run() {
   results.push(...await runPublicationLayoutChecks(browser, base));
   results.push(...await runResearchChecks(browser, base));
   results.push(...await runAccessibilityChecks(browser, base, axeSource));
+  results.push(...await runContactMembersLanguageChecks(browser, base));
   results.push(...await runContactLayoutChecks(browser, base));
   results.push(...await runEnlargedLayoutChecks(browser, base, { fontSizes: [16] }));
   results.push(...await runNativeEnlargedLayoutChecks(chromium, base));

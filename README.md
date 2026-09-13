@@ -43,6 +43,9 @@
 
 - `data/members.js`의 `GRAD_STUDENTS`, `UNDERGRAD_STUDENTS`, `ALUMNI`에서 관리합니다.
 - 학위·연구 주제는 파일 상단의 `DEG`, `TOPIC` 상수를 사용합니다.
+- Contact와 Members 본문은 선택한 언어의 이름·주소·위치·소속·직함·학위만 표시합니다. `nameEn`/`nameKo`를 함께 관리하되 화면에 병기하지 않으며, 한국어 이름이 없으면 영문 이름을 사용합니다. 학위·직함·이력은 `{ en, ko }` 형식으로 관리하고 연구 키워드·학위논문 제목·이메일·링크·날짜는 보존합니다.
+- 학과 공식 명칭은 **지능정보융합학과 / Department of Artificial Intelligence and Information Technology**입니다. [학과 소개](https://dept.sejong.ac.kr/aiitdpt/intro/department-introduction.do)를 기준으로 하며, 영어 명칭을 임의 번역하지 않습니다.
+- 공통 메뉴·푸터의 언어 정책은 그대로 유지합니다. 공유 연락처의 `{ en, ko }` 값을 문자열처럼 출력하지 않도록 주의합니다.
 - 사진은 `assets/img/`에 넣고 `photo`에 경로를 지정합니다. 사진이 없으면 이니셜이 표시됩니다.
 - 졸업 시 해당 구성원을 `ALUMNI`로 옮기고 학위 완료 구분, `graduated`, 필요한 경우 `now`를 갱신합니다.
 
