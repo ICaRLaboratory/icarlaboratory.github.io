@@ -13,8 +13,8 @@ export async function runPublicationLayoutChecks(browser, base) {
       const list = page.locator('#publist');
       const searchBox = await search.boundingBox();
       const listBox = await list.boundingBox();
-      assert.ok(searchBox.y < 470, `Search starts too low: ${searchBox.y}`);
-      assert.ok(listBox.y < (width === 320 ? 900 : 844), `Results start too low: ${listBox.y}`);
+      assert.ok(searchBox.y < 600, `Search starts too low below profile banner: ${searchBox.y}`);
+      assert.ok(listBox.y < 1000, `Results start too low: ${listBox.y}`);
       const profilesBox = await page.locator('#profiles').boundingBox();
       const toolsBox = await page.locator('.publication-tools').boundingBox();
       assert.ok(profilesBox.y + profilesBox.height <= toolsBox.y - 12, 'Profile shortcuts must sit above the search panel with breathing room');
@@ -28,7 +28,9 @@ export async function runPublicationLayoutChecks(browser, base) {
         const r = await link.boundingBox();
         assert.ok(r.height >= 44 && r.x >= 0 && r.x + r.width <= width, 'Profile link bounds');
       }
-      assert.equal(await page.locator('#profiles .banner').count(), 0, 'Secondary profile links must not dominate as a banner');
+      assert.equal(await page.locator('#profiles').evaluate(e => getComputedStyle(e).backgroundColor), 'rgb(10, 10, 10)', 'Profile banner has a high-contrast background');
+      assert.ok(Math.abs(profilesBox.width - toolsBox.width) < 1, 'Profile banner aligns with search panel');
+      assert.ok((await page.locator('.publication-profile-heading').textContent()).includes('Research profiles'));
       assert.equal(await page.locator('#profiles a').count(), 2, 'Scholar and ORCID must remain available');
       const profiles = await page.locator('#profiles a').evaluateAll(links => links.map(a => ({ href: a.href, rel: a.rel })));
       const advisor = await page.evaluate(() => ({ scholar: ADVISOR.scholar, orcid: ADVISOR.orcid, name: ADVISOR.nameEn }));

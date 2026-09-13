@@ -96,24 +96,56 @@
   margin: .75rem 0;
 }
 #pubresults { font: .8rem var(--mono); margin: 0; }
-#profiles { display: flex; flex-wrap: wrap; gap: .5rem; }
+#profiles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  width: 100%;
+  padding: 1.25rem 1.5rem;
+  border-radius: 12px;
+  background: #0a0a0a;
+  color: #fff;
+}
+.publication-profile-heading { display: grid; gap: .25rem; }
+.publication-profile-heading strong { font-size: 1.05rem; }
+.publication-profile-heading > span {
+  color: #bcbcbc;
+  font: .7rem var(--mono);
+  letter-spacing: .06em;
+}
+.publication-profile-links { display: flex; flex-wrap: wrap; gap: .75rem; }
 #profiles a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: .5rem;
-  min-height: 44px;
-  padding: .5rem .875rem;
-  border: 1px solid var(--line);
+  gap: .875rem;
+  min-height: 48px;
+  padding: .65rem 1.125rem;
+  border: 1px solid #fff;
   border-radius: 6px;
-  background: var(--panel);
-  color: var(--text);
-  font-size: .8rem;
+  background: #fff;
+  color: #0a0a0a;
+  font-size: .875rem;
+  font-weight: 600;
   text-decoration: none;
 }
-#profiles a span { color: var(--dim); }
-#profiles a:hover { border-color: var(--dim); background: var(--bg); }
-#profiles a:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+#profiles a:hover { background: #e5e5e5; border-color: #e5e5e5; }
+#profiles a:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+@media (max-width: 760px) {
+  #profiles { padding: 1rem; }
+  .publication-profile-links { gap: .5rem; }
+  #profiles a { padding-inline: .875rem; gap: .5rem; }
+}
+@media (max-width: 480px) {
+  .publication-profile-links {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    width: 100%;
+  }
+  #profiles a { padding-inline: .5rem; font-size: .8rem; }
+}
 #pubempty { padding: 1rem; border: 1px solid var(--line); border-radius: 8px; }
 @media (max-width: 760px) {
   .publication-tools { padding: 1rem; }

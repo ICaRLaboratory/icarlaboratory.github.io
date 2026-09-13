@@ -523,9 +523,14 @@ function renderPublications() {
       ADVISOR.orcid && ["ORCID", `https://orcid.org/${ADVISOR.orcid}`],
     ].filter(Boolean);
     profiles.setAttribute("aria-label", `Profiles for ${ADVISOR.nameEn}`);
-    profiles.innerHTML = links.map(([name, url]) =>
-      `<a href="${esc(url)}" target="_blank" rel="noopener">${name}<span aria-hidden="true"> ↗</span></a>`
-    ).join("");
+    profiles.innerHTML = `
+      <div class="publication-profile-heading">
+        <strong>Research profiles</strong>
+        <span>${esc(ADVISOR.nameEn)}</span>
+      </div>
+      <div class="publication-profile-links">${links.map(([name, url]) =>
+        `<a href="${esc(url)}" target="_blank" rel="noopener">${name}<span aria-hidden="true">↗</span></a>`
+      ).join("")}</div>`;
   }
 
   const updateProse = () => {
