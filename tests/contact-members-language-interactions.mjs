@@ -16,6 +16,7 @@ export async function runContactMembersLanguageChecks(browser, base) {
     } finally { await context.close(); }
   }
   async function contact(page, lang) {
+    assert.equal(await page.locator('h1').textContent(), 'Where to find us.');
     assert.equal(await page.locator('[data-site="contactLabName"]').textContent(), lang === 'ko' ? '지능제어 및 로보틱스 연구실' : 'Intelligent Control and Robotics Laboratory');
     assert.equal(await page.locator('main .contact-row').count(), 5, 'Only one address row');
     assert.equal(await page.locator('[data-site="address"]').textContent(), lang === 'ko'
@@ -45,6 +46,7 @@ export async function runContactMembersLanguageChecks(browser, base) {
     }
   });
   async function members(page, lang) {
+    assert.equal(await page.locator('h1').textContent(), 'Advisor, students and alumni.');
     const expected = await page.evaluate(lang => [ADVISOR, ...GRAD_STUDENTS, ...UNDERGRAD_STUDENTS, ...ALUMNI].map(p => lang === 'ko' ? p.nameKo || p.nameEn : p.nameEn), lang);
     assert.deepEqual(await page.locator('#advisor h2, .person__name').allTextContents(), expected, 'One selected-language name per person');
     assert.equal(await page.locator('#advisor .lede').textContent(), lang === 'ko'
