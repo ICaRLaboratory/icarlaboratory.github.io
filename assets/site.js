@@ -406,21 +406,28 @@ function highlightPublicationMatches(host, tokens) {
   const pattern = [...new Set(tokens)].sort((a, b) => b.length - a.length)
     .map(token => token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|");
   const matches = new RegExp(pattern, "gi");
-  $$(".pub__title, .pub__authors, .pub__venue em", host).forEach(field => {
+  $$(".pub__title, .pub__authors, .pub__venue em, .pub__doi", host).forEach(field => {
     const walker = document.createTreeWalker(field, NodeFilter.SHOW_TEXT);
     const nodes = [];
     while (walker.nextNode()) nodes.push(walker.currentNode);
+    const ranges = [...field.textContent.matchAll(matches)].map(match => [match.index, match.index + match[0].length]);
+    let offset = 0;
     nodes.forEach(node => {
       const text = node.nodeValue;
+      const start = offset;
+      offset += text.length;
       const fragment = document.createDocumentFragment();
       let end = 0;
-      for (const match of text.matchAll(matches)) {
-        fragment.append(text.slice(end, match.index));
+      for (const [from, to] of ranges) {
+        const left = Math.max(from, start) - start;
+        const right = Math.min(to, offset) - start;
+        if (left >= right) continue;
+        fragment.append(text.slice(end, left));
         const mark = document.createElement("mark");
         mark.className = "publication-match";
-        mark.textContent = match[0];
+        mark.textContent = text.slice(left, right);
         fragment.append(mark);
-        end = match.index + match[0].length;
+        end = right;
       }
       if (!end) return;
       fragment.append(text.slice(end));
@@ -449,10 +456,20 @@ function renderPublications() {
   const yearSelect = $("#pubyear");
   const years = [...new Set(every.map((p) => String(p.year)))].sort((a, b) => b - a);
   years.forEach((year) => yearSelect.add(new Option(year, year)));
+  let firstDraw = true;
+  const updatePrintSummary = () => {
+    const label = { all: "All", journal: "Journal", conference: "Conference", domestic: "Domestic" }[type];
+    setProse($("#pubprint-summary"), {
+      en: `Search: ${search.value.trim() || "None"} · Filter: ${label} · Year: ${yearSelect.value || "All years"}`,
+      ko: `검색어: ${search.value.trim() || "없음"} · 필터: ${label} · 연도: ${yearSelect.value || "전체"}`,
+    });
+  };
   const draw = () => {
-    const tokens = search.value.toLowerCase().match(/\S+/g) || [];
+    const query = search.value.toLowerCase().replace(/(^|\s)doi:\s*(?=10\.)/g, "$1");
+    const tokens = (query.match(/\S+/g) || []).map(token =>
+      token.replace(/^https?:\/\/(?:dx\.)?doi\.org\/(?=10\.)/, ""));
     const papers = sets[type].filter((p) => {
-      const text = [p.title, p.authors, p.venue].join(" ").toLowerCase();
+      const text = [p.title, p.authors, p.venue, p.doi || ""].join(" ").toLowerCase();
       return (!yearSelect.value || String(p.year) === yearSelect.value) &&
         tokens.every((token) => text.includes(token));
     });
@@ -470,7 +487,10 @@ function renderPublications() {
         </section>`)
       .join("");
     highlightPublicationMatches(host, tokens);
-    initReveal();
+    if (firstDraw) initReveal();
+    else $$("[data-reveal]", host).forEach(el => el.removeAttribute("data-reveal"));
+    firstDraw = false;
+    updatePrintSummary();
   };
 
   /* All is the default with or without a query. A chosen type remains
@@ -563,6 +583,7 @@ function renderPublications() {
   }
 
   const updateProse = () => {
+    updatePrintSummary();
     setProse($("#pubsearch-hint"), {
       en: "All is the default; select a filter to narrow your search.",
       ko: "기본값은 전체(All)이며, 필터로 검색 범위를 좁힐 수 있습니다.",

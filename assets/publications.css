@@ -165,7 +165,11 @@
   color: inherit;
   border-radius: 2px;
 }
+#pubprint-summary { display: none; }
 @media print {
+  #nav { display: none; }
+  #pubprint-summary { display: block; font-size: .85rem; overflow-wrap: anywhere; }
+  #publist .pub__link::after { content: none; }
   #publist .publication-match { background: transparent; }
   .publication-tools, #profiles { display: none; }
 }

@@ -286,5 +286,81 @@ export async function runPublicationChecks(browser, base) {
     await domestic.click();
     assert.equal(await domestic.getAttribute('aria-pressed'), 'true');
   });
+  await check('Publication live results remain immediately visible with normal motion', async page => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    const visible = await page.evaluate(() => {
+      const input = document.querySelector('#pubsearch');
+      input.value = 'robot';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      return [...document.querySelectorAll('#publist .pub')].every(e => getComputedStyle(e).opacity === '1');
+    });
+    assert.equal(visible, true, 'Search redraw must not restart reveal');
+  });
+  await check('Publication author highlights cross bold boundaries without changing text', async page => {
+    await page.locator('#pubsearch').fill('Lee*,');
+    assert.equal(await page.locator('#publist .pub').count(), 2);
+    for (const row of await page.locator('#publist .pub__authors').all()) {
+      assert.equal((await row.locator('mark').allTextContents()).join(''), 'Lee*,');
+      assert.equal(await row.locator('b').innerText(), 'S. Y. Lee*');
+      assert.ok((await row.innerText()).includes('S. Y. Lee*, and N. K. Kwon*'));
+    }
+  });
+  await check('Publication print keeps filter context and hides navigation', async page => {
+    await page.goto(`${base}/publications.html?lang=en&q=robot&type=journal&year=2024`);
+    assert.equal(await page.locator('#pubprint-summary').isVisible(), false);
+    await page.emulateMedia({ media: 'print' });
+    const summary = page.locator('#pubprint-summary');
+    assert.equal(await summary.isVisible(), true);
+    assert.match(await summary.innerText(), /robot/);
+    assert.match(await summary.innerText(), /Journal/);
+    assert.match(await summary.innerText(), /2024/);
+    assert.equal(await page.locator('#nav').isVisible(), false);
+    await page.emulateMedia({ media: 'screen' });
+    await page.locator('[data-lang="ko"]').click();
+    await page.emulateMedia({ media: 'print' });
+    assert.equal(await summary.getAttribute('lang'), 'ko');
+    assert.match(await summary.innerText(), /검색어/);
+    await page.emulateMedia({ media: 'screen' });
+    await page.locator('#pubreset').click();
+    await page.emulateMedia({ media: 'print' });
+    assert.ok(!(await summary.innerText()).includes('robot'));
+    assert.match(await summary.innerText(), /All/);
+  });
+  await check('Publication DOI search accepts identifiers and DOI links', async page => {
+    const doi = await page.evaluate(() => JOURNAL_PAPERS[0].doi);
+    for (const query of [doi, `doi:${doi}`, `DOI: ${doi}`, `https://doi.org/${doi}`, `http://dx.doi.org/${doi.toUpperCase()}`]) {
+      await page.locator('#pubsearch').fill(query);
+      assert.equal(await page.locator('#publist .pub').count(), 1, query);
+      assert.ok(await page.locator('#publist .pub__doi mark').count() > 0);
+      assert.equal(new URL(page.url()).searchParams.get('q'), query);
+      await page.reload();
+      assert.equal(await page.locator('#publist .pub').count(), 1);
+    }
+    await page.locator('[data-set="conference"]').click();
+    assert.equal(await page.locator('#publist .pub').count(), 0);
+    await page.locator('#pubreset').click();
+    assert.equal(await page.locator('#publist mark').count(), 0);
+  });
+  await check('Publication editing sessions and Back branching preserve query history', async page => {
+    const search = page.locator('#pubsearch');
+    await search.fill('robot');
+    await page.locator('#pubyear').focus();
+    await search.fill('control');
+    await page.goBack();
+    assert.equal(await search.inputValue(), 'robot');
+    await search.fill('adaptive');
+    const branch = page.url();
+    await page.goForward();
+    assert.equal(page.url(), branch, 'New editing discards the old Forward branch');
+    await search.press('Enter');
+    await search.fill('tracking');
+    await page.goBack();
+    assert.equal(await search.inputValue(), 'adaptive');
+    await page.goForward();
+    await search.fill('');
+    assert.equal(await page.locator('#publist .pub').count(), await page.evaluate(() => JOURNAL_PAPERS.length + CONFERENCE_PAPERS.length));
+    await page.reload();
+    assert.equal(await search.inputValue(), '');
+  });
   return results;
 }
