@@ -832,10 +832,9 @@ main:focus { outline: none; }
 }
 
 .contact-list { margin-top: 1.5rem; display: grid; gap: 0.7rem; }
-.contact-row { display: flex; gap: 0.85rem; align-items: flex-start; font-size: 0.88rem; }
+.contact-row { display: flex; flex-wrap: wrap; gap: 0.3rem 0.85rem; align-items: flex-start; font-size: 0.88rem; }
 .contact-row dt {
-  flex: none;
-  width: 62px;
+  flex: 0 0 8em;
   font-family: var(--mono);
   font-size: 0.62rem;
   letter-spacing: 0.15em;
@@ -843,7 +842,7 @@ main:focus { outline: none; }
   color: var(--faint);
   padding-top: 0.22rem;
 }
-.contact-row dd { margin: 0; color: var(--dim); }
+.contact-row dd { flex: 1 1 12rem; min-width: 0; margin: 0; color: var(--dim); overflow-wrap: anywhere; }
 .contact-row a { color: var(--text); border-bottom: 1px solid var(--line); transition: border-color 0.2s, color 0.2s; }
 .contact-row a:hover { color: var(--accent); border-color: var(--accent); }
 

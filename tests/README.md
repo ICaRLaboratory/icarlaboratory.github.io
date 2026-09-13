@@ -44,6 +44,10 @@ announcement contrast covered after real news expires. The same pages are checke
 in print media for a removed navigation slot and restored screen navigation.
 Axe is injected only by the test runner, never loaded by the published pages.
 Automated contrast checks do not replace manual accessibility review.
+`contact-layout-interactions.mjs` checks Contact and Members contact rows in KO/EN
+at 320, 360, 768 and 1280px, in screen and print media. It measures actual label
+text bounds, value containment, and unchanged contact text/links at normal and
+200% root-font size. Root-font scaling simulates text enlargement, not native zoom.
 The browser suite has a 180-second overall deadline for its expanded native checks.
 
 Failed assertions, empty results, uncaught page errors, console errors

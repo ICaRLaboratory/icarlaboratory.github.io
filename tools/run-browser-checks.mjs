@@ -14,6 +14,7 @@ import { runPublicationChecks } from '../tests/publication-interactions.mjs';
 import { runPublicationLayoutChecks } from '../tests/publication-layout-interactions.mjs';
 import { runResearchChecks } from '../tests/research-interactions.mjs';
 import { runAccessibilityChecks } from '../tests/accessibility-interactions.mjs';
+import { runContactLayoutChecks } from '../tests/contact-layout-interactions.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const python = process.env.PYTHON || 'python3';
@@ -102,6 +103,7 @@ async function run() {
   results.push(...await runPublicationLayoutChecks(browser, base));
   results.push(...await runResearchChecks(browser, base));
   results.push(...await runAccessibilityChecks(browser, base, axeSource));
+  results.push(...await runContactLayoutChecks(browser, base));
   for (const result of results) {
     console.log(`${result?.pass === true ? 'PASS' : 'FAIL'} ${result?.name}${result?.error ? ': ' + result.error : ''}`);
   }
