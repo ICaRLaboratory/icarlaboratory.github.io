@@ -22,17 +22,20 @@ panel changes, conditional playback resumption, Replay, parameter changes and
 reduced motion. Document visibility changes are simulated in these checks; they
 do not certify physical browser-tab switching.
 
-Publication checks cover title/author/venue search, combined type/year filters,
+Publication checks cover title/author/venue/DOI search, combined type/year filters,
 result announcements, empty/reset states, safe query rendering and URL restoration.
 Research checks cover native section-link navigation, focus, deep links and
 contextual routes to Publications and Contact. Both include narrow-screen checks.
 Publication URLs use `q`, `type` (`journal`, `conference`, `domestic`, `all`) and
-`year`. A plain page starts with Journal; searching from the untouched default
-uses All. An explicitly chosen type remains selected while typing. A `q` URL
-without `type` also uses All. Reset restores Journal and removes only these
-publication parameters; unrelated parameters and the fragment are preserved.
-Search splits whitespace-separated words and requires every word to match across
-title, authors or venue, ignoring case. It does not add fuzzy or quoted-phrase syntax.
+`year`. Initial selection and Reset use All. An explicitly chosen type remains
+selected while typing and after reload. Reset removes only these publication
+parameters; unrelated parameters and the fragment are preserved.
+Search requires every whitespace-separated word to match across title, authors,
+venue or DOI, ignoring case. Bare DOIs, `doi:` prefixes and DOI resolver URLs are
+supported; the original query remains in the input and URL. It does not add fuzzy
+or quoted-phrase syntax. Checks cover highlights across author-formatting
+boundaries, immediate visibility after search updates, editing-session history,
+and print-only query/type/year summaries.
 Compact-layout checks cover KO/EN at 320, 390, 768 and 1280px: search/result placement,
 native control order, 44px targets, clipping, and attributed Scholar/ORCID links.
 The browser suite has a 180-second overall deadline for its expanded native checks.
@@ -73,8 +76,7 @@ node --check tools/run-browser-checks.mjs
 git diff --check
 ```
 
-Action commit pins were resolved from the official `actions/checkout` v4.2.2,
-`actions/setup-node` v4.4.0 and `actions/setup-python` v5.6.0 tags. When updating
-actions or Playwright, verify upstream refs and rerun these checks. Passing checks
-does not deploy the site or enable branch protection; repository administrators
-must configure required checks separately if desired.
+The action commit pins and tool versions are maintained in
+`.github/workflows/checks.yml`. When updating actions or Playwright, verify
+upstream refs and rerun these checks. Site checks validate the repository;
+GitHub Pages deployment must be checked separately.
