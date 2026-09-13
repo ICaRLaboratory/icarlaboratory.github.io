@@ -16,3 +16,32 @@
   text-decoration: underline;
   text-underline-offset: .25em;
 }
+
+.research-nav--sections { gap: .65rem; font-size: 1rem; }
+.research-nav--sections a {
+  gap: .8rem;
+  min-height: 48px;
+  padding: .65rem 1.1rem;
+  border: 1px solid #0a0a0a;
+  border-radius: 999px;
+  background: #0a0a0a;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+.research-nav--sections a:hover { background: #333; border-color: #333; }
+.research-nav--sections a:focus-visible { outline: 2px solid #0a0a0a; outline-offset: 4px; }
+.research-nav--sections svg {
+  width: 1em;
+  height: 1em;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media print {
+  .research-nav--sections a { background: transparent; color: #000; border-color: #555; }
+}

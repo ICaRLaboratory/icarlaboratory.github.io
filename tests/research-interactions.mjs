@@ -94,6 +94,44 @@ export async function runResearchChecks(browser, base) {
       });
     }
   }
+  for (const width of [320, 360, 768, 1280]) {
+    for (const language of ['en', 'ko']) {
+      await check(`Research section chips: prominent and keyboard-visible ${width}px ${language}`, async page => {
+        await page.setViewportSize({ width, height: 900 });
+        await page.goto(`${base}/research.html?lang=${language}`);
+        await page.evaluate(() => document.fonts.ready);
+        const links = page.getByRole('navigation', { name: 'On this page' }).getByRole('link');
+        assert.equal(await links.count(), 3);
+        for (const [index, [name, id]] of targets.entries()) {
+          const link = links.nth(index);
+          assert.equal(await link.getAttribute('href'), `#${id}`);
+          assert.equal(await link.getAttribute('aria-selected'), null, 'Section links are not selection tabs');
+          const style = await link.evaluate(el => {
+            const s = getComputedStyle(el), r = el.getBoundingClientRect();
+            return { background: s.backgroundColor, color: s.color, size: parseFloat(s.fontSize),
+              weight: Number(s.fontWeight), padding: parseFloat(s.paddingLeft),
+              fits: r.left >= 0 && r.right <= innerWidth && r.height >= 44 && el.scrollWidth <= el.clientWidth };
+          });
+          assert.equal(style.background, 'rgb(10, 10, 10)', `${name}: dark chip surface`);
+          assert.equal(style.color, 'rgb(255, 255, 255)', `${name}: white label`);
+          assert.ok(style.size >= 16 && style.weight >= 600 && style.padding >= 16, 'Prominent, padded labels');
+          assert.ok(style.fits, 'Whole chip fits the viewport');
+          assert.equal(await link.locator('svg[aria-hidden="true"]').count(), 1, 'Decorative direction cue');
+          assert.equal(await page.getByRole('link', { name, exact: true }).count(), 1, 'Arrow does not change accessible name');
+        }
+        for (let i = 0; i < 30; i++) {
+          await page.keyboard.press('Tab');
+          if (await links.first().evaluate(el => el === document.activeElement)) break;
+        }
+        assert.ok(await links.first().evaluate(el => el === document.activeElement));
+        const focus = await links.first().evaluate(el => {
+          const s = getComputedStyle(el);
+          return { visible: el.matches(':focus-visible'), style: s.outlineStyle, width: parseFloat(s.outlineWidth) };
+        });
+        assert.ok(focus.visible && focus.style !== 'none' && focus.width >= 2, 'Distinct keyboard focus');
+      });
+    }
+  }
   await check('Research anchor routes work without JavaScript', async page => {
     await page.context().route('**/*.js', route => route.abort());
     await page.goto(`${base}/research.html`);

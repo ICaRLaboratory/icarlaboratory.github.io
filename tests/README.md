@@ -26,6 +26,8 @@ Publication checks cover title/author/venue/DOI search, combined type/year filte
 result announcements, empty/reset states, safe query rendering and URL restoration.
 Research checks cover native section-link navigation, focus, deep links and
 contextual routes to Publications and Contact. Both include narrow-screen checks.
+Research section chips also check dark surfaces, readable labels, decorative arrows,
+keyboard focus and viewport fit in KO/EN at 320, 360, 768 and 1280px.
 Publication URLs use `q`, `type` (`journal`, `conference`, `domestic`, `all`) and
 `year`. Initial selection and Reset use All. An explicitly chosen type remains
 selected while typing and after reload. Reset removes only these publication
