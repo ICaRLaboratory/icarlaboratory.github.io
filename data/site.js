@@ -17,7 +17,7 @@ const SITE = {
   },
   intro: {
     en: "ICaR Lab at Sejong University conducts research in control algorithms, robotics and embedded systems. Our work addresses stability analysis and controller synthesis, robot motion and interaction, and real-time computing and on-device intelligence. Each field has its own research questions, with opportunities for joint work across them. We combine mathematical analysis, algorithm design and system experiments according to the problem at hand.",
-    ko: "세종대학교 ICaR 연구실은 제어 알고리즘, 로보틱스, 임베디드 시스템을 연구합니다. 시스템 안정성 해석과 제어기 설계, 로봇의 운동 및 환경 상호작용, 실시간 연산과 온디바이스 AI를 주요 연구 주제로 다룹니다. 각 분야의 이론과 기술을 발전시키는 한편, 분야 간 융합 연구를 수행합니다.",
+    ko: "세종대학교 지능제어 및 로보틱스 연구실은 제어 알고리즘, 로보틱스, 임베디드 시스템을 연구합니다. 시스템 안정성 해석과 제어기 설계, 로봇의 운동 및 환경 상호작용, 실시간 연산과 온디바이스 AI를 주요 연구 주제로 다룹니다. 각 분야의 이론과 기술을 발전시키는 한편, 분야 간 융합 연구를 수행합니다.",
   },
   // Official names: https://dept.sejong.ac.kr/aiitdpt/intro/department-introduction.do
   department: { en: "Department of Artificial Intelligence and Information Technology", ko: "지능정보융합학과" },
@@ -43,7 +43,7 @@ const SITE = {
     on: true,
     title: {
       en: "We are recruiting undergraduate researchers and graduate students. Students interested in control algorithms, robotics or embedded systems are welcome to contact us by email.",
-      ko: "ICaR 연구실은 학부연구생 및 대학원생을 모집하고 있습니다. 제어 알고리즘, 로보틱스, 임베디드 시스템 분야의 연구에 관심 있는 학생은 이메일로 연락해 주시기 바랍니다.",
+      ko: "지능제어 및 로보틱스 연구실은 학부연구생 및 대학원생을 모집하고 있습니다. 제어 알고리즘, 로보틱스, 임베디드 시스템 분야의 연구에 관심 있는 학생은 이메일로 연락해 주시기 바랍니다.",
     },
   },
 
