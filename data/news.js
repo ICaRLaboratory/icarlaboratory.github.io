@@ -57,7 +57,7 @@ const NEWS = [
     ],
   },
   {
-    date: "2026-09-10",
+    date: "2026-09-06",
     title: {
       en: "The ICaR Lab website has been redesigned.",
       ko: "ICaR 연구실 홈페이지를 새롭게 개편했습니다.",
