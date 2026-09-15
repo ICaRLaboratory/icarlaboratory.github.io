@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
+import { runKoreanLabelChecks } from '../tests/korean-label-interactions.mjs';
 import { runNewsLinksChecks } from '../tests/news-links-interactions.mjs';
 import { runLightboxChecks } from '../tests/lightbox-interactions.mjs';
 import { runLanguageChecks } from '../tests/language-interactions.mjs';
@@ -97,6 +98,7 @@ async function run() {
   await page.waitForFunction(() => window.testsDone === true, { }, { timeout: 60_000 });
   const results = await page.evaluate(() => window.testResults);
   if (!Array.isArray(results) || results.length === 0) throw new Error('Harness returned no test results');
+  results.push(...await runKoreanLabelChecks(browser, base));
   results.push(...await runNewsLinksChecks(browser, base));
   results.push(...await runLightboxChecks(browser, base));
   results.push(...await runLanguageChecks(browser, base));
