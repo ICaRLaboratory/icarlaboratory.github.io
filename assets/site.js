@@ -695,10 +695,14 @@ function renderNews() {
     const body = n.href
       ? `<a class="news__link" href="${esc(n.href)}">${esc(label)}</a>`
       : esc(label);
+    const links = (n.links || []).map((link) =>
+      `<a class="news__link" href="${esc(link.href)}">${esc(t(link.label))}</a>`
+    ).join("");
+    const actions = links ? `<span class="news__links">${links}</span>` : "";
     const stamp = `${NEWS_MONTH[n.day.getMonth()]} ${n.day.getDate()}`;
     return `<li class="news__item">
         <time class="news__date" datetime="${esc(n.date)}">${stamp}</time>
-        <span class="news__text"${ko}>${body}</span>
+        <span class="news__text"${ko}>${body}${actions}</span>
       </li>`;
   }).join("");
 

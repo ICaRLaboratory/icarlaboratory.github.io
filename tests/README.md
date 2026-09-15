@@ -23,6 +23,11 @@ reduced motion. Document visibility changes are simulated in these checks; they
 do not certify physical browser-tab switching. Slider checks compare displayed physical
 values/units with accessible value text, including keyboard changes and mode resets.
 
+`news-links-interactions.mjs` verifies the dated research announcement in KO/EN
+at mobile/desktop widths: original article URL, publication DOI filter, touch targets,
+keyboard navigation, language switching, and a single matching paper after reload.
+The browser clock is fixed so the announcement remains testable after expiry.
+
 Publication checks cover title/author/venue/DOI search, combined type/year filters,
 result announcements, empty/reset states, safe query rendering and URL restoration.
 Research checks cover native section-link navigation, focus, deep links and

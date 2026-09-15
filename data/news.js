@@ -26,6 +26,8 @@
      something can be queued up in advance.
    - `title` follows the language toggle. A plain string is shown as-is
      in both languages.
+   - `links: [{ label: { en, ko }, href }]` adds links below the title.
+     For a specific paper, use `publications.html?q=` plus its encoded DOI.
    - Newest first is not required; the list is sorted by date anyway.
    --------------------------------------------------------------- */
 
@@ -37,6 +39,23 @@ const NEWS_WINDOW_DAYS = 14;
 const NEWS_MAX_ITEMS = 3;
 
 const NEWS = [
+  {
+    date: "2026-09-07",
+    title: {
+      en: "Sejong University News features our research on stability analysis and stabilization of asynchronous sampled-data systems in Mathematics and Computers in Simulation.",
+      ko: "비동기 샘플드데이터 시스템의 안정성 해석 및 안정화 연구가 Mathematics and Computers in Simulation에 게재되어 세종대학교 뉴스룸에 소개되었습니다.",
+    },
+    links: [
+      {
+        label: { en: "News article", ko: "기사 원문" },
+        href: "https://www.sejong.ac.kr/news/people/faculty.do?mode=view&articleNo=892863",
+      },
+      {
+        label: { en: "Publication", ko: "해당 논문" },
+        href: "publications.html?q=10.1016%2Fj.matcom.2025.11.031",
+      },
+    ],
+  },
   {
     date: "2026-09-10",
     title: {

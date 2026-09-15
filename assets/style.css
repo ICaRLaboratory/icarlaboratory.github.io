@@ -405,6 +405,18 @@ main:focus { outline: none; }
   transition: text-decoration-color 0.16s;
 }
 .news__link:hover { text-decoration-color: currentColor; }
+.news__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.25rem;
+  margin-top: 0.25rem;
+  font-size: 0.88rem;
+}
+.news__links .news__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
 
 @media (max-width: 640px) {
   .news__inner { grid-template-columns: 1fr; gap: 0.85rem; }
