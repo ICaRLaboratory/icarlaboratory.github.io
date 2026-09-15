@@ -18,16 +18,19 @@ export async function runContactMembersLanguageChecks(browser, base) {
   async function contact(page, lang) {
     assert.equal(await page.locator('h1').textContent(), 'Where to find us.');
     assert.equal(await page.locator('[data-site="contactLabName"]').textContent(), lang === 'ko' ? '지능제어 및 로보틱스 연구실' : 'Intelligent Control and Robotics Laboratory');
-    assert.equal(await page.locator('main .contact-row').count(), 5, 'Only one address row');
+    assert.equal(await page.locator('main .contact-row').count(), 6, 'Separate student and faculty rooms, one address row');
     assert.equal(await page.locator('[data-site="address"]').textContent(), lang === 'ko'
-      ? '05006 서울특별시 광진구 능동로 209 (군자동) 세종대학교 대양 AI센터 515호'
+      ? '05006 서울특별시 광진구 능동로 209 (군자동) 세종대학교 대양 AI센터'
       : '209 Neungdong-ro, Gwangjin-gu, Seoul 05006, Republic of Korea');
     assert.equal(await page.locator('[data-site="department"]').textContent(), lang === 'ko'
       ? '지능정보융합학과' : 'Department of Artificial Intelligence and Information Technology');
     assert.equal(await page.locator('[data-site="office"]').textContent(), lang === 'ko'
-      ? '대양 AI센터 515호' : 'Room 515, Daeyang AI Center');
+      ? '대양 AI센터 526호' : 'Room 526, Daeyang AI Center');
+    assert.equal(await page.locator('[data-site="studentOffice"]').textContent(), lang === 'ko' ? '대양 AI센터 515호' : 'Room 515, Daeyang AI Center');
+    assert.match(await page.locator('#footer').innerText(), /Student lab: Room 515/);
+    assert.match(await page.locator('#footer').innerText(), /Faculty office: Room 526/);
     assert.deepEqual(await page.locator('main dt').allTextContents(), lang === 'ko'
-      ? ['연구실', '연구실 위치', '주소', '이메일', '학과'] : ['Lab', 'Office', 'Address', 'Email', 'Department']);
+      ? ['연구실', '학생 연구실', '교수 연구실', '주소', '이메일', '학과'] : ['Lab', 'Student lab', 'Faculty office', 'Address', 'Email', 'Department']);
     assert.equal(await page.locator('[data-site="address"]').evaluate(el => el.closest('[lang]').lang), lang);
     assert.equal((await page.locator('body').innerText()).includes('[object Object]'), false);
   }
@@ -64,7 +67,7 @@ export async function runContactMembersLanguageChecks(browser, base) {
       ? '학위논문: “Stability Analysis of Systems with Time-varying Delays via Slack Matrix Based Approaches” · 지도교수: PooGyeon Park 교수'
       : 'Dissertation: “Stability Analysis of Systems with Time-varying Delays via Slack Matrix Based Approaches” · Advisor: Prof. PooGyeon Park');
     assert.equal(await page.locator('.badge').textContent(), lang === 'ko' ? '연구실 매니저' : 'Lab Manager');
-    assert.equal(await page.locator('#advisor .contact-row').nth(1).locator('dd').textContent(), lang === 'ko' ? '대양 AI센터 515호' : 'Room 515, Daeyang AI Center');
+    assert.equal(await page.locator('#advisor .contact-row').nth(1).locator('dd').textContent(), lang === 'ko' ? '대양 AI센터 526호' : 'Room 526, Daeyang AI Center');
     assert.equal((await page.locator('body').innerText()).includes('[object Object]'), false);
   }
   await check('Members names, roles and affiliations switch in place and retain visible reveal nodes', async page => {

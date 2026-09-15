@@ -110,10 +110,11 @@ const SITE = {
   },
 
   contact: {
-    office: { en: "Room 515, Daeyang AI Center", ko: "대양 AI센터 515호" },
+    studentOffice: { en: "Room 515, Daeyang AI Center", ko: "대양 AI센터 515호" },
+    office: { en: "Room 526, Daeyang AI Center", ko: "대양 AI센터 526호" },
     address: {
       en: "209 Neungdong-ro, Gwangjin-gu, Seoul 05006, Republic of Korea",
-      ko: "05006 서울특별시 광진구 능동로 209 (군자동) 세종대학교 대양 AI센터 515호",
+      ko: "05006 서울특별시 광진구 능동로 209 (군자동) 세종대학교 대양 AI센터",
     },
     email: "lsy@sejong.ac.kr",
     /* the pin the old site used */
