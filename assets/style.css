@@ -409,10 +409,9 @@ main:focus { outline: none; }
 .news__links .news__link {
   display: inline-flex;
   align-items: center;
-  vertical-align: middle;
-  min-height: 44px;
+  vertical-align: baseline;
   margin-inline-start: 0.4rem;
-  padding: 0.2rem 0.65rem;
+  padding: 0.1rem 0.5rem;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: var(--bg);

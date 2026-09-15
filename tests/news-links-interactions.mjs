@@ -37,7 +37,8 @@ export async function runNewsLinksChecks(browser, base) {
       if (width === 1280) assert.ok(inline.sameLine, 'First badge follows the last text line when space allows');
       for (const link of [article, paper]) {
         const box = await link.boundingBox();
-        assert.ok(box && box.x >= 0 && box.x + box.width <= width && box.height >= 44, 'Links fit viewport with touch targets');
+        const lineHeight = await item.locator('.news__text').evaluate(el => parseFloat(getComputedStyle(el).lineHeight));
+        assert.ok(box && box.x >= 0 && box.x + box.width <= width && box.height > 0 && box.height <= lineHeight, 'Inline badges fit within the article line height');
       }
       await article.focus();
       await page.keyboard.press('Tab');
