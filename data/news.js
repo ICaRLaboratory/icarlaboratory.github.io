@@ -26,7 +26,7 @@
      something can be queued up in advance.
    - `title` follows the language toggle. A plain string is shown as-is
      in both languages.
-   - `links: [{ label: { en, ko }, href }]` adds links below the title.
+   - `links: [{ label: { en, ko }, href }]` adds inline link badges after the title.
      For a specific paper, use `publications.html?q=` plus its encoded DOI.
    - Newest first is not required; the list is sorted by date anyway.
    --------------------------------------------------------------- */

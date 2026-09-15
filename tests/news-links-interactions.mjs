@@ -19,6 +19,22 @@ export async function runNewsLinksChecks(browser, base) {
       assert.equal(target.pathname, '/publications.html');
       assert.equal(target.searchParams.get('q'), '10.1016/j.matcom.2025.11.031');
       await page.evaluate(() => document.fonts.ready);
+      const inline = await item.locator('.news__links').evaluate(el => {
+        const text = el.parentElement.firstChild;
+        const range = document.createRange();
+        range.setStart(text, text.textContent.trimEnd().length - 1);
+        range.setEnd(text, text.textContent.trimEnd().length);
+        const end = range.getBoundingClientRect();
+        const link = el.querySelector('a');
+        const box = link.getBoundingClientRect();
+        const style = getComputedStyle(link);
+        return { display: getComputedStyle(el).display, sameLine: box.top <= end.bottom && box.bottom >= end.top,
+          border: style.borderTopStyle, radius: parseFloat(style.borderTopLeftRadius) };
+      });
+      assert.equal(inline.display, 'inline', 'Badges must flow with the sentence');
+      assert.equal(inline.border, 'solid');
+      assert.ok(inline.radius > 0);
+      if (width === 1280) assert.ok(inline.sameLine, 'First badge follows the last text line when space allows');
       for (const link of [article, paper]) {
         const box = await link.boundingBox();
         assert.ok(box && box.x >= 0 && box.x + box.width <= width && box.height >= 44, 'Links fit viewport with touch targets');
