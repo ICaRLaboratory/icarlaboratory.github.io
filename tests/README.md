@@ -60,7 +60,7 @@ links and visible member reveal nodes retain their identity. Research interests,
 dates and original English facts are preserved. The old always-Korean extra address
 assertion now checks the selected address’s effective language. Shared footer and
 navigation language policy remains unchanged.
-`korean-label-interactions.mjs` checks 13px Pretendard semibold Korean contact, degree and manager labels, compact spacing, non-overlapping values, viewport fit and unchanged English typography after language switching.
+`korean-label-interactions.mjs` checks shared 13px Pretendard semibold contact, degree and manager labels in both languages (including untranslated ORCID/Scholar labels), compact spacing, original capitalization, non-overlapping values, viewport fit and stable typography after language switching.
 `contact-layout-interactions.mjs` checks Contact and Members contact rows in KO/EN
 at 320, 360, 768 and 1280px, in screen and print media. It measures actual label
 text bounds, value containment, and unchanged contact text/links at normal and

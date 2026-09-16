@@ -870,19 +870,17 @@ main:focus { outline: none; }
   color: var(--faint);
   padding-top: 0.22rem;
 }
-/* Korean labels need text typography, not spaced uppercase micro-labels. */
-.person__role:has(> [lang="ko"]),
-.badge:has(> [lang="ko"]),
-.contact-row dt[lang="ko"],
-.contact-row dt:has(> [lang="ko"]) {
+/* Information labels share typography across languages, including profile names. */
+.person__role,
+.person .badge,
+.contact-row dt {
   font-family: var(--sans);
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
 }
-.contact-row dt[lang="ko"],
-.contact-row dt:has(> [lang="ko"]) {
+.contact-row dt {
   flex-basis: 6em;
   color: var(--dim);
   padding-top: 0.05rem;

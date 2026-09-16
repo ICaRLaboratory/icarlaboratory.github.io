@@ -4,7 +4,7 @@ export async function runKoreanLabelChecks(browser, base) {
   const results = [];
   for (const file of ['members', 'contact']) for (const width of [320, 360, 768, 1280]) {
     const page = await browser.newPage({ viewport: { width, height: 900 }, reducedMotion: 'reduce' });
-    const name = `Korean information labels (${file}, ${width}px)`;
+    const name = `Bilingual information labels (${file}, ${width}px)`;
     try {
       await page.goto(`${base}/${file}.html?lang=en`);
       const labels = page.locator('main .contact-row dt, .person__role, .badge');
@@ -12,10 +12,25 @@ export async function runKoreanLabelChecks(browser, base) {
         const s = getComputedStyle(el);
         return [s.fontFamily, s.fontSize, s.fontWeight, s.letterSpacing, s.color];
       }));
+      const checkTypography = async () => {
+        const actual = await labels.evaluateAll(nodes => nodes.map(el => {
+          const s = getComputedStyle(el);
+          return { text: el.textContent.trim(), family: s.fontFamily, size: s.fontSize, weight: s.fontWeight, spacing: s.letterSpacing, transform: s.textTransform };
+        }));
+        for (const label of actual) {
+          assert.match(label.family, /Pretendard/, `${label.text}: shared text family`);
+          assert.equal(label.size, '13px', `${label.text}: readable label size`);
+          assert.equal(label.weight, '600');
+          assert.equal(label.spacing, 'normal');
+          assert.equal(label.transform, 'none');
+        }
+      };
+      await checkTypography();
       const english = await styles();
       await page.locator('[data-lang="ko"]').click();
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       await page.evaluate(() => document.fonts.ready);
+      await checkTypography();
       const korean = await labels.evaluateAll(nodes => nodes.filter(el => /[가-힣]/.test(el.textContent)).map(el => {
         const s = getComputedStyle(el);
         return { text: el.textContent, family: s.fontFamily, size: parseFloat(s.fontSize), weight: Number(s.fontWeight), spacing: parseFloat(s.letterSpacing) || 0 };
