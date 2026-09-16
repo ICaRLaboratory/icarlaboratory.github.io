@@ -271,6 +271,9 @@ function renderFooter() {
           </div>
           <p class="muted" style="font-size:.88rem;max-width:34ch;margin:0">${
             esc(SITE.labName)}, ${esc(SITE.department.en)}, ${esc(SITE.university)}.</p>
+          <a class="footer__university" href="https://www.sejong.ac.kr/kor/">
+            <img src="assets/img/sejong-wordmark-white.png" alt="Sejong University" width="488" height="118" loading="lazy">
+          </a>
         </div>
         <div>
           <h2>Navigate</h2>

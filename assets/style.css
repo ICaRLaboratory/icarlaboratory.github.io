@@ -557,6 +557,11 @@ main:focus { outline: none; }
   min-height: clamp(520px, 76vh, 760px);
 }
 
+.hero__affiliation { letter-spacing: 0.08em; }
+.hero__affiliation img { width: 36px; height: 36px; flex: 0 0 36px; }
+.hero__affiliation span { min-width: 0; }
+.hero__affiliation::after { content: none; }
+
 .hero__title { max-width: 13ch; }
 .hero__title em { font-style: italic; }
 .hero__lede { margin-top: 1.6rem; max-width: 40ch; }
@@ -1044,6 +1049,8 @@ main:focus { outline: none; }
 /* ---------- footer ---------- */
 
 .footer { padding-block: 3.5rem 2.5rem; margin-top: 0; }
+.footer__university { display: inline-flex; align-items: center; max-width: 100%; min-height: 44px; margin-top: 1.5rem; }
+.footer__university img { display: block; width: 184px; max-width: 100%; height: auto; }
 .footer__grid { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr)); gap: 2.5rem; }
 @media (max-width: 760px) { .footer__grid { grid-template-columns: 1fr; gap: 2rem; } }
 
