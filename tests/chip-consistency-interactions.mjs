@@ -14,6 +14,27 @@ export async function runChipConsistencyChecks(browser, base) {
           assert.deepEqual(s, ['rgba(0, 0, 0, 0)', '999px', '16px']);
         }
       }
+      await page.goto(`${base}/gallery.html?lang=${lang}`);
+      await page.evaluate(() => document.fonts.ready);
+      const galleryChips = page.locator('#galfilters .chip');
+      assert.ok(await galleryChips.count() > 1);
+      for (const chip of await galleryChips.all()) {
+        const style = await chip.evaluate(el => {
+          const s = getComputedStyle(el);
+          return { font: s.fontFamily, size: s.fontSize, weight: s.fontWeight, spacing: s.letterSpacing, transform: s.textTransform, height: el.getBoundingClientRect().height };
+        });
+        assert.ok(style.font.includes('Pretendard'), 'Gallery chips use the body font');
+        assert.equal(style.size, '16px');
+        assert.equal(style.weight, '600');
+        assert.equal(style.spacing, 'normal');
+        assert.equal(style.transform, 'none');
+        assert.equal(style.height, 44);
+      }
+      const year = page.locator('#galfilters [data-set]:not([data-set="all"])').first();
+      await year.focus();
+      await page.keyboard.press('Enter');
+      assert.equal(await year.getAttribute('aria-pressed'), 'true');
+      assert.equal(await year.evaluate(el => el === document.activeElement), true);
       await page.goto(`${base}/contact.html?lang=${lang}`);
       await page.evaluate(() => document.fonts.ready);
       const links = page.locator('#contactlinks a');

@@ -1004,6 +1004,22 @@ main:focus { outline: none; }
 .chip:hover { color: var(--text); border-color: var(--line); }
 .chip.is-active { color: var(--bg); background: var(--text); border-color: var(--text); font-weight: 600; }
 
+#galfilters .chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  max-width: 100%;
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.65;
+  letter-spacing: normal;
+  text-transform: none;
+  overflow-wrap: anywhere;
+}
+#galfilters .chip:not(.is-active) { color: var(--text); }
+#galfilters .chip:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+
 /* The gallery's "+ Earlier" sits in the same row but does a different job: it
    opens more year chips rather than filtering. The dashed edge says so, and
    it never takes the active fill, because it is never a view. */
