@@ -37,13 +37,13 @@ export async function runContactMembersLanguageChecks(browser, base) {
   await check('Contact selected-language fields switch both ways without replacing links or map', async page => {
     await page.goto(`${base}/contact.html?lang=en`);
     await contact(page, 'en');
-    const links = await page.locator('main a').evaluateAll(nodes => nodes.map(n => [n.href, n.target, n.rel]));
+    const links = await page.locator('main a').evaluateAll(nodes => nodes.map(n => [n.getAttribute('href'), n.target, n.rel]));
     const map = await page.locator('#map iframe').getAttribute('src');
     await page.evaluate(() => { window.savedLinks = [...document.querySelectorAll('main a')]; window.savedMap = document.querySelector('#map iframe'); });
     for (const lang of ['ko', 'en']) {
       await page.locator(`[data-lang="${lang}"]`).click();
       await contact(page, lang);
-      assert.deepEqual(await page.locator('main a').evaluateAll(nodes => nodes.map(n => [n.href, n.target, n.rel])), links);
+      assert.deepEqual(await page.locator('main a').evaluateAll(nodes => nodes.map(n => [n.getAttribute('href'), n.target, n.rel])), links);
       assert.equal(await page.locator('#map iframe').getAttribute('src'), map);
       assert.equal(await page.evaluate(() => window.savedLinks.every(n => n.isConnected) && window.savedMap === document.querySelector('#map iframe')), true);
     }
@@ -73,7 +73,7 @@ export async function runContactMembersLanguageChecks(browser, base) {
   await check('Members names, roles and affiliations switch in place and retain visible reveal nodes', async page => {
     await page.goto(`${base}/members.html?lang=en`);
     await members(page, 'en');
-    const links = await page.locator('main a').evaluateAll(nodes => nodes.map(n => [n.href, n.target, n.rel]));
+    const links = await page.locator('main a').evaluateAll(nodes => nodes.map(n => [n.getAttribute('href'), n.target, n.rel]));
     const facts = await page.locator('.tags, .tl-period, .person:not(.person--opening) .person__meta').allTextContents();
     await page.locator('#alumni').scrollIntoViewIfNeeded();
     await page.waitForFunction(() => [...document.querySelectorAll('#alumni [data-reveal]')].every(n => n.classList.contains('is-in')));
@@ -81,7 +81,7 @@ export async function runContactMembersLanguageChecks(browser, base) {
     for (const lang of ['ko', 'en']) {
       await page.locator(`[data-lang="${lang}"]`).click();
       await members(page, lang);
-      assert.deepEqual(await page.locator('main a').evaluateAll(nodes => nodes.map(n => [n.href, n.target, n.rel])), links);
+      assert.deepEqual(await page.locator('main a').evaluateAll(nodes => nodes.map(n => [n.getAttribute('href'), n.target, n.rel])), links);
       // Interests and dates remain factual; the graduation label alone is translated.
       const current = await page.locator('.tags, .tl-period, .person:not(.person--opening) .person__meta').allTextContents();
       assert.deepEqual(current.map(s => s.replace('졸업', 'Graduated').replace('현재', 'present')), facts);

@@ -61,6 +61,7 @@ dates and original English facts are preserved. The old always-Korean extra addr
 assertion now checks the selected address’s effective language. Shared footer and
 navigation language policy remains unchanged.
 `korean-label-interactions.mjs` checks shared 13px Pretendard semibold contact, degree and manager labels in both languages (including untranslated ORCID/Scholar labels), compact spacing, original capitalization, non-overlapping values, viewport fit and stable typography after language switching. It also checks 16px semibold Members section headings and the graduate/undergraduate Open position cards, their order, bilingual roles and email destinations. Recruitment cards remain separate from actual member records and counts.
+`member-navigation-interactions.mjs` checks the four Members section chips in KO/EN at mobile/desktop widths, native Enter focus transfer and next-Tab entry, sticky-header clearance, fragment reload and preservation of all cards.
 `member-card-layout-interactions.mjs` checks equal graduate/undergraduate student and opening card dimensions across live resizing and KO/EN switching, plus 16/24/32px root-font simulations and return to normal size; card contents must remain contained.
 `contact-layout-interactions.mjs` checks Contact and Members contact rows in KO/EN
 at 320, 360, 768 and 1280px, in screen and print media. It measures actual label

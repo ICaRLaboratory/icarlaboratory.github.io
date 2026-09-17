@@ -749,6 +749,31 @@ main:focus { outline: none; }
 
 /* ---------- people ---------- */
 
+.members-target { scroll-margin-top: 6rem; }
+.members-nav { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: 1.75rem; font-size: 1rem; }
+.members-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: .8rem;
+  min-height: 48px;
+  max-width: 100%;
+  padding: .65rem 1.1rem;
+  border: 1px solid #d4d4d8;
+  border-radius: 999px;
+  background: #f2f2f0;
+  color: #3f3f46;
+  font-weight: 600;
+  text-decoration: none;
+}
+.members-nav a span { min-width: 0; overflow-wrap: anywhere; }
+.members-nav a:hover { border-color: #71717a; }
+.members-nav a:focus-visible { border-color: #71717a; outline: 2px solid #3f3f46; outline-offset: 4px; }
+.members-nav svg {
+  width: 1em; height: 1em; flex: none; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+}
+@media print { .members-nav { display: none; } }
+
 .people { display: grid; gap: 1.1rem; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); }
 /* Reserve empty columns so a lone opening keeps the student-card width. */
 #grad, #undergrad { grid-template-columns: repeat(auto-fill, minmax(min(100%, 258px), 1fr)); }
