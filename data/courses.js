@@ -4,7 +4,7 @@
 
 const LEVEL = { ug: "Undergraduate", grad: "Graduate" };
 
-/* nameKo is the official course title; it prints beside the English one. */
+/* nameKo is the official Korean title; display follows the language toggle. */
 const c = (nameEn, nameKo, level, years) => ({ nameEn, nameKo, level, years });
 
 const COURSES = {

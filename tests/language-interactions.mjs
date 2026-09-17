@@ -18,6 +18,37 @@ export async function runLanguageChecks(browser, base) {
       await context.close();
     }
   }
+  for (const width of [320, 1280]) {
+    await check(`Lecture course names follow selected language at ${width}px`, async page => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(`${base}/lecture.html?lang=en`);
+      async function courses(expected) {
+        const names = await page.evaluate(lang => Object.fromEntries(
+          Object.entries(COURSES).map(([semester, list]) => [semester, list.map(c => lang === 'ko' ? c.nameKo : c.nameEn)])
+        ), expected);
+        for (const semester of ['spring', 'fall']) {
+          assert.deepEqual(await page.locator(`#${semester} .course__name`).allTextContents(), names[semester]);
+          assert.equal(await page.locator(`#${semester} .course__ko`).count(), 0, 'No second-language subtitle');
+        }
+        assert.deepEqual(await page.locator('#past .tag').allTextContents(), names.past);
+        assert.equal(await page.locator('h1').textContent(), 'Courses taught.');
+        await language(page, expected);
+      }
+      await courses('en');
+      for (const lang of ['ko', 'en']) {
+        await page.locator(`[data-lang="${lang}"]`).click();
+        await courses(lang);
+        await page.reload();
+        await courses(lang);
+      }
+      await page.goto(`${base}/lecture.html?lang=ko`);
+      await courses('ko');
+      await page.goto(`${base}/contact.html`);
+      await page.goBack();
+      await courses('ko');
+    });
+  }
+
   const home = suffix => new URL(`index.html${suffix}`, `${base.replace(/\/$/, '')}/`).href;
   async function language(page, expected) {
     assert.equal(await page.locator(`[data-lang="${expected}"]`).getAttribute('aria-pressed'), 'true');

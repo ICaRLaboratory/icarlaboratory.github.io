@@ -926,8 +926,7 @@ function renderCourses() {
   const row = (c) => `
     <div class="course">
       <span>
-        <span class="course__name">${esc(c.nameEn)}</span>
-        <span class="course__ko" lang="ko">${esc(c.nameKo)}</span>
+        <span class="course__name">${localized({ en: c.nameEn, ko: c.nameKo })}</span>
       </span>
       <span class="course__years">${esc(c.years || c.level)}</span>
     </div>`;
@@ -939,7 +938,7 @@ function renderCourses() {
   const past = $("#past");
   if (past) {
     past.innerHTML = COURSES.past
-      .map((c) => `<span class="tag">${esc(c.nameEn)} <span class="faint" lang="ko">${esc(c.nameKo)}</span></span>`)
+      .map((c) => `<span class="tag">${localized({ en: c.nameEn, ko: c.nameKo })}</span>`)
       .join("");
   }
 }
