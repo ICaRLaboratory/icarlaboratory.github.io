@@ -1414,9 +1414,16 @@ function renderContact() {
 
   const links = $("#contactlinks");
   if (links) {
+    const mapLinks = [
+      { provider: 'naver', label: { en: 'Naver Maps', ko: '네이버 지도' }, url: 'https://map.naver.com/p/entry/place/1030806564' },
+      { provider: 'kakao', label: { en: 'Kakao Map', ko: '카카오맵' }, url: `https://map.kakao.com/link/map/${encodeURIComponent('세종대학교 대양AI센터')},${c.coords}` },
+      { provider: 'google', label: { en: 'Google Maps', ko: 'Google 지도' }, url: c.mapUrl },
+    ];
     links.innerHTML = `
       <a class="btn btn--primary" href="mailto:${esc(c.email)}">${esc(c.email)}</a>
-      <a class="btn" href="${esc(c.mapUrl)}" target="_blank" rel="noopener">${localized({ en: "Open in Google Maps", ko: "Google 지도에서 보기" })}</a>`;
+      <div class="map-links" role="group" aria-label="Map services">
+        ${mapLinks.map(link => `<a class="map-link map-link--${link.provider}" href="${esc(link.url)}" target="_blank" rel="noopener">${localized(link.label)}<span aria-hidden="true">↗</span></a>`).join('')}
+      </div>`;
   }
 }
 

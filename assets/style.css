@@ -1252,6 +1252,27 @@ main:focus { outline: none; }
 
 /* ---------- contact page ---------- */
 
+.map-links { display: flex; flex-wrap: wrap; flex-basis: 100%; gap: .5rem; }
+.map-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  min-height: 44px;
+  max-width: 100%;
+  padding: .5rem .75rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: .875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.map-link > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.map-link--naver { background: #03c75a; color: #063b20; }
+.map-link--kakao { background: #fee500; color: #191919; }
+.map-link--google { background: #1a73e8; color: #fff; }
+.map-link:hover { border-color: currentColor; }
+.map-link:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+
 .contact-grid {
   display: grid;
   grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
