@@ -10,9 +10,8 @@
 #pubcounts {
   flex: 1 1 24rem;
   margin: 0;
-  font: .72rem var(--mono);
-  letter-spacing: .12em;
-  text-transform: uppercase;
+  font: 500 1rem/1.6 var(--sans);
+  color: var(--text);
 }
 .publication-tools {
   padding: 1.25rem;

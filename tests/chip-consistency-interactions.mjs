@@ -80,5 +80,41 @@ export async function runChipConsistencyChecks(browser, base) {
     } catch (error) { results.push({ name, pass: false, error: String(error) }); }
     finally { await page.close(); }
   }
+  for (const width of [320, 1280]) for (const lang of ['ko', 'en']) {
+    const page = await browser.newPage({ viewport: { width, height: 900 }, reducedMotion: 'reduce' });
+    const name = `Readable photo metadata and publication totals ${width}px ${lang}`;
+    try {
+      async function readable(selector, minSize, color) {
+        const elements = page.locator(selector);
+        assert.ok(await elements.count(), selector);
+        for (const el of await elements.all()) {
+          const s = await el.evaluate(el => {
+            const s = getComputedStyle(el), b = el.getBoundingClientRect();
+            return { font: s.fontFamily, size: parseFloat(s.fontSize), weight: s.fontWeight,
+              spacing: s.letterSpacing, transform: s.textTransform, color: s.color,
+              left: b.left, right: b.right, bottom: b.bottom };
+          });
+          assert.ok(s.font.includes('Pretendard'), `${selector} uses body font`);
+          assert.ok(s.size >= minSize, `${selector} readable size`);
+          assert.equal(s.spacing, 'normal');
+          assert.equal(s.transform, 'none');
+          assert.equal(s.color, color);
+          assert.ok(s.left >= 0 && s.right <= width && s.bottom <= (selector.includes('figcaption') ? 900 : Infinity));
+        }
+      }
+      await page.goto(`${base}/gallery.html?lang=${lang}`);
+      await page.evaluate(() => document.fonts.ready);
+      await readable('.album__meta', 14.4, 'rgb(10, 10, 10)');
+      await readable('.album__ko', 16, 'rgb(10, 10, 10)');
+      await page.locator('.shot').first().click();
+      await readable('.lightbox[open] figcaption', 16, 'rgb(250, 250, 250)');
+      await page.keyboard.press('Escape');
+      await page.goto(`${base}/publications.html?lang=${lang}`);
+      await readable('#pubcounts', 16, 'rgb(10, 10, 10)');
+      assert.equal(await page.locator('#pubcounts').evaluate(el => getComputedStyle(el).fontWeight), '500');
+      results.push({ name, pass: true });
+    } catch (error) { results.push({ name, pass: false, error: String(error) }); }
+    finally { await page.close(); }
+  }
   return results;
 }
