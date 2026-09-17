@@ -820,10 +820,11 @@ function personCard(p, i, opts = {}) {
           : `<button class="person__cv" type="button" disabled>CV<span class="sr-only">${localized({ en: " unavailable", ko: " 미등록" })}</span></button>`}
       </div>
       <div>
-        <div class="person__name">${localized({ en: p.nameEn, ko: p.nameKo || p.nameEn })}</div>
+        <div class="person__heading">
+          <div class="person__name">${localized({ en: p.nameEn, ko: p.nameKo || p.nameEn })}</div>
+          ${p.role ? `<span class="badge">${localized(p.role)}</span>` : ""}
+        </div>
         <div class="person__role">${localized(p.degree)}</div>
-        <!-- always rendered, so a card without a role keeps the same rhythm -->
-        <div class="badge-slot">${p.role ? `<span class="badge">${localized(p.role)}</span>` : ""}</div>
         <div class="person__meta">${(p.interests || []).map(esc).join(" &middot; ")}</div>
         ${line2 ? `<div class="person__meta faint">${line2}</div>` : ""}
         ${profiles.length ? `<div class="person__links">${profiles

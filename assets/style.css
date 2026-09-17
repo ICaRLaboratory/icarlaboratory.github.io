@@ -817,8 +817,8 @@ main:focus { outline: none; }
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 44px;
-  padding: 0.25rem 0;
+  min-height: 28px;
+  padding: 0.2rem 0;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--text);
@@ -836,6 +836,8 @@ main:focus { outline: none; }
 .person__cv[href]:hover { opacity: 0.86; }
 .person__cv[href]:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
 
+.person__heading { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.5rem; }
+.person__heading .badge { max-width: 100%; }
 .person__name { font-weight: 620; font-size: 1rem; letter-spacing: -0.01em; }
 /* on its own line, and never split mid-name, so every card has the same
    two-line head whatever the column width */
@@ -880,15 +882,6 @@ main:focus { outline: none; }
   border-radius: 5px;
   border: 1px solid var(--line);
   color: var(--dim);
-}
-
-/* The armband: one row held open on every card, filled only where there is a
-   role to show, so the lines below it start at the same height everywhere. */
-.badge-slot {
-  display: flex;
-  align-items: center;
-  min-height: 1.5rem;
-  margin-top: 0.5rem;
 }
 
 /* ---------- advisor block ---------- */

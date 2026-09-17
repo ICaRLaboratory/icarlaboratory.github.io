@@ -4,6 +4,10 @@ export async function runMemberCVChecks(browser, base) {
   const page = await browser.newPage({ reducedMotion: 'reduce' });
   try {
     await page.goto(`${base}/members.html?lang=ko`);
+    assert.equal(await page.locator('.badge-slot').count(), 0);
+    assert.equal(await page.locator('.person__heading .badge').count(), 1);
+    const cvHeight = await page.locator('.person__cv').first().evaluate(node => node.getBoundingClientRect().height);
+    assert.ok(cvHeight >= 24 && cvHeight <= 30, `Compact CV height: ${cvHeight}`);
     const count = await page.evaluate(() => GRAD_STUDENTS.length + UNDERGRAD_STUDENTS.length + ALUMNI.length);
     assert.ok(count > 0);
     assert.equal(await page.locator('.person__cv:disabled').count(), count);
