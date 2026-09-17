@@ -32,7 +32,7 @@ Publication checks cover title/author/venue/DOI search, combined type/year filte
 result announcements, empty/reset states, safe query rendering and URL restoration.
 Research checks cover native section-link navigation, focus, deep links and
 contextual routes to Publications and Contact. Both include narrow-screen checks.
-Research section chips also check subdued gray surfaces, readable labels, decorative arrows,
+Research section chips also check Gallery-style transparent surfaces, readable labels, absence of arrows,
 keyboard focus and viewport fit in KO/EN at 320, 360, 768 and 1280px.
 Publication URLs use `q`, `type` (`journal`, `conference`, `domestic`, `all`) and
 `year`. Initial selection and Reset use All. An explicitly chosen type remains
@@ -61,6 +61,7 @@ dates and original English facts are preserved. The old always-Korean extra addr
 assertion now checks the selected address’s effective language. Shared footer and
 navigation language policy remains unchanged.
 `korean-label-interactions.mjs` checks shared 13px Pretendard semibold contact, degree and manager labels in both languages (including untranslated ORCID/Scholar labels), compact spacing, original capitalization, non-overlapping values, viewport fit and stable typography after language switching. It also checks 16px semibold Members section headings and the graduate/undergraduate Open position cards, their order, bilingual roles and email destinations. Recruitment cards remain separate from actual member records and counts.
+`chip-consistency-interactions.mjs` checks shared Research/Members outlines without arrows, Contact single-row layout at roomy widths, matching chip heights and identical email-based hover motion with provider colors preserved. Narrow screens wrap.
 `contact-map-links-interactions.mjs` checks the Naver/Kakao/Google chips in KO/EN at mobile/desktop widths: destination URLs, new-tab security, keyboard order, target sizes and unchanged email/map embed. The full accessibility suite covers chip text contrast. Naver place 1030806564 was verified as 세종대학교 대양AI센터; Kakao uses the documented named-coordinate link format and the existing site coordinates.
 `member-navigation-interactions.mjs` checks the four Members section chips in KO/EN at mobile/desktop widths, native Enter focus transfer and next-Tab entry, sticky-header clearance, fragment reload and preservation of all cards.
 `member-card-layout-interactions.mjs` checks equal graduate/undergraduate student and opening card dimensions across live resizing and KO/EN switching, plus 16/24/32px root-font simulations and return to normal size; card contents must remain contained.

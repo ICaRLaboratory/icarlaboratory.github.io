@@ -9,7 +9,7 @@ export async function runContactMapLinkChecks(browser, base) {
       const iframe = await page.locator('#map iframe').getAttribute('src');
       for (const lang of ['en', 'ko', 'en']) {
         await page.locator(`[data-lang="${lang}"]`).click();
-        const links = page.locator('.map-links a');
+        const links = page.locator('#contactlinks .map-link');
         assert.deepEqual(await links.locator('span[data-en]').allTextContents(), lang === 'ko'
           ? ['네이버 지도', '카카오맵', 'Google 지도'] : ['Naver Maps', 'Kakao Map', 'Google Maps']);
         const targets = await links.evaluateAll(nodes => nodes.map(n => ({ href: n.href, target: n.target, rel: n.rel })));
@@ -23,13 +23,13 @@ export async function runContactMapLinkChecks(browser, base) {
           assert.ok(box.height >= 44 && box.width >= 44 && box.x >= 0 && box.x + box.width <= width);
         }
         assert.equal(await page.locator('#map iframe').getAttribute('src'), iframe);
-        assert.equal(await page.locator('#contactlinks > a').getAttribute('href'), 'mailto:lsy@sejong.ac.kr');
-        await page.locator('#contactlinks > a').focus();
+        assert.equal(await page.locator('#contactlinks .contact-chip--email').getAttribute('href'), 'mailto:lsy@sejong.ac.kr');
+        await page.locator('#contactlinks .contact-chip--email').focus();
         await page.keyboard.press('Tab');
-        assert.equal(await page.evaluate(() => document.activeElement.getAttribute('class')), 'map-link map-link--naver');
+        assert.equal(await page.evaluate(() => document.activeElement.getAttribute('class')), 'contact-chip map-link map-link--naver');
         for (const provider of ['kakao', 'google']) {
           await page.keyboard.press('Tab');
-          assert.equal(await page.evaluate(() => document.activeElement.getAttribute('class')), `map-link map-link--${provider}`);
+          assert.equal(await page.evaluate(() => document.activeElement.getAttribute('class')), `contact-chip map-link map-link--${provider}`);
         }
       }
       results.push({ name: `Contact branded map links ${width}px KO/EN`, pass: true });
