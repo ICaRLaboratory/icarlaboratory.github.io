@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { runChipConsistencyChecks } from '../tests/chip-consistency-interactions.mjs';
+import { runLinkArrowChecks } from '../tests/link-arrow-interactions.mjs';
 import { runContactMapLinkChecks } from '../tests/contact-map-links-interactions.mjs';
 import { runMemberNavigationChecks } from '../tests/member-navigation-interactions.mjs';
 import { runMemberCVChecks } from '../tests/member-cv-interactions.mjs';
@@ -107,6 +108,7 @@ async function run() {
   results.push(...await runMemberCardLayoutChecks(browser, base));
   results.push(...await runMemberCVChecks(browser, base));
   results.push(...await runMemberNavigationChecks(browser, base));
+  results.push(...await runLinkArrowChecks(browser, base));
   results.push(...await runContactMapLinkChecks(browser, base));
   results.push(...await runChipConsistencyChecks(browser, base));
   results.push(...await runNewsLinksChecks(browser, base));

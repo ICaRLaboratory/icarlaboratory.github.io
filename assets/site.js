@@ -284,7 +284,7 @@ function renderFooter() {
             <li>Office: ${esc(c.office.en)}</li>
             <li>${esc(c.address.en)}</li>
             <li><a href="mailto:${esc(c.email)}">${esc(c.email)}</a></li>
-            <li><a href="${esc(c.mapUrl)}" target="_blank" rel="noopener">Open in Maps &rarr;</a></li>
+            <li><a href="${esc(c.mapUrl)}" target="_blank" rel="noopener">Open in Maps <span aria-hidden="true">↗</span></a></li>
           </ul>
         </div>
       </div>
@@ -681,7 +681,7 @@ function renderRecruiting() {
   const ko = LANG === "ko" && isPair(r.title) && r.title.ko ? ' lang="ko"' : "";
   const mail = SITE.contact.email;
   $("#recruittext", band).innerHTML =
-    `<span${ko}>${esc(t(r.title))}</span> <a class="recruit__link" href="mailto:${esc(mail)}">${esc(mail)}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>`;
+    `<span${ko}>${esc(t(r.title))}</span> <a class="recruit__link" href="mailto:${esc(mail)}">${esc(mail)}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>`;
 }
 
 function renderNews() {
