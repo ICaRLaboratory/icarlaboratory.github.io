@@ -8,6 +8,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { runChipConsistencyChecks } from '../tests/chip-consistency-interactions.mjs';
 import { runContactMapLinkChecks } from '../tests/contact-map-links-interactions.mjs';
 import { runMemberNavigationChecks } from '../tests/member-navigation-interactions.mjs';
+import { runMemberCVChecks } from '../tests/member-cv-interactions.mjs';
 import { runMemberCardLayoutChecks } from '../tests/member-card-layout-interactions.mjs';
 import { runKoreanLabelChecks } from '../tests/korean-label-interactions.mjs';
 import { runNewsLinksChecks } from '../tests/news-links-interactions.mjs';
@@ -104,6 +105,7 @@ async function run() {
   if (!Array.isArray(results) || results.length === 0) throw new Error('Harness returned no test results');
   results.push(...await runKoreanLabelChecks(browser, base));
   results.push(...await runMemberCardLayoutChecks(browser, base));
+  results.push(...await runMemberCVChecks(browser, base));
   results.push(...await runMemberNavigationChecks(browser, base));
   results.push(...await runContactMapLinkChecks(browser, base));
   results.push(...await runChipConsistencyChecks(browser, base));

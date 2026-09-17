@@ -1,6 +1,7 @@
 /* ---------------------------------------------------------------
    Lab members.
 
+   `cv` is optional: a PDF path or URL enables the CV link; omit it for a disabled button.
    `photo` is optional -- leave it out and the card shows a
    generated monogram instead. Drop files in assets/img/.
    `nameEn` / `nameKo` follow the selected language; a missing Korean name falls back to English.

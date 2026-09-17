@@ -811,6 +811,30 @@ main:focus { outline: none; }
   overflow: hidden;
 }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
+.person__media { flex: none; width: 54px; display: grid; gap: 8px; }
+.person__cv {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.25rem 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--text);
+  color: var(--bg);
+  font: 600 0.75rem/1.2 var(--sans);
+  text-decoration: none;
+}
+.person__cv:disabled {
+  background: #eaeaea;
+  color: #96969c;
+  border-color: #dedee0;
+  cursor: default;
+  opacity: 1;
+}
+.person__cv[href]:hover { opacity: 0.86; }
+.person__cv[href]:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
 
 .person__name { font-weight: 620; font-size: 1rem; letter-spacing: -0.01em; }
 /* on its own line, and never split mid-name, so every card has the same

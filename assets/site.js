@@ -813,7 +813,12 @@ function personCard(p, i, opts = {}) {
 
   return `
     <div class="person" data-reveal style="--d:${i * 60}ms">
-      <div class="avatar">${avatar}</div>
+      <div class="person__media">
+        <div class="avatar">${avatar}</div>
+        ${p.cv
+          ? `<a class="person__cv" href="${esc(p.cv)}" target="_blank" rel="noopener">CV</a>`
+          : `<button class="person__cv" type="button" disabled>CV<span class="sr-only">${localized({ en: " unavailable", ko: " 미등록" })}</span></button>`}
+      </div>
       <div>
         <div class="person__name">${localized({ en: p.nameEn, ko: p.nameKo || p.nameEn })}</div>
         <div class="person__role">${localized(p.degree)}</div>
