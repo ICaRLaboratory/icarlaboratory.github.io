@@ -734,13 +734,15 @@ main:focus { outline: none; }
 
 .tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1.25rem; }
 .tag {
-  font-family: var(--mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.05em;
-  padding: 0.28rem 0.62rem;
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: normal;
+  line-height: 1.5;
+  padding: 0.35rem 0.75rem;
   border-radius: 999px;
   border: 1px solid var(--line-soft);
-  color: var(--dim);
+  color: var(--text);
   background: var(--panel);
   max-width: 100%;
   white-space: normal;
