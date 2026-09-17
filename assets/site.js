@@ -1420,7 +1420,7 @@ function renderContact() {
       { provider: 'google', label: { en: 'Google Maps', ko: 'Google 지도' }, url: c.mapUrl },
     ];
     links.innerHTML = `
-      <a class="contact-chip contact-chip--email" href="mailto:${esc(c.email)}">${esc(c.email)}</a>
+      <a class="contact-chip contact-chip--email" href="mailto:${esc(c.email)}">${localized({ en: "Email", ko: "이메일" })}<span aria-hidden="true">↗</span></a>
       ${mapLinks.map(link => `<a class="contact-chip map-link map-link--${link.provider}" href="${esc(link.url)}" target="_blank" rel="noopener">${localized(link.label)}<span aria-hidden="true">↗</span></a>`).join('')}`;
   }
 }

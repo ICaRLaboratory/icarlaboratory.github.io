@@ -24,7 +24,12 @@ export async function runContactMapLinkChecks(browser, base) {
         }
         assert.equal(await page.locator('#map iframe').getAttribute('src'), iframe);
         assert.equal(await page.locator('#contactlinks .contact-chip--email').getAttribute('href'), 'mailto:lsy@sejong.ac.kr');
-        await page.locator('#contactlinks .contact-chip--email').focus();
+        const email = page.locator('#contactlinks .contact-chip--email');
+        assert.equal(await email.locator('span[data-en]').textContent(), lang === 'ko' ? '이메일' : 'Email');
+        assert.equal(await email.locator('[aria-hidden="true"]').textContent(), '↗');
+        assert.equal(await email.evaluate(el => getComputedStyle(el).fontSize), await links.first().evaluate(el => getComputedStyle(el).fontSize));
+        assert.equal(await page.locator('.contact-row a[href="mailto:lsy@sejong.ac.kr"]').textContent(), 'lsy@sejong.ac.kr');
+        await email.focus();
         await page.keyboard.press('Tab');
         assert.equal(await page.evaluate(() => document.activeElement.getAttribute('class')), 'contact-chip map-link map-link--naver');
         for (const provider of ['kakao', 'google']) {

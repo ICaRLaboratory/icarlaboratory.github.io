@@ -1267,8 +1267,8 @@ main:focus { outline: none; }
   text-decoration: none;
   transition: transform .2s, border-color .2s, background .2s, opacity .2s;
 }
-.contact-chip--email { background: var(--text); color: var(--bg); font-size: .75rem; overflow-wrap: anywhere; }
-.map-link > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.contact-chip--email { background: var(--text); color: var(--bg); }
+.contact-chip > span:first-child { min-width: 0; overflow-wrap: anywhere; }
 .map-link--naver { background: #03c75a; color: #063b20; }
 .map-link--kakao { background: #fee500; color: #191919; }
 .map-link--google { background: #185abc; color: #fff; }
