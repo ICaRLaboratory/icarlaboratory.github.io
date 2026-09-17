@@ -19,7 +19,7 @@ export async function runChipConsistencyChecks(browser, base) {
       const links = page.locator('#contactlinks a');
       assert.equal(await links.count(), 4);
       const boxes = await links.evaluateAll(ns => ns.map(n => {const b=n.getBoundingClientRect();return {height:b.height,top:b.top,left:b.left,right:b.right};}));
-      for (const b of boxes) { assert.equal(b.height, boxes[0].height); assert.ok(b.left>=0 && b.right<=width && b.height>=44); }
+      for (const b of boxes) { assert.equal(b.height, boxes[0].height); assert.ok(b.left>=0 && b.right<=width && b.height===38); }
       if (width >= 768) for (const b of boxes) assert.ok(Math.abs(b.top-boxes[0].top)<1, 'Email and maps share a row');
       for (const link of await links.all()) {
         const background = await link.evaluate(el=>getComputedStyle(el).backgroundColor);

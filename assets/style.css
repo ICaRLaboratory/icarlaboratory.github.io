@@ -1274,9 +1274,11 @@ main:focus { outline: none; }
   align-items: center;
   justify-content: center;
   gap: .25rem;
-  min-height: 44px;
+  min-height: 38px;
+  width: 7rem;
+  flex: 0 0 auto;
   max-width: 100%;
-  padding: .5rem .55rem;
+  padding: .35rem .25rem;
   border: 1px solid transparent;
   border-radius: 999px;
   font-size: .8125rem;

@@ -18,9 +18,14 @@ export async function runContactMapLinkChecks(browser, base) {
         assert.equal(decodeURIComponent(new URL(targets[1].href).pathname), `/link/map/세종대학교 대양AI센터,${coords}`);
         assert.equal(targets[2].href, await page.evaluate(() => SITE.contact.mapUrl));
         for (const t of targets) { assert.equal(t.target, '_blank'); assert.match(t.rel, /noopener/); }
-        for (const link of await links.all()) {
-          const box = await link.boundingBox();
-          assert.ok(box.height >= 44 && box.width >= 44 && box.x >= 0 && box.x + box.width <= width);
+        await page.evaluate(() => document.fonts.ready);
+        const chips = page.locator('#contactlinks .contact-chip');
+        const firstBox = await chips.first().boundingBox();
+        for (const chip of await chips.all()) {
+          const box = await chip.boundingBox();
+          assert.equal(box.height, 38, 'Contact chips should be compact');
+          assert.ok(Math.abs(box.width - firstBox.width) < 1, 'All four chip widths should match');
+          assert.ok(box.width >= 44 && box.x >= 0 && box.x + box.width <= width);
         }
         assert.equal(await page.locator('#map iframe').getAttribute('src'), iframe);
         assert.equal(await page.locator('#contactlinks .contact-chip--email').getAttribute('href'), 'mailto:lsy@sejong.ac.kr');
