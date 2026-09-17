@@ -841,6 +841,25 @@ function openPositionCard(level, i) {
     </div>`;
 }
 
+function syncStudentCardHeights() {
+  const cards = [...document.querySelectorAll('#grad > .person, #undergrad > .person')];
+  if (!cards.length) return;
+  const host = $('#main');
+  const sync = () => {
+    const height = Math.ceil(Math.max(...cards.map(card => {
+      const style = getComputedStyle(card);
+      const content = Math.max(...[...card.children].map(child => child.getBoundingClientRect().height));
+      return content + parseFloat(style.paddingTop) + parseFloat(style.paddingBottom)
+        + parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
+    })));
+    host.style.setProperty('--student-card-height', `${height}px`);
+  };
+  // Observe natural content, not the synchronized card boxes, so heights can shrink too.
+  const observer = new ResizeObserver(sync);
+  cards.forEach(card => [...card.children].forEach(child => observer.observe(child)));
+  sync();
+}
+
 function renderMembers() {
   const advHost = $("#advisor");
   if (advHost) {
@@ -888,6 +907,7 @@ function renderMembers() {
   const undergrad = $("#undergrad");
   if (undergrad) undergrad.innerHTML = UNDERGRAD_STUDENTS.map((p, i) => personCard(p, i)).join("")
     + openPositionCard({ en: "Undergraduate researchers", ko: "학부연구생 모집" }, UNDERGRAD_STUDENTS.length);
+  syncStudentCardHeights();
 
   const alumni = $("#alumni");
   if (alumni) alumni.innerHTML = ALUMNI.map((p, i) => personCard(p, i, { alumni: true })).join("");
