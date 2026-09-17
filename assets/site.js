@@ -841,8 +841,8 @@ function openPositionCard(level, i) {
     </div>`;
 }
 
-function syncStudentCardHeights() {
-  const cards = [...document.querySelectorAll('#grad > .person, #undergrad > .person')];
+function syncMemberCardHeights() {
+  const cards = [...document.querySelectorAll('#grad > .person, #undergrad > .person, #alumni > .person')];
   if (!cards.length) return;
   const host = $('#main');
   const sync = () => {
@@ -852,7 +852,7 @@ function syncStudentCardHeights() {
       return content + parseFloat(style.paddingTop) + parseFloat(style.paddingBottom)
         + parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth);
     })));
-    host.style.setProperty('--student-card-height', `${height}px`);
+    host.style.setProperty('--member-card-height', `${height}px`);
   };
   // Observe natural content, not the synchronized card boxes, so heights can shrink too.
   const observer = new ResizeObserver(sync);
@@ -907,10 +907,9 @@ function renderMembers() {
   const undergrad = $("#undergrad");
   if (undergrad) undergrad.innerHTML = UNDERGRAD_STUDENTS.map((p, i) => personCard(p, i)).join("")
     + openPositionCard({ en: "Undergraduate researchers", ko: "학부연구생 모집" }, UNDERGRAD_STUDENTS.length);
-  syncStudentCardHeights();
-
   const alumni = $("#alumni");
   if (alumni) alumni.innerHTML = ALUMNI.map((p, i) => personCard(p, i, { alumni: true })).join("");
+  syncMemberCardHeights();
 }
 
 /* ---------- lecture ---------- */

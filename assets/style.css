@@ -775,9 +775,9 @@ main:focus { outline: none; }
 
 .people { display: grid; gap: 1.1rem; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); }
 /* Reserve empty columns so a lone opening keeps the student-card width. */
-#grad, #undergrad { grid-template-columns: repeat(auto-fill, minmax(min(100%, 258px), 1fr)); }
-#grad > .person, #undergrad > .person { min-height: var(--student-card-height, 0px); }
-#grad > .person > div:last-child, #undergrad > .person > div:last-child {
+#grad, #undergrad, #alumni { grid-template-columns: repeat(auto-fill, minmax(min(100%, 258px), 1fr)); }
+#grad > .person, #undergrad > .person, #alumni > .person { min-height: var(--member-card-height, 0px); }
+#grad > .person > div:last-child, #undergrad > .person > div:last-child, #alumni > .person > div:last-child {
   min-width: 0;
   overflow-wrap: anywhere;
 }
