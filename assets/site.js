@@ -828,6 +828,19 @@ function personCard(p, i, opts = {}) {
     </div>`;
 }
 
+function openPositionCard(level, i) {
+  return `
+    <div class="person person--opening" data-reveal style="--d:${i * 60}ms">
+      <div class="avatar" aria-hidden="true">+</div>
+      <div>
+        <div class="person__name" lang="en">Open position</div>
+        <div class="person__role">${localized(level)}</div>
+        <div class="person__meta">${localized({ en: "Contact us to discuss research opportunities.", ko: "연구 참여 및 진학 문의를 기다립니다." })}</div>
+        <div class="person__links"><a href="mailto:${esc(SITE.contact.email)}">${localized({ en: "Contact us", ko: "지원 문의" })}</a></div>
+      </div>
+    </div>`;
+}
+
 function renderMembers() {
   const advHost = $("#advisor");
   if (advHost) {
@@ -869,17 +882,12 @@ function renderMembers() {
   }
 
   const grad = $("#grad");
-  if (grad) grad.innerHTML = GRAD_STUDENTS.map((p, i) => personCard(p, i)).join("");
+  if (grad) grad.innerHTML = GRAD_STUDENTS.map((p, i) => personCard(p, i)).join("")
+    + openPositionCard({ en: "Graduate students", ko: "대학원생 모집" }, GRAD_STUDENTS.length);
 
   const undergrad = $("#undergrad");
-  const undergradSection = $("#undergrad-section");
-  if (undergrad) {
-    if (UNDERGRAD_STUDENTS.length) {
-      undergrad.innerHTML = UNDERGRAD_STUDENTS.map((p, i) => personCard(p, i)).join("");
-    } else if (undergradSection) {
-      undergradSection.remove();
-    }
-  }
+  if (undergrad) undergrad.innerHTML = UNDERGRAD_STUDENTS.map((p, i) => personCard(p, i)).join("")
+    + openPositionCard({ en: "Undergraduate researchers", ko: "학부연구생 모집" }, UNDERGRAD_STUDENTS.length);
 
   const alumni = $("#alumni");
   if (alumni) alumni.innerHTML = ALUMNI.map((p, i) => personCard(p, i, { alumni: true })).join("");

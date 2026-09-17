@@ -51,11 +51,11 @@ export async function runContactMembersLanguageChecks(browser, base) {
   async function members(page, lang) {
     assert.equal(await page.locator('h1').textContent(), 'Advisor, students and alumni.');
     const expected = await page.evaluate(lang => [ADVISOR, ...GRAD_STUDENTS, ...UNDERGRAD_STUDENTS, ...ALUMNI].map(p => lang === 'ko' ? p.nameKo || p.nameEn : p.nameEn), lang);
-    assert.deepEqual(await page.locator('#advisor h2, .person__name').allTextContents(), expected, 'One selected-language name per person');
+    assert.deepEqual(await page.locator('#advisor h2, .person:not(.person--opening) .person__name').allTextContents(), expected, 'One selected-language name per person');
     assert.equal(await page.locator('#advisor .lede').textContent(), lang === 'ko'
       ? '부교수, 세종대학교 지능정보융합학과'
       : 'Associate Professor, Department of Artificial Intelligence and Information Technology, Sejong University');
-    assert.deepEqual(await page.locator('.person__role').allTextContents(), lang === 'ko'
+    assert.deepEqual(await page.locator('.person:not(.person--opening) .person__role').allTextContents(), lang === 'ko'
       ? ['박사과정', '석사과정', '석사과정', '석사', '석사']
       : ['Ph.D. Candidate', 'M.S. Candidate', 'M.S. Candidate', 'M.S.', 'M.S.']);
     assert.equal(await page.locator('#advisor .timeline').last().locator('.tl-note').first().textContent(), lang === 'ko'
@@ -74,7 +74,7 @@ export async function runContactMembersLanguageChecks(browser, base) {
     await page.goto(`${base}/members.html?lang=en`);
     await members(page, 'en');
     const links = await page.locator('main a').evaluateAll(nodes => nodes.map(n => [n.href, n.target, n.rel]));
-    const facts = await page.locator('.tags, .tl-period, .person__meta').allTextContents();
+    const facts = await page.locator('.tags, .tl-period, .person:not(.person--opening) .person__meta').allTextContents();
     await page.locator('#alumni').scrollIntoViewIfNeeded();
     await page.waitForFunction(() => [...document.querySelectorAll('#alumni [data-reveal]')].every(n => n.classList.contains('is-in')));
     await page.evaluate(() => { window.savedLinks = [...document.querySelectorAll('main a')]; window.savedPeople = [...document.querySelectorAll('#advisor > div, .person')]; });
@@ -83,7 +83,7 @@ export async function runContactMembersLanguageChecks(browser, base) {
       await members(page, lang);
       assert.deepEqual(await page.locator('main a').evaluateAll(nodes => nodes.map(n => [n.href, n.target, n.rel])), links);
       // Interests and dates remain factual; the graduation label alone is translated.
-      const current = await page.locator('.tags, .tl-period, .person__meta').allTextContents();
+      const current = await page.locator('.tags, .tl-period, .person:not(.person--opening) .person__meta').allTextContents();
       assert.deepEqual(current.map(s => s.replace('졸업', 'Graduated').replace('현재', 'present')), facts);
       assert.equal(await page.evaluate(() => window.savedLinks.every(n => n.isConnected) && window.savedPeople.every(n => n.isConnected)), true);
       assert.equal(await page.locator('#alumni [data-reveal]:not(.is-in)').count(), 0);

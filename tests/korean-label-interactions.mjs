@@ -26,11 +26,30 @@ export async function runKoreanLabelChecks(browser, base) {
         }
       };
       await checkTypography();
+      const checkOpenings = async lang => {
+        if (file !== 'members') return;
+        assert.equal(await page.locator('#grad > .person').count(), 4);
+        assert.equal(await page.locator('#grad > .person').last().locator('.person__name').textContent(), 'Open position');
+        assert.equal(await page.locator('#undergrad > .person').count(), 1);
+        assert.equal(await page.locator('#undergrad .person__name').textContent(), 'Open position');
+        assert.ok(await page.locator('#undergrad-section').isVisible());
+        assert.equal(await page.locator('#alumni .person--opening').count(), 0);
+        const openings = page.locator('.person--opening');
+        assert.deepEqual(await openings.locator('.person__role').allTextContents(), lang === 'ko'
+          ? ['대학원생 모집', '학부연구생 모집'] : ['Graduate students', 'Undergraduate researchers']);
+        const email = await page.evaluate(() => SITE.contact.email);
+        assert.deepEqual(await openings.locator('a').evaluateAll(nodes => nodes.map(n => n.getAttribute('href'))), [`mailto:${email}`, `mailto:${email}`]);
+        assert.deepEqual(await page.locator('main .eyebrow').evaluateAll(nodes => nodes.map(el => {
+          const s = getComputedStyle(el); return [s.fontSize, s.fontWeight, s.letterSpacing];
+        })), Array(await page.locator('main .eyebrow').count()).fill(['16px', '600', 'normal']));
+      };
+      await checkOpenings('en');
       const english = await styles();
       await page.locator('[data-lang="ko"]').click();
       await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
       await page.evaluate(() => document.fonts.ready);
       await checkTypography();
+      await checkOpenings('ko');
       const korean = await labels.evaluateAll(nodes => nodes.filter(el => /[가-힣]/.test(el.textContent)).map(el => {
         const s = getComputedStyle(el);
         return { text: el.textContent, family: s.fontFamily, size: parseFloat(s.fontSize), weight: Number(s.fontWeight), spacing: parseFloat(s.letterSpacing) || 0 };
