@@ -280,8 +280,8 @@ function renderFooter() {
         <div>
           <h2>Find us</h2>
           <ul>
-            <li>Student lab: ${esc(c.studentOffice.en)}</li>
-            <li>Faculty office: ${esc(c.office.en)}</li>
+            <li>ICaR lab: ${esc(c.studentOffice.en)}</li>
+            <li>Office: ${esc(c.office.en)}</li>
             <li>${esc(c.address.en)}</li>
             <li><a href="mailto:${esc(c.email)}">${esc(c.email)}</a></li>
             <li><a href="${esc(c.mapUrl)}" target="_blank" rel="noopener">Open in Maps &rarr;</a></li>
@@ -882,7 +882,7 @@ function renderMembers() {
         </div>
         <dl class="contact-list">
           <div class="contact-row"><dt>${localized({ en: "Email", ko: "이메일" })}</dt><dd><a href="mailto:${esc(a.email)}">${esc(a.email)}</a></dd></div>
-          <div class="contact-row"><dt>${localized({ en: "Faculty office", ko: "교수 연구실" })}</dt><dd>${localized(a.office)}</dd></div>
+          <div class="contact-row"><dt>${localized({ en: "Office", ko: "교수 연구실" })}</dt><dd>${localized(a.office)}</dd></div>
           <div class="contact-row"><dt>ORCID</dt><dd><a href="https://orcid.org/${esc(a.orcid)}" target="_blank" rel="noopener">${esc(a.orcid)}</a></dd></div>
           ${a.scholar ? `<div class="contact-row"><dt>Scholar</dt><dd><a href="${esc(a.scholar)}" target="_blank" rel="noopener">Google Scholar</a></dd></div>` : ""}
         </dl>

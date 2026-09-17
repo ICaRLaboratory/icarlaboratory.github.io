@@ -27,10 +27,10 @@ export async function runContactMembersLanguageChecks(browser, base) {
     assert.equal(await page.locator('[data-site="office"]').textContent(), lang === 'ko'
       ? '대양 AI센터 526호' : 'Room 526, Daeyang AI Center');
     assert.equal(await page.locator('[data-site="studentOffice"]').textContent(), lang === 'ko' ? '대양 AI센터 515호' : 'Room 515, Daeyang AI Center');
-    assert.match(await page.locator('#footer').innerText(), /Student lab: Room 515/);
-    assert.match(await page.locator('#footer').innerText(), /Faculty office: Room 526/);
+    assert.match(await page.locator('#footer').innerText(), /ICaR lab: Room 515/);
+    assert.match(await page.locator('#footer').innerText(), /Office: Room 526/);
     assert.deepEqual(await page.locator('main dt').allTextContents(), lang === 'ko'
-      ? ['연구실', '학생 연구실', '교수 연구실', '주소', '이메일', '학과'] : ['Lab', 'Student lab', 'Faculty office', 'Address', 'Email', 'Department']);
+      ? ['연구실', '학생 연구실', '교수 연구실', '주소', '이메일', '학과'] : ['Lab', 'ICaR lab', 'Office', 'Address', 'Email', 'Department']);
     assert.equal(await page.locator('[data-site="address"]').evaluate(el => el.closest('[lang]').lang), lang);
     assert.equal((await page.locator('body').innerText()).includes('[object Object]'), false);
   }
