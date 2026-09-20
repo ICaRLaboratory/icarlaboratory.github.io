@@ -129,7 +129,7 @@
     ctx.beginPath(); ctx.arc(x, y, core, 0, 7); ctx.fill();
   }
 
-  function block(b) {
+  function block(b, active = 0) {
     ctx.beginPath();
     ctx.roundRect(b.x, b.y, b.w, b.h, 10);
     const g = ctx.createLinearGradient(0, b.y, 0, b.y + b.h);
@@ -137,7 +137,9 @@
     g.addColorStop(1, "rgba(255,255,255,.012)");
     ctx.fillStyle = g;
     ctx.fill();
-    ctx.strokeStyle = INK(0.32);
+    /* the border answers the pulse: it brightens as the signal
+       arrives, holds while it is inside, and lets go as it leaves */
+    ctx.strokeStyle = INK(0.32 + 0.3 * active);
     ctx.lineWidth = 1.1;
     ctx.stroke();
 
@@ -234,7 +236,7 @@
     /* the floor ghost: the same trajectory at z = 0 is the classical
        phase portrait, projected under the bowl */
     for (let i = 1; i < phase.length; i++) {
-      const a = (i / phase.length) * 0.2;
+      const a = (i / phase.length) * 0.34;
       if (a < 0.02) continue;
       const p0 = proj(phase[i - 1][0], phase[i - 1][1] / OMEGA, 0);
       const p1 = proj(phase[i][0], phase[i][1] / OMEGA, 0);
@@ -295,9 +297,9 @@
   }
 
   function drawArm() {
-    const bx = PLANT.x + PLANT.w / 2 - 22;
-    const by = PLANT.y + PLANT.h - 22;
-    const L1 = 46, L2 = 34;
+    const bx = PLANT.x + PLANT.w / 2 - 24;
+    const by = PLANT.y + PLANT.h - 20;
+    const L1 = 53, L2 = 39;
 
     const a1 = -Math.PI / 2 + state.x * 0.52;
     const a2 = state.v * 0.26;
@@ -313,11 +315,14 @@
     ctx.roundRect(PLANT.x + 1, PLANT.y + 1, PLANT.w - 2, PLANT.h - 2, 8);
     ctx.clip();
 
-    /* what the tool tip has been doing */
+    /* what the tool tip has been doing: a tapered comet tail */
     for (let i = 1; i < ee.length; i++) {
-      const a = (i / ee.length) * 0.5;
+      const k = i / ee.length;
+      const a = k * 0.75;
+      if (a < 0.03) continue;
       ctx.strokeStyle = INK(a);
-      ctx.lineWidth = 0.9;
+      ctx.lineWidth = 0.6 + k * 1.4;
+      ctx.lineCap = "round";
       ctx.beginPath();
       ctx.moveTo(ee[i - 1][0], ee[i - 1][1]);
       ctx.lineTo(ee[i][0], ee[i][1]);
@@ -476,7 +481,22 @@
   }
 
   function drawPulse() {
-    /* walk the polyline to find the point at `pulse` of its length */
+    const p = pulsePoint();
+    if (!p) return;
+    const [px, py] = p;
+
+    /* inside a block the signal is being processed, not traveling;
+       the glowing border and each block's own live signal stand in
+       for it there */
+    for (const b of [CTRL, PLANT, SENS]) {
+      if (px > b.x && px < b.x + b.w && py > b.y && py < b.y + b.h) return;
+    }
+
+    glow(px, py, 13, 2.6);
+  }
+
+  /* walk the polyline to find the point at `pulse` of its length */
+  function pulsePoint() {
     let total = 0;
     const segs = [];
     for (let i = 1; i < WIRE.length; i++) {
@@ -485,12 +505,22 @@
     }
     let want = pulse * total, i = 0;
     while (i < segs.length && want > segs[i]) { want -= segs[i]; i++; }
-    if (i >= segs.length) return;
+    if (i >= segs.length) return null;
     const k = segs[i] ? want / segs[i] : 0;
-    const px = WIRE[i][0] + (WIRE[i + 1][0] - WIRE[i][0]) * k;
-    const py = WIRE[i][1] + (WIRE[i + 1][1] - WIRE[i][1]) * k;
+    return [
+      WIRE[i][0] + (WIRE[i + 1][0] - WIRE[i][0]) * k,
+      WIRE[i][1] + (WIRE[i + 1][1] - WIRE[i][1]) * k,
+    ];
+  }
 
-    glow(px, py, 13, 2.6);
+  /* 1 while the pulse sits inside the block, easing to 0 within
+     `reach` px of its border */
+  function nearBlock(p, b, reach = 42) {
+    if (!p) return 0;
+    const dx = Math.max(b.x - p[0], 0, p[0] - (b.x + b.w));
+    const dy = Math.max(b.y - p[1], 0, p[1] - (b.y + b.h));
+    const d = Math.hypot(dx, dy);
+    return Math.max(0, 1 - d / reach);
   }
 
   /* ---------- frame ---------- */
@@ -509,9 +539,10 @@
     ctx.scale(scale, scale);
 
     drawWires();
-    block(CTRL);
-    block(PLANT);
-    block(SENS);
+    const p = pulsePoint();
+    block(CTRL, nearBlock(p, CTRL));
+    block(PLANT, nearBlock(p, PLANT));
+    block(SENS, nearBlock(p, SENS));
 
     drawEnergy();
     drawArm();
