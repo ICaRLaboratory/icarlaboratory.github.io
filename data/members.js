@@ -29,6 +29,7 @@ const GRAD_STUDENTS = [
     scholar: "https://scholar.google.com/citations?user=CdS5ZDsAAAAJ",
     orcid: "0009-0008-5503-241X",
     photo: "assets/img/jinwoong-lee.jpg",
+    cv: "https://woongpigy.github.io/jinwoong-lee/index.html",
     degree: DEG.phd,
     role: { en: "Lab Manager", ko: "연구실 매니저" },
     email: "jinwoonggg at sju.ac.kr",

@@ -8,10 +8,18 @@ export async function runMemberCVChecks(browser, base) {
     assert.equal(await page.locator('.person__heading .badge').count(), 1);
     const cvHeight = await page.locator('.person__cv').first().evaluate(node => node.getBoundingClientRect().height);
     assert.ok(cvHeight >= 24 && cvHeight <= 30, `Compact CV height: ${cvHeight}`);
-    const count = await page.evaluate(() => GRAD_STUDENTS.length + UNDERGRAD_STUDENTS.length + ALUMNI.length);
-    assert.ok(count > 0);
-    assert.equal(await page.locator('.person__cv:disabled').count(), count);
-    assert.equal(await page.locator('#advisor .person__cv, .person--opening .person__cv, a.person__cv').count(), 0);
+    const counts = await page.evaluate(() => {
+      const people = [...GRAD_STUDENTS, ...UNDERGRAD_STUDENTS, ...ALUMNI];
+      return { total: people.length, withCv: people.filter(p => p.cv).length };
+    });
+    assert.ok(counts.total > 0);
+    assert.equal(await page.locator('.person__cv:disabled').count(), counts.total - counts.withCv);
+    assert.equal(await page.locator('a.person__cv').count(), counts.withCv);
+    assert.equal(await page.locator('#advisor .person__cv, .person--opening .person__cv').count(), 0);
+    for (const link of await page.locator('a.person__cv').all()) {
+      assert.equal(await link.getAttribute('target'), '_blank');
+      assert.match(await link.getAttribute('rel'), /noopener/);
+    }
     for (const lang of ['en', 'ko']) {
       await page.locator(`[data-lang="${lang}"]`).click();
       for (const width of [1280, 768, 360, 320]) {
@@ -21,12 +29,14 @@ export async function runMemberCVChecks(browser, base) {
           const cv = node.getBoundingClientRect();
           const photo = node.previousElementSibling.getBoundingClientRect();
           node.focus();
-          return { below: cv.top >= photo.bottom, width: Math.abs(cv.width - photo.width) < 1, unfocusable: document.activeElement !== node };
+          const focused = document.activeElement === node;
+          // Disabled buttons must stay unfocusable; real CV links must take focus.
+          return { below: cv.top >= photo.bottom, width: Math.abs(cv.width - photo.width) < 1, focusOk: node.matches('a') ? focused : !focused };
         }));
-        assert.ok(geometry.every(g => g.below && g.width && g.unfocusable));
+        assert.ok(geometry.every(g => g.below && g.width && g.focusOk));
       }
     }
-    // Fixture only: production records intentionally have no CV yet.
+    // Fixture: exercises the optional-CV link path in isolation.
     await page.evaluate(() => {
       document.querySelector('#undergrad').innerHTML = personCard({ nameEn: 'CV Fixture', nameKo: '검사 구성원', degree: DEG.ug, cv: 'members.html?cv-fixture=1' }, 0);
     });
