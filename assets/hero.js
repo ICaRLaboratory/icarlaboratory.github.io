@@ -5,13 +5,16 @@
    One damped second-order system  x'' + 2ζω x' + ω² x = 0  drives
    all three blocks at once:
 
-     left     phase plane of (x, x')             → Control Algorithms
-     middle   two-link arm posed from the state   → Robotics
-     right    zero-order-hold of the sampled x    → Embedded Systems
+     left     the state descending its energy surface
+              V(x,x') = ½x'² + ½ω²x², drawn as a wireframe bowl
+              the trajectory spirals down into      → Control Algorithms
+     middle   two-link arm posed from the state     → Robotics
+     right    zero-order-hold of the sampled x      → Embedded Systems
 
-   The blocks carry no transfer-function labels: each one is named by
-   its caption, and what is drawn inside is the state itself, not a
-   z-domain description of it.
+   The bowl is exact, not decorative: V̇ = −2ζω x'² ≤ 0, so the
+   trajectory can only slide downhill, and its ghost on the floor
+   of the bowl is the classical phase portrait. A slow camera orbit
+   keeps the surface readable.
 
    When the state settles the loop restarts from a new initial
    condition, so the figure keeps converging.
@@ -51,6 +54,7 @@
 
   let state, t, frame, phase, ee, pulse, raf = null;
   let samples = null;
+  let cam = 0.6;                // the bowl's slow camera orbit
 
   function reset() {
     const a = Math.random() * Math.PI * 2;
@@ -80,6 +84,7 @@
     }
 
     pulse = (pulse + 0.0022) % 1;
+    cam += 0.0016;
 
     /* settled? start over */
     if (t > 5 && Math.hypot(state.x, state.v / OMEGA) < 0.045) reset();
@@ -112,14 +117,39 @@
     ctx.restore();
   }
 
-  function roundRect(b) {
+  /* a soft white glow with a bright core — the one look every live
+     signal in the figure shares */
+  function glow(x, y, r, core, coreAlpha = 0.95, haze = 0.5) {
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, `rgba(255,255,255,${haze})`);
+    g.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+    ctx.fillStyle = INK(coreAlpha);
+    ctx.beginPath(); ctx.arc(x, y, core, 0, 7); ctx.fill();
+  }
+
+  function block(b) {
     ctx.beginPath();
     ctx.roundRect(b.x, b.y, b.w, b.h, 10);
-    ctx.fillStyle = "rgba(255,255,255,.022)";
+    const g = ctx.createLinearGradient(0, b.y, 0, b.y + b.h);
+    g.addColorStop(0, "rgba(255,255,255,.05)");
+    g.addColorStop(1, "rgba(255,255,255,.012)");
+    ctx.fillStyle = g;
     ctx.fill();
-    ctx.strokeStyle = INK(0.3);
+    ctx.strokeStyle = INK(0.32);
     ctx.lineWidth = 1.1;
     ctx.stroke();
+
+    /* a quiet dot grid gives the panel a surface without competing
+       with what is drawn on it */
+    ctx.save();
+    ctx.clip();
+    ctx.fillStyle = INK(0.05);
+    for (let x = b.x + 11; x < b.x + b.w - 5; x += 14)
+      for (let y = b.y + 11; y < b.y + b.h - 5; y += 14)
+        ctx.fillRect(x, y, 1, 1);
+    ctx.restore();
   }
 
   function arrow(x, y, dir = 1) {
@@ -135,45 +165,133 @@
 
   /* ---------- the three live insets ---------- */
 
-  function drawPhase() {
-    const pad = 16;
+  /* The energy bowl. Normalized coordinates X = x, Y = x'/ω make
+     V ∝ X² + Y², a rotationally symmetric paraboloid; zs and dep
+     turn (X, Y, z) into the panel's axonometric projection. */
+  const BOWL = { rMax: 2.3, rings: [0.6, 1.17, 1.74, 2.3], ribs: 10 };
+
+  function drawEnergy() {
     const cx = CTRL.x + CTRL.w / 2;
-    const cy = CTRL.y + CTRL.h / 2 + 6;
-    const s = Math.min(CTRL.w - pad * 2, CTRL.h - pad * 2 - 14) / 4.4;
+    const cy = CTRL.y + CTRL.h / 2 + 38;
+    const s = 27;        // px per unit, horizontally
+    const dep = 11;      // px per unit of scene depth
+    const zs = 19;       // px per unit of energy height
+    const K = 0.5;       // z = K r²
+
+    const proj = (X, Y, z) => {
+      const co = Math.cos(cam), si = Math.sin(cam);
+      const u = X * co - Y * si;
+      const w = X * si + Y * co;
+      return [cx + u * s, cy + w * dep - z * zs, w];
+    };
 
     ctx.save();
     ctx.beginPath();
     ctx.roundRect(CTRL.x + 1, CTRL.y + 1, CTRL.w - 2, CTRL.h - 2, 8);
     ctx.clip();
 
-    /* axes */
-    ctx.strokeStyle = INK(0.2);
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(CTRL.x + pad, cy); ctx.lineTo(CTRL.x + CTRL.w - pad, cy);
-    ctx.moveTo(cx, CTRL.y + pad + 8); ctx.lineTo(cx, CTRL.y + CTRL.h - pad);
-    ctx.stroke();
+    /* contour rings: level sets of V, brighter toward the viewer */
+    const SEG = 48;
+    for (const r of BOWL.rings) {
+      const z = K * r * r;
+      let prev = proj(r, 0, z);
+      for (let i = 1; i <= SEG; i++) {
+        const a = (i / SEG) * Math.PI * 2;
+        const p = proj(Math.cos(a) * r, Math.sin(a) * r, z);
+        const wn = ((prev[2] + p[2]) / 2) / r;   // −1 back … +1 front
+        ctx.strokeStyle = INK(0.11 + 0.17 * (wn + 1) / 2);
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(prev[0], prev[1]);
+        ctx.lineTo(p[0], p[1]);
+        ctx.stroke();
+        prev = p;
+      }
+    }
 
-    /* the trajectory, fading into the past */
-    for (let i = 1; i < phase.length; i++) {
-      const a = (i / phase.length) * 0.95;
-      if (a < 0.03) continue;
-      ctx.strokeStyle = INK(a);
-      ctx.lineWidth = 1 + a * 0.9;
+    /* radial ribs down the surface */
+    for (let k = 0; k < BOWL.ribs; k++) {
+      const a = (k / BOWL.ribs) * Math.PI * 2;
+      const dx = Math.cos(a), dy = Math.sin(a);
+      const tip = proj(dx * BOWL.rMax, dy * BOWL.rMax, K * BOWL.rMax * BOWL.rMax);
+      ctx.strokeStyle = INK(0.045 + 0.075 * (tip[2] / BOWL.rMax + 1) / 2);
+      ctx.lineWidth = 0.9;
       ctx.beginPath();
-      ctx.moveTo(cx + phase[i - 1][0] * s, cy - (phase[i - 1][1] / OMEGA) * s);
-      ctx.lineTo(cx + phase[i][0] * s, cy - (phase[i][1] / OMEGA) * s);
+      let started = false;
+      for (let r = 0; r <= BOWL.rMax + 1e-6; r += BOWL.rMax / 10) {
+        const p = proj(dx * r, dy * r, K * r * r);
+        if (!started) { ctx.moveTo(p[0], p[1]); started = true; }
+        else ctx.lineTo(p[0], p[1]);
+      }
       ctx.stroke();
     }
 
-    /* the state itself */
-    const hx = cx + state.x * s, hy = cy - (state.v / OMEGA) * s;
-    ctx.fillStyle = INK(0.14);
-    ctx.beginPath(); ctx.arc(hx, hy, 6.5, 0, 7); ctx.fill();
-    ctx.fillStyle = INK(1);
-    ctx.beginPath(); ctx.arc(hx, hy, 2.4, 0, 7); ctx.fill();
+    /* the equilibrium the trajectory is headed for */
+    const eq = proj(0, 0, 0);
+    ctx.fillStyle = INK(0.4);
+    ctx.beginPath(); ctx.arc(eq[0], eq[1], 1.6, 0, 7); ctx.fill();
+
+    /* the floor ghost: the same trajectory at z = 0 is the classical
+       phase portrait, projected under the bowl */
+    for (let i = 1; i < phase.length; i++) {
+      const a = (i / phase.length) * 0.2;
+      if (a < 0.02) continue;
+      const p0 = proj(phase[i - 1][0], phase[i - 1][1] / OMEGA, 0);
+      const p1 = proj(phase[i][0], phase[i][1] / OMEGA, 0);
+      ctx.strokeStyle = INK(a);
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.moveTo(p0[0], p0[1]);
+      ctx.lineTo(p1[0], p1[1]);
+      ctx.stroke();
+    }
+
+    /* the trajectory itself, sliding down the surface, fading and
+       thinning into the past */
+    for (let i = 1; i < phase.length; i++) {
+      const a = (i / phase.length) * 0.95;
+      if (a < 0.03) continue;
+      const [X0, Y0] = [phase[i - 1][0], phase[i - 1][1] / OMEGA];
+      const [X1, Y1] = [phase[i][0], phase[i][1] / OMEGA];
+      const p0 = proj(X0, Y0, K * (X0 * X0 + Y0 * Y0));
+      const p1 = proj(X1, Y1, K * (X1 * X1 + Y1 * Y1));
+      ctx.strokeStyle = INK(a);
+      ctx.lineWidth = 0.7 + a * 1.3;
+      ctx.beginPath();
+      ctx.moveTo(p0[0], p0[1]);
+      ctx.lineTo(p1[0], p1[1]);
+      ctx.stroke();
+    }
+
+    /* the state now: a plumb line ties the point on the surface to
+       its shadow on the floor, then the point glows */
+    const X = state.x, Y = state.v / OMEGA;
+    const hp = proj(X, Y, K * (X * X + Y * Y));
+    const hg = proj(X, Y, 0);
+    ctx.strokeStyle = INK(0.16);
+    ctx.setLineDash([2, 3]);
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(hp[0], hp[1]); ctx.lineTo(hg[0], hg[1]); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = INK(0.3);
+    ctx.beginPath(); ctx.arc(hg[0], hg[1], 1.5, 0, 7); ctx.fill();
+    glow(hp[0], hp[1], 9, 2.2);
+
     ctx.restore();
 
+    sym("V", CTRL.x + 16, CTRL.y + 20, 14, 0.55);
+  }
+
+  /* a link of the arm as a tapered solid, not a stroked line */
+  function limb(x0, y0, x1, y1, w0, w1) {
+    const a = Math.atan2(y1 - y0, x1 - x0) + Math.PI / 2;
+    const c = Math.cos(a), sn = Math.sin(a);
+    ctx.beginPath();
+    ctx.moveTo(x0 + c * w0, y0 + sn * w0);
+    ctx.lineTo(x1 + c * w1, y1 + sn * w1);
+    ctx.lineTo(x1 - c * w1, y1 - sn * w1);
+    ctx.lineTo(x0 - c * w0, y0 - sn * w0);
+    ctx.closePath();
   }
 
   function drawArm() {
@@ -217,17 +335,18 @@
     ctx.lineTo(bx + 9, by + 9);
     ctx.stroke();
 
-    /* links */
-    ctx.strokeStyle = INK(1);
-    ctx.lineWidth = 2.6;
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.moveTo(bx, by); ctx.lineTo(j.x, j.y); ctx.lineTo(e.x, e.y);
-    ctx.stroke();
+    /* links: tapered solids with a faint edge */
+    ctx.fillStyle = INK(0.88);
+    ctx.strokeStyle = INK(0.25);
+    ctx.lineWidth = 1;
+    limb(bx, by, j.x, j.y, 3.4, 2.4); ctx.fill(); ctx.stroke();
+    limb(j.x, j.y, e.x, e.y, 2.4, 1.6); ctx.fill(); ctx.stroke();
 
     /* gripper */
     const g = a1 + a2;
+    ctx.strokeStyle = INK(1);
     ctx.lineWidth = 1.5;
+    ctx.lineCap = "round";
     ctx.beginPath();
     ctx.moveTo(e.x, e.y);
     ctx.lineTo(e.x + Math.cos(g - 0.8) * 9, e.y + Math.sin(g - 0.8) * 9);
@@ -242,6 +361,9 @@
     [[bx, by], [j.x, j.y]].forEach(([x, y]) => {
       ctx.beginPath(); ctx.arc(x, y, 3.4, 0, 7); ctx.fill(); ctx.stroke();
     });
+
+    /* the tool tip is the live signal here */
+    glow(e.x, e.y, 8, 1.8, 0.95, 0.4);
     ctx.restore();
   }
 
@@ -266,26 +388,43 @@
 
     if (samples.length > 1) {
       const off = n - samples.length;
+      const pts = samples.map((v, i) => [
+        x0 + (off + i) * dx,
+        mid - Math.max(-1.6, Math.min(1.6, v)) * amp,
+      ]);
+
+      /* the held signal encloses an area with the midline; filling it
+         makes the staircase a shape instead of a wire */
+      ctx.beginPath();
+      ctx.moveTo(pts[0][0], mid);
+      pts.forEach(([px, py], i) => {
+        if (i === 0) ctx.lineTo(px, py);
+        else { ctx.lineTo(px, pts[i - 1][1]); ctx.lineTo(px, py); }
+      });
+      ctx.lineTo(pts[pts.length - 1][0], mid);
+      ctx.closePath();
+      ctx.fillStyle = INK(0.07);
+      ctx.fill();
+
       /* zero-order hold */
       ctx.strokeStyle = INK(1);
       ctx.lineWidth = 1.6;
       ctx.beginPath();
-      samples.forEach((v, i) => {
-        const px = x0 + (off + i) * dx;
-        const py = mid - Math.max(-1.6, Math.min(1.6, v)) * amp;
+      pts.forEach(([px, py], i) => {
         if (i === 0) ctx.moveTo(px, py);
-        else { ctx.lineTo(px, ctx.__last); ctx.lineTo(px, py); }
-        ctx.__last = py;
+        else { ctx.lineTo(px, pts[i - 1][1]); ctx.lineTo(px, py); }
       });
       ctx.stroke();
 
       /* the sample instants */
-      samples.forEach((v, i) => {
-        const px = x0 + (off + i) * dx;
-        const py = mid - Math.max(-1.6, Math.min(1.6, v)) * amp;
-        ctx.fillStyle = INK(0.25 + 0.6 * (i / samples.length));
+      pts.forEach(([px, py], i) => {
+        ctx.fillStyle = INK(0.25 + 0.6 * (i / pts.length));
         ctx.beginPath(); ctx.arc(px, py, 1.8, 0, 7); ctx.fill();
       });
+
+      /* the freshest sample is the live signal here */
+      const [lx, ly] = pts[pts.length - 1];
+      glow(lx, ly, 7, 1.8, 0.95, 0.4);
     }
     ctx.restore();
 
@@ -351,13 +490,7 @@
     const px = WIRE[i][0] + (WIRE[i + 1][0] - WIRE[i][0]) * k;
     const py = WIRE[i][1] + (WIRE[i + 1][1] - WIRE[i][1]) * k;
 
-    const g = ctx.createRadialGradient(px, py, 0, px, py, 13);
-    g.addColorStop(0, "rgba(255,255,255,.5)");
-    g.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.fillStyle = g;
-    ctx.beginPath(); ctx.arc(px, py, 13, 0, 7); ctx.fill();
-    ctx.fillStyle = INK(0.95);
-    ctx.beginPath(); ctx.arc(px, py, 2.6, 0, 7); ctx.fill();
+    glow(px, py, 13, 2.6);
   }
 
   /* ---------- frame ---------- */
@@ -376,11 +509,11 @@
     ctx.scale(scale, scale);
 
     drawWires();
-    roundRect(CTRL);
-    roundRect(PLANT);
-    roundRect(SENS);
+    block(CTRL);
+    block(PLANT);
+    block(SENS);
 
-    drawPhase();
+    drawEnergy();
     drawArm();
     drawSensor();
     drawPulse();
@@ -396,7 +529,7 @@
     raf = requestAnimationFrame(loop);
   }
 
-  /* warm the figure up before the first paint, so the phase trail and the
+  /* warm the figure up before the first paint, so the descent and the
      sensor strip are already populated instead of drawing themselves in */
   reset();
   for (let i = 0; i < 260; i++) step();
