@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OG share card — render at exactly 1200×630</title>
+<!--
+  Development-only compose page for assets/img/og.jpg. Not linked from
+  the site. Regenerate the card with tools/make-og-card.mjs, which
+  opens this page under reduced motion (the hero draws one warmed-up
+  still frame) and screenshots the 1200×630 stage as a JPEG.
+-->
+<link rel="stylesheet" href="../assets/fonts/pretendardvariable-dynamic-subset.css">
+<style>
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("../assets/fonts/jetbrains-mono-subset.woff2") format("woff2");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: block;
+}
+* { margin: 0; box-sizing: border-box; }
+html, body { background: #0a0a0a; }
+#stage {
+  position: relative;
+  width: 1200px; height: 630px;
+  overflow: hidden;
+  background: #0a0a0a;
+  /* the same faint dot grid the site's inverse panels use */
+  background-image: radial-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+  background-size: 34px 34px;
+  color: #fff;
+  font-family: "Pretendard Variable", Pretendard, "Inter", -apple-system, sans-serif;
+}
+.copy { position: absolute; left: 68px; top: 128px; width: 500px; }
+.brand { display: flex; align-items: center; gap: 16px; margin-bottom: 44px; }
+.brand img { width: 56px; height: 56px; object-fit: contain; }
+.brand__name { font-size: 25px; font-weight: 800; letter-spacing: -0.01em; }
+.brand__aff {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px; letter-spacing: 0.24em;
+  color: rgba(255, 255, 255, 0.55);
+  margin-top: 6px;
+}
+h1 {
+  font-size: 58px; line-height: 1.06; font-weight: 800;
+  letter-spacing: -0.025em;
+  white-space: nowrap;   /* the <br>s set the three lines */
+}
+.tagline {
+  margin-top: 30px;
+  font-size: 23px; line-height: 1.5; font-weight: 400;
+  color: rgba(255, 255, 255, 0.62);
+  max-width: 430px;
+}
+/* The live hero figure, posed as the card's right half. hero.js keeps
+   its 640×460 design space; scale it to sit comfortably in the card. */
+.art { position: absolute; right: 30px; top: 65px; width: 560px; }
+.art canvas { display: block; width: 100%; aspect-ratio: 640 / 460; }
+/* hero.js appends its play/pause toggle to the figure; not part of the card */
+.art .hero__toggle { display: none; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="copy">
+    <div class="brand">
+      <img src="../assets/img/logo.png" alt="">
+      <div>
+        <div class="brand__name">ICaR Lab</div>
+        <div class="brand__aff">SEJONG UNIVERSITY</div>
+      </div>
+    </div>
+    <h1>Intelligent Control<br>and Robotics<br>Laboratory</h1>
+    <p class="tagline">Research in control algorithms, robotics and embedded systems.</p>
+  </div>
+  <figure class="art">
+    <canvas id="herofig" aria-label="Hero figure still frame"></canvas>
+  </figure>
+</div>
+<script src="../assets/hero.js"></script>
+</body>
+</html>
