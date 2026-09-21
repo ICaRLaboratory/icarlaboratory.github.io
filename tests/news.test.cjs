@@ -35,10 +35,10 @@ const shown = (dates, now = new Date(2026, 8, 9)) => JSON.parse(vm.runInContext(
 `, context));
 
 test('a current item carries older ones onto the page, newest first', () => {
-  // 09-09 is today, 08-27 is day 13, 08-26 is day 14: expired on its own,
+  // 09-09 is today, 08-11 is day 29, 08-10 is day 30: expired on its own,
   // but it rides along under a current item.
-  assert.deepEqual(shown(['2026-08-26', '2026-09-09', '2026-08-27']),
-    ['2026-09-09', '2026-08-27', '2026-08-26']);
+  assert.deepEqual(shown(['2026-08-10', '2026-09-09', '2026-08-11']),
+    ['2026-09-09', '2026-08-11', '2026-08-10']);
 });
 
 test('future and invalid dates stay off the page', () => {
@@ -46,13 +46,14 @@ test('future and invalid dates stay off the page', () => {
 });
 
 test('the band shows at most NEWS_MAX_ITEMS', () => {
+  assert.equal(vm.runInContext('NEWS_WINDOW_DAYS', context), 30);
   assert.equal(vm.runInContext('NEWS_MAX_ITEMS', context), 3);
   assert.deepEqual(shown(['2026-09-09', '2026-09-08', '2026-09-07', '2026-09-06']),
     ['2026-09-09', '2026-09-08', '2026-09-07']);
 });
 
 test('nothing current takes the whole band down, old items and all', () => {
-  assert.deepEqual(shown(['2026-08-26', '2026-06-01']), []);
+  assert.deepEqual(shown(['2026-08-10', '2026-06-01']), []);
   assert.deepEqual(shown(['2026-09-10']), []);      // queued, not yet due
   assert.deepEqual(shown([]), []);
 });

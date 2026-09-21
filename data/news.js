@@ -32,7 +32,7 @@
    --------------------------------------------------------------- */
 
 /* How new an item has to be to hold the band open, in days. */
-const NEWS_WINDOW_DAYS = 14;
+const NEWS_WINDOW_DAYS = 30;
 
 /* How many items the band shows at most, newest first. The rest stay in
    the list below without appearing on the page. */
