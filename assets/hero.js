@@ -11,7 +11,7 @@
      middle   two-link arm posed from the state     → Robotics
      right    zero-order-hold of the sampled x      → Embedded Systems
 
-   The bowl is exact, not decorative: V̇ = −2ζω x'² ≤ 0, so the
+   The bowl is exact, not decorative: dV/dt = -2ζω x'² ≤ 0, so the
    trajectory can only slide downhill, and its ghost on the floor
    of the bowl is the classical phase portrait. A slow camera orbit
    keeps the surface readable.
@@ -168,7 +168,7 @@
   /* ---------- the three live insets ---------- */
 
   /* The energy bowl. Normalized coordinates X = x, Y = x'/ω make
-     V ∝ X² + Y², a rotationally symmetric paraboloid; zs and dep
+     V proportional to X² + Y², a rotationally symmetric paraboloid; zs and dep
      turn (X, Y, z) into the panel's axonometric projection. */
   const BOWL = { rMax: 2.3, rings: [0.6, 1.17, 1.74, 2.3], ribs: 10 };
 
@@ -200,7 +200,7 @@
       for (let i = 1; i <= SEG; i++) {
         const a = (i / SEG) * Math.PI * 2;
         const p = proj(Math.cos(a) * r, Math.sin(a) * r, z);
-        const wn = ((prev[2] + p[2]) / 2) / r;   // −1 back … +1 front
+        const wn = ((prev[2] + p[2]) / 2) / r;   // -1 back … +1 front
         ctx.strokeStyle = INK(0.11 + 0.17 * (wn + 1) / 2);
         ctx.lineWidth = 1;
         ctx.beginPath();
