@@ -53,7 +53,9 @@ export async function runLanguageChecks(browser, base) {
   async function language(page, expected) {
     assert.equal(await page.locator(`[data-lang="${expected}"]`).getAttribute('aria-pressed'), 'true');
     assert.equal(await page.locator(`[data-lang="${expected === 'ko' ? 'en' : 'ko'}"]`).getAttribute('aria-pressed'), 'false');
-    assert.equal(await page.locator('html').getAttribute('lang'), 'en');
+    // The document declaration follows the selection so translators and
+    // search engines detect the page language correctly.
+    assert.equal(await page.locator('html').getAttribute('lang'), expected);
   }
 
   await check('Explicit KO replaces forced EN without adding history; survives reload, navigation and Back', async page => {

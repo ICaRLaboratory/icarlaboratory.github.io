@@ -28,11 +28,14 @@ const initials = (name) =>
 /* text bound through data-site="field" */
 /* ---------- language ----------
    Descriptive prose and Contact/Members profile fields are translated.
-   Shared navigation, technical terms,
-   keywords and the hero figure stay English on both sides, so the page
-   is mixed-language in Korean mode: the <html lang> stays "en" and the
-   Korean runs are tagged individually, which is what a screen reader
-   needs to switch voices mid-page. */
+   Shared navigation, technical terms, keywords and the hero figure stay
+   English on both sides, so the page is mixed-language in Korean mode.
+   The <html lang> follows the selected language: machine translators and
+   search engines take the document declaration at face value, and a fixed
+   "en" over mostly-Korean text made them mis-detect the source language.
+   Korean runs still carry their own lang="ko" for mid-page voice switching;
+   the English that remains in Korean mode is read by the Korean voice,
+   which is the normal behaviour on Korean sites. */
 
 const LANG_KEY = "icar-lang";
 /* Korean is the default: the lab and most of its visitors are Korean, so
@@ -48,6 +51,7 @@ function initLang() {
     LANG = forced;
     try { localStorage.setItem(LANG_KEY, forced); } catch (e) { /* private mode */ }
   } else if (saved === "ko" || saved === "en") LANG = saved;
+  document.documentElement.lang = LANG;
 }
 
 /* renderNav() runs from the page body before boot(), so the language has
@@ -91,6 +95,7 @@ window.addEventListener("popstate", () => {
 /* Re-renders only what the toggle touches, so nothing that holds an
    event listener (the nav, the lightbox) is rebuilt. */
 function applyLang() {
+  document.documentElement.lang = LANG;
   fillFields();
   renderRecruiting();
   renderNews();
