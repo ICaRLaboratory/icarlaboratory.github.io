@@ -1305,7 +1305,8 @@ main:focus { outline: none; }
   transition: transform .2s, border-color .2s, background .2s, opacity .2s;
 }
 .contact-chip--email { background: var(--text); color: var(--bg); }
-.contact-chip > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+/* Label flexes so the trailing arrow pins to the same spot on every chip. */
+.contact-chip > span:first-child { flex: 1 1 auto; min-width: 0; text-align: center; overflow-wrap: anywhere; }
 .map-link--naver { background: #03c75a; color: #063b20; }
 .map-link--kakao { background: #fee500; color: #191919; }
 .map-link--google { background: #185abc; color: #fff; }
