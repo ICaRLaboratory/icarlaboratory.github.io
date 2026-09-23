@@ -1288,15 +1288,16 @@ main:focus { outline: none; }
 
 #contactlinks { gap: .35rem; }
 .contact-chip {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: .25rem;
   min-height: 38px;
-  width: 7rem;
+  width: 7.25rem;
   flex: 0 0 auto;
   max-width: 100%;
-  padding: .35rem .25rem;
+  /* right padding clears the end-cap arrow centred 19px from the edge */
+  padding: .35rem 1.625rem .35rem .25rem;
   border: 1px solid transparent;
   border-radius: 999px;
   font-size: .8125rem;
@@ -1307,6 +1308,20 @@ main:focus { outline: none; }
 .contact-chip--email { background: var(--text); color: var(--bg); }
 /* Label flexes so the trailing arrow pins to the same spot on every chip. */
 .contact-chip > span:first-child { flex: 1 1 auto; min-width: 0; text-align: center; overflow-wrap: anywhere; }
+/* The arrow sits at the centre of the pill end-cap's curvature circle: a
+   full-height square anchored to the right edge, so its centre tracks the
+   cap centre even when enlarged fonts grow the chip. */
+.contact-chip > span[aria-hidden="true"] {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  aspect-ratio: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
 .map-link--naver { background: #03c75a; color: #063b20; }
 .map-link--kakao { background: #fee500; color: #191919; }
 .map-link--google { background: #185abc; color: #fff; }
