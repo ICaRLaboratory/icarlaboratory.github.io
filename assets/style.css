@@ -917,13 +917,13 @@ main:focus { outline: none; }
 
 /* ---------- advisor block ---------- */
 
-.advisor { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: clamp(2rem, 5vw, 4rem); align-items: start; }
+.advisor { display: grid; grid-template-columns: minmax(0, 240px) minmax(0, 1fr); gap: clamp(2rem, 5vw, 4rem); align-items: start; }
 @media (max-width: 820px) {
   .advisor { grid-template-columns: 1fr; }
   /* stacked, the portrait would otherwise stretch to the full page width */
-  .portrait { max-width: 280px; }
+  .portrait { max-width: 240px; }
   /* the advisor CV control tracks the portrait width */
-  #advisor .person__cv { max-width: 280px; }
+  #advisor .person__cv { max-width: 240px; }
   .contact-list { max-width: 360px; }
 }
 
