@@ -19,14 +19,22 @@ export async function runMemberCVChecks(browser, base) {
     assert.equal(await page.locator('#advisor a.person__cv').count(), 1);
     assert.match(await page.locator('#advisor a.person__cv').getAttribute('href'), /assets\/cv\/.*\.pdf$/);
     assert.equal(await page.locator('.person--opening .person__cv').count(), 0);
-    for (const link of await page.locator('a.person__cv').all()) {
-      assert.equal(await link.getAttribute('target'), '_blank');
-      assert.match(await link.getAttribute('rel'), /noopener/);
-      // Destination marks: hosted PDFs show the document icon, external pages the site-wide ↗.
-      const pdf = await link.evaluate(node => /\.pdf($|[?#])/i.test(node.getAttribute('href')));
-      assert.equal(await link.locator('svg.person__cv-icon').count(), pdf ? 1 : 0);
-      assert.equal(await link.locator('.person__cv-mark').count(), pdf ? 0 : 1);
-      assert.equal(await link.locator('.sr-only').count(), 1);
+    // Disabled buttons share the link silhouette: same end-cap document icon.
+    for (const btn of await page.locator('.person__cv:disabled').all()) {
+      assert.equal(await btn.locator('.person__cv-endcap svg.person__cv-icon').count(), 1);
+      assert.equal(await btn.locator('.sr-only').count(), 1);
+    }
+    for (const link of await page.locator('a.person__cv, .person__cv:disabled').all()) {
+      const disabled = await link.evaluate(node => node.matches(':disabled'));
+      if (!disabled) {
+        assert.equal(await link.getAttribute('target'), '_blank');
+        assert.match(await link.getAttribute('rel'), /noopener/);
+        // Destination marks: hosted PDFs show the document icon, external pages the site-wide ↗.
+        const pdf = await link.evaluate(node => /\.pdf($|[?#])/i.test(node.getAttribute('href')));
+        assert.equal(await link.locator('svg.person__cv-icon').count(), pdf ? 1 : 0);
+        assert.equal(await link.locator('.person__cv-mark').count(), pdf ? 0 : 1);
+        assert.equal(await link.locator('.sr-only').count(), 1);
+      }
       // End-cap geometry: a square cap sits flush right at full control height,
       // the mark centres in it, and the CV label centres in the remaining width.
       const geo = await link.evaluate(node => {

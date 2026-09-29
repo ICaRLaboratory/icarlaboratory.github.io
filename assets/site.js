@@ -817,7 +817,9 @@ function cvControl(p) {
   if (p.cvUrl) {
     return `<a class="person__cv" href="${esc(p.cvUrl)}" target="_blank" rel="noopener">CV<span class="person__cv-endcap person__cv-mark" aria-hidden="true">↗</span>${cvSrOnly({ en: " (external page)", ko: " (외부 페이지)" })}</a>`;
   }
-  return `<button class="person__cv" type="button" disabled>CV${cvSrOnly({ en: " unavailable", ko: " 미등록" })}</button>`;
+  // Same anatomy as the enabled links (document icon in the end cap), grayed by
+  // the disabled palette, so every card's CV control shares one silhouette.
+  return `<button class="person__cv" type="button" disabled>CV<span class="person__cv-endcap" aria-hidden="true"><svg class="person__cv-icon" viewBox="0 0 24 24"><path d="M13.5 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M13.5 3v5h5"/></svg></span>${cvSrOnly({ en: " unavailable", ko: " 미등록" })}</button>`;
 }
 
 function personCard(p, i, opts = {}) {

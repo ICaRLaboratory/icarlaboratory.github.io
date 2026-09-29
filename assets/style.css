@@ -830,10 +830,11 @@ main:focus { outline: none; }
   font: 600 0.75rem/1.2 var(--sans);
   text-decoration: none;
 }
-/* Links carry an end-cap square (full control height, flush right). Half-cap
-   padding centers the CV label between true chip center and the cap-free
-   center: full-cap compensation read too far left, none would touch the cap. */
-.person__cv[href] { padding-right: 14px; }
+/* Every CV control carries an end-cap square (full control height, flush right).
+   Half-cap padding centers the CV label between true chip center and the
+   cap-free center: full-cap compensation read too far left, none would touch
+   the cap. Disabled buttons share the same silhouette, differing by color. */
+.person__cv { padding-right: 14px; }
 .person__cv:disabled {
   background: #eaeaea;
   color: #96969c;
