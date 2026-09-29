@@ -687,7 +687,11 @@ const SIM = (function () {
       else running[current].resume();
     });
 
-    if (running[0]) running[0].show();
+    // Catalog deep links select the requested experiment without stealing focus.
+    const requested = new URLSearchParams(location.search).get("sim");
+    const initial = defs.findIndex((d) => d.id === requested);
+    if (initial > 0) select(initial, false);
+    else if (running[0]) running[0].show();
   }
 
   return {
