@@ -19,9 +19,10 @@ export async function runMemberCVChecks(browser, base) {
     assert.equal(await page.locator('#advisor a.person__cv').count(), 1);
     assert.match(await page.locator('#advisor a.person__cv').getAttribute('href'), /assets\/cv\/.*\.pdf$/);
     assert.equal(await page.locator('.person--opening .person__cv').count(), 0);
-    // Disabled buttons share the link silhouette: same end-cap document icon.
+    // Disabled buttons share the link silhouette with the ↗ placeholder mark
+    // (student/alumni CVs are external pages; only the advisor hosts a PDF).
     for (const btn of await page.locator('.person__cv:disabled').all()) {
-      assert.equal(await btn.locator('.person__cv-endcap svg.person__cv-icon').count(), 1);
+      assert.equal(await btn.locator('.person__cv-endcap.person__cv-mark').count(), 1);
       assert.equal(await btn.locator('.sr-only').count(), 1);
     }
     for (const link of await page.locator('a.person__cv, .person__cv:disabled').all()) {
