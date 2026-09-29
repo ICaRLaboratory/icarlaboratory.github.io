@@ -773,46 +773,16 @@ main:focus { outline: none; }
 .section-chip span { min-width: 0; overflow-wrap: anywhere; }
 .section-chip:hover { color: var(--text); border-color: var(--line); }
 .section-chip:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
-/* A dedicated invitation to explore, distinct from the section filters. */
-.section-chip.simulator-more {
-  gap: .85rem;
-  padding: .3rem .35rem .3rem 1.15rem;
-  min-height: 46px;
-  background: #151b1a;
-  border-color: #151b1a;
-  color: #fff;
-  font-size: .84rem;
-  font-weight: 600;
-  letter-spacing: .015em;
-  box-shadow: 0 3px 8px rgb(0 0 0 / .08);
-  transition: background .18s, border-color .18s, box-shadow .18s, transform .18s;
+/* The See-more dashboard link sits in the tabs' own row and wears the same
+   chip clothes; the arrow marks it as a destination, not a view. */
+.simulator-more {
+  display: inline-flex;
+  align-items: center;
+  gap: .4em;
+  text-decoration: none;
+  line-height: 1.2;
 }
-.simulator-more__arrow {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
-  border-radius: 50%;
-  background: #b7efdf;
-  color: #133f34;
-  transition: background .18s;
-}
-.simulator-more__arrow svg { width: 18px; height: 18px; transition: transform .18s; }
-.section-chip.simulator-more:hover {
-  color: #fff;
-  background: #22473e;
-  border-color: #22473e;
-  box-shadow: 0 5px 12px rgb(0 0 0 / .12);
-  transform: translateY(-1px);
-}
-.simulator-more:hover .simulator-more__arrow { background: #d5f8ed; }
-.simulator-more:hover svg { transform: translate(1px,-1px); }
-.simulator-more:focus-visible { outline: 2px solid #087f74; outline-offset: 4px; }
-@media (prefers-reduced-motion: reduce) {
-  .section-chip.simulator-more, .simulator-more__arrow, .simulator-more__arrow svg { transition: none; }
-  .section-chip.simulator-more:hover, .simulator-more:hover svg { transform: none; }
-}
+.simulator-more:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
 @media print { .members-nav { display: none; } }
 
 .people { display: grid; gap: 1.1rem; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); }
@@ -1722,8 +1692,10 @@ main:focus { outline: none; }
 /* ---------- interactive loop (research page) ---------- */
 
 /* One tab per loop. The chips are the publication filters' -- same job, same
-   shape -- with a tablist's keyboard behaviour added in assets/sim.js. */
-.simtabs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 2.25rem; }
+   shape -- with a tablist's keyboard behaviour added in assets/sim.js. The row
+   also carries the See-more dashboard link, same shape, different job. */
+.simtabs-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 2.25rem; }
+.simtabs { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .simtabs .chip:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
 /* A caption, not a lede: it starts at the figure's own left edge and sits
    close under the box. One size for both lines of it -- they were set apart

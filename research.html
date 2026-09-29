@@ -63,18 +63,17 @@
 
 <section class="band band--line wrap research-target" id="interactive" tabindex="-1" aria-labelledby="interactive-heading">
   <p class="eyebrow" id="interactive-heading">Interactive</p>
-  <div style="display:flex;align-items:center;flex-wrap:wrap;gap:1rem">
-    <h2 class="h2" data-reveal style="max-width:20ch">Control it yourself.</h2>
-    <a class="section-chip simulator-more" href="/simulators/" aria-label="See more control simulators">
-      <span>See more</span>
-      <span class="simulator-more__arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M7 7h10v10"/></svg></span>
-    </a>
-  </div>
+  <h2 class="h2" data-reveal style="max-width:20ch">Control it yourself.</h2>
 
   <!-- The tabs, the notes and the panels are all built by assets/sim.js from
        the modules that register with it, so a new loop is a new file and a
-       block of words in data/site.js, not a block of markup here. -->
-  <div class="simtabs" id="simtabs" role="tablist" aria-label="Simulations"></div>
+       block of words in data/site.js, not a block of markup here. The See-more
+       link shares the tabs' row and chip shape but is a plain anchor to the
+       dashboard, not a tab, so it lives outside the tablist. -->
+  <div class="simtabs-row">
+    <div class="simtabs" id="simtabs" role="tablist" aria-label="Simulations"></div>
+    <a class="chip simulator-more" href="/simulators/" aria-label="See more control simulators">See more <span aria-hidden="true">→</span></a>
+  </div>
   <div id="simpanels"></div>
 </section>
 
