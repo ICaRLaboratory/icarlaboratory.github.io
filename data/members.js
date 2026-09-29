@@ -69,6 +69,7 @@ const ALUMNI = [
   {
     nameEn: "Dong Hee Seo",
     nameKo: "서동희",
+    cv: "https://dhseo0608.github.io/",
     orcid: "0009-0002-3701-7431",
     scholar: "https://scholar.google.com/citations?user=sm2n5yoAAAAJ",
     degree: DEG.msDone,
