@@ -801,19 +801,21 @@ function personAlt(p) {
 }
 
 /* CV control: `cvPdf` (repo PDF, document icon) beats `cvUrl` (external page, ↗);
-   neither supplied renders the disabled placeholder. sr-only text carries its own
-   data-en/data-ko binding: a nested localized() span is not width-clipped by the
-   1px sr-only box and can overflow the card at enlarged fonts. */
+   neither supplied renders the disabled placeholder. The mark sits centered in a
+   rounded end-cap square (full control height, right edge); the CV label centers
+   in the remaining width. sr-only text carries its own data-en/data-ko binding:
+   a nested localized() span is not width-clipped by the 1px sr-only box and can
+   overflow the card at enlarged fonts. */
 function cvSrOnly(value) {
   return `<span class="sr-only" data-en="${esc(value.en)}" data-ko="${esc(value.ko)}"${LANG === "ko" ? ' lang="ko"' : ""}>${esc(t(value))}</span>`;
 }
 
 function cvControl(p) {
   if (p.cvPdf) {
-    return `<a class="person__cv" href="${esc(p.cvPdf)}" target="_blank" rel="noopener">CV<svg class="person__cv-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M13.5 3v5h5"/></svg>${cvSrOnly({ en: " (PDF)", ko: " (PDF 파일)" })}</a>`;
+    return `<a class="person__cv" href="${esc(p.cvPdf)}" target="_blank" rel="noopener">CV<span class="person__cv-endcap" aria-hidden="true"><svg class="person__cv-icon" viewBox="0 0 24 24"><path d="M13.5 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M13.5 3v5h5"/></svg></span>${cvSrOnly({ en: " (PDF)", ko: " (PDF 파일)" })}</a>`;
   }
   if (p.cvUrl) {
-    return `<a class="person__cv" href="${esc(p.cvUrl)}" target="_blank" rel="noopener">CV<span class="person__cv-mark" aria-hidden="true">↗</span>${cvSrOnly({ en: " (external page)", ko: " (외부 페이지)" })}</a>`;
+    return `<a class="person__cv" href="${esc(p.cvUrl)}" target="_blank" rel="noopener">CV<span class="person__cv-endcap person__cv-mark" aria-hidden="true">↗</span>${cvSrOnly({ en: " (external page)", ko: " (외부 페이지)" })}</a>`;
   }
   return `<button class="person__cv" type="button" disabled>CV${cvSrOnly({ en: " unavailable", ko: " 미등록" })}</button>`;
 }
@@ -907,6 +909,7 @@ function renderMembers() {
             ? `<img src="${esc(a.photo)}" ${personAlt(a)}>`
             : `<span class="portrait__initials">${esc(initials(a.nameEn))}</span>`}
         </div>
+        ${a.cvPdf ? cvControl(a) : ""}
         <dl class="contact-list">
           <div class="contact-row"><dt>${localized({ en: "Email", ko: "이메일" })}</dt><dd><a href="mailto:${esc(a.email)}">${esc(a.email)}</a></dd></div>
           <div class="contact-row"><dt>${localized({ en: "Office", ko: "교수 연구실" })}</dt><dd>${localized(a.office)}</dd></div>

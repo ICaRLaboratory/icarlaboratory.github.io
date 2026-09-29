@@ -192,6 +192,7 @@ const ADVISOR = {
   photo: "assets/img/advisor.jpg",
   orcid: "0000-0002-9071-4837",
   scholar: "https://scholar.google.com/citations?user=ME5-sE0AAAAJ",
+  cvPdf: "assets/cv/CV_Seok_Young_Lee.pdf",
 
   interests: [
     "Control theory",

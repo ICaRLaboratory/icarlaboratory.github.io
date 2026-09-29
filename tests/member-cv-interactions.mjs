@@ -14,8 +14,11 @@ export async function runMemberCVChecks(browser, base) {
     });
     assert.ok(counts.total > 0);
     assert.equal(await page.locator('.person__cv:disabled').count(), counts.total - counts.withCv);
-    assert.equal(await page.locator('a.person__cv').count(), counts.withCv);
-    assert.equal(await page.locator('#advisor .person__cv, .person--opening .person__cv').count(), 0);
+    // Students/alumni links plus the advisor's own hosted-PDF CV link.
+    assert.equal(await page.locator('a.person__cv').count(), counts.withCv + 1);
+    assert.equal(await page.locator('#advisor a.person__cv').count(), 1);
+    assert.match(await page.locator('#advisor a.person__cv').getAttribute('href'), /assets\/cv\/.*\.pdf$/);
+    assert.equal(await page.locator('.person--opening .person__cv').count(), 0);
     for (const link of await page.locator('a.person__cv').all()) {
       assert.equal(await link.getAttribute('target'), '_blank');
       assert.match(await link.getAttribute('rel'), /noopener/);
@@ -24,6 +27,28 @@ export async function runMemberCVChecks(browser, base) {
       assert.equal(await link.locator('svg.person__cv-icon').count(), pdf ? 1 : 0);
       assert.equal(await link.locator('.person__cv-mark').count(), pdf ? 0 : 1);
       assert.equal(await link.locator('.sr-only').count(), 1);
+      // End-cap geometry: a square cap sits flush right at full control height,
+      // the mark centres in it, and the CV label centres in the remaining width.
+      const geo = await link.evaluate(node => {
+        const cv = node.getBoundingClientRect();
+        const cap = node.querySelector('.person__cv-endcap').getBoundingClientRect();
+        const mark = node.querySelector('.person__cv-endcap > svg') || node.querySelector('.person__cv-endcap');
+        const markBox = mark.getBoundingClientRect();
+        const label = document.createRange();
+        label.selectNodeContents(node);
+        label.setEnd(node.firstChild, 2); // the "CV" text node
+        const labelBox = label.getBoundingClientRect();
+        return {
+          square: Math.abs(cap.width - cap.height) <= 1,
+          // absolute inset:0 spans the padding box, i.e. clientHeight (borders excluded)
+          fullHeight: Math.abs(cap.height - node.clientHeight) <= 1,
+          flushRight: Math.abs(cap.right - cv.right) <= 1,
+          markCentered: Math.abs((markBox.left + markBox.width / 2) - (cap.left + cap.width / 2)) <= 1
+            && Math.abs((markBox.top + markBox.height / 2) - (cap.top + cap.height / 2)) <= 1.5,
+          labelCentered: Math.abs((labelBox.left + labelBox.width / 2) - (cv.left + (cv.width - cap.width) / 2)) <= 1.5,
+        };
+      });
+      assert.deepEqual(geo, { square: true, fullHeight: true, flushRight: true, markCentered: true, labelCentered: true }, `CV chip geometry: ${JSON.stringify(geo)}`);
     }
     for (const lang of ['en', 'ko']) {
       await page.locator(`[data-lang="${lang}"]`).click();
@@ -58,7 +83,7 @@ export async function runMemberCVChecks(browser, base) {
     assert.equal(await pdfLink.getAttribute('href'), 'assets/cv/fixture.pdf');
     assert.equal(await pdfLink.getAttribute('rel'), 'noopener');
     assert.equal(await pdfLink.locator('svg.person__cv-icon').count(), 1);
-    assert.equal(await pdfLink.locator('svg.person__cv-icon').getAttribute('aria-hidden'), 'true');
+    assert.equal(await pdfLink.locator('.person__cv-endcap').getAttribute('aria-hidden'), 'true');
     assert.equal(await pdfLink.locator('.person__cv-mark').count(), 0);
     // The icon must not stretch the compact control.
     const pdfHeight = await pdfLink.evaluate(node => node.getBoundingClientRect().height);

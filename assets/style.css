@@ -816,6 +816,7 @@ main:focus { outline: none; }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
 .person__media { flex: none; width: 54px; display: grid; gap: 8px; }
 .person__cv {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -829,6 +830,10 @@ main:focus { outline: none; }
   font: 600 0.75rem/1.2 var(--sans);
   text-decoration: none;
 }
+/* Links carry an end-cap square (full control height, flush right): the mark
+   centers in it, and the padding reserves its width so the CV label centers
+   in the remaining space. */
+.person__cv[href] { padding-right: 28px; }
 .person__cv:disabled {
   background: #eaeaea;
   color: #96969c;
@@ -838,17 +843,28 @@ main:focus { outline: none; }
 }
 .person__cv[href]:hover { opacity: 0.86; }
 .person__cv[href]:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
-/* Destination marks: document icon = hosted PDF, ↗ = external page (site convention). */
+/* Advisor card: the CV control sits between portrait and contact list. */
+#advisor .person__cv { margin-top: 12px; }
+/* Destination marks: document icon = hosted PDF, ↗ = external page (site convention).
+   The end cap is a rounded square pinned to the control's right edge; its width
+   tracks the control height so the mark's centre stays on the cap centre. */
+.person__cv-endcap {
+  position: absolute;
+  top: 0; bottom: 0; right: 0;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+}
 .person__cv-icon {
   width: 11px; height: 11px;
-  margin-left: 0.3rem;
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.person__cv-mark { margin-left: 0.25rem; font-size: 0.7rem; line-height: 1; }
+.person__cv-mark { font-size: 0.7rem; line-height: 1; }
 
 .person__heading { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.5rem; }
 .person__heading .badge { max-width: 100%; }
@@ -905,6 +921,8 @@ main:focus { outline: none; }
   .advisor { grid-template-columns: 1fr; }
   /* stacked, the portrait would otherwise stretch to the full page width */
   .portrait { max-width: 280px; }
+  /* the advisor CV control tracks the portrait width */
+  #advisor .person__cv { max-width: 280px; }
   .contact-list { max-width: 360px; }
 }
 
