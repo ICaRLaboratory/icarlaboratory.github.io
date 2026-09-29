@@ -773,6 +773,46 @@ main:focus { outline: none; }
 .section-chip span { min-width: 0; overflow-wrap: anywhere; }
 .section-chip:hover { color: var(--text); border-color: var(--line); }
 .section-chip:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+/* A dedicated invitation to explore, distinct from the section filters. */
+.section-chip.simulator-more {
+  gap: .85rem;
+  padding: .3rem .35rem .3rem 1.15rem;
+  min-height: 46px;
+  background: #151b1a;
+  border-color: #151b1a;
+  color: #fff;
+  font-size: .84rem;
+  font-weight: 600;
+  letter-spacing: .015em;
+  box-shadow: 0 3px 8px rgb(0 0 0 / .08);
+  transition: background .18s, border-color .18s, box-shadow .18s, transform .18s;
+}
+.simulator-more__arrow {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 50%;
+  background: #b7efdf;
+  color: #133f34;
+  transition: background .18s;
+}
+.simulator-more__arrow svg { width: 18px; height: 18px; transition: transform .18s; }
+.section-chip.simulator-more:hover {
+  color: #fff;
+  background: #22473e;
+  border-color: #22473e;
+  box-shadow: 0 5px 12px rgb(0 0 0 / .12);
+  transform: translateY(-1px);
+}
+.simulator-more:hover .simulator-more__arrow { background: #d5f8ed; }
+.simulator-more:hover svg { transform: translate(1px,-1px); }
+.simulator-more:focus-visible { outline: 2px solid #087f74; outline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  .section-chip.simulator-more, .simulator-more__arrow, .simulator-more__arrow svg { transition: none; }
+  .section-chip.simulator-more:hover, .simulator-more:hover svg { transform: none; }
+}
 @media print { .members-nav { display: none; } }
 
 .people { display: grid; gap: 1.1rem; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); }

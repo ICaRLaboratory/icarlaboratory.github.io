@@ -20,6 +20,10 @@ class SimulatorLinkTest(unittest.TestCase):
         links=[a for a in p.links if a.get('href')=='/simulators/']
         self.assertEqual(len(links),1)
         self.assertIn('section-chip',links[0].get('class',''))
+        self.assertIn('simulator-more',links[0].get('class',''))
+        css=(Path(__file__).resolve().parents[1]/'assets/style.css').read_text()
+        self.assertIn('.simulator-more:focus-visible',css)
+        self.assertIn('.simulator-more__arrow',css)
         self.assertEqual(links[0].get('aria-label'),'See more control simulators')
 
 if __name__=='__main__': unittest.main()
