@@ -10,7 +10,7 @@ export async function runMemberCVChecks(browser, base) {
     assert.ok(cvHeight >= 24 && cvHeight <= 30, `Compact CV height: ${cvHeight}`);
     const counts = await page.evaluate(() => {
       const people = [...GRAD_STUDENTS, ...UNDERGRAD_STUDENTS, ...ALUMNI];
-      return { total: people.length, withCv: people.filter(p => p.cv).length };
+      return { total: people.length, withCv: people.filter(p => p.cvPdf || p.cvUrl).length };
     });
     assert.ok(counts.total > 0);
     assert.equal(await page.locator('.person__cv:disabled').count(), counts.total - counts.withCv);
@@ -19,6 +19,11 @@ export async function runMemberCVChecks(browser, base) {
     for (const link of await page.locator('a.person__cv').all()) {
       assert.equal(await link.getAttribute('target'), '_blank');
       assert.match(await link.getAttribute('rel'), /noopener/);
+      // Destination marks: hosted PDFs show the document icon, external pages the site-wide ↗.
+      const pdf = await link.evaluate(node => /\.pdf($|[?#])/i.test(node.getAttribute('href')));
+      assert.equal(await link.locator('svg.person__cv-icon').count(), pdf ? 1 : 0);
+      assert.equal(await link.locator('.person__cv-mark').count(), pdf ? 0 : 1);
+      assert.equal(await link.locator('.sr-only').count(), 1);
     }
     for (const lang of ['en', 'ko']) {
       await page.locator(`[data-lang="${lang}"]`).click();
@@ -36,15 +41,28 @@ export async function runMemberCVChecks(browser, base) {
         assert.ok(geometry.every(g => g.below && g.width && g.focusOk));
       }
     }
-    // Fixture: exercises the optional-CV link path in isolation.
+    // Fixtures: exercise both optional-CV variants in isolation.
     await page.evaluate(() => {
-      document.querySelector('#undergrad').innerHTML = personCard({ nameEn: 'CV Fixture', nameKo: '검사 구성원', degree: DEG.ug, cv: 'members.html?cv-fixture=1' }, 0);
+      document.querySelector('#undergrad').innerHTML =
+        personCard({ nameEn: 'CV Url Fixture', nameKo: '외부 구성원', degree: DEG.ug, cvUrl: 'members.html?cv-fixture=1' }, 0) +
+        personCard({ nameEn: 'CV Pdf Fixture', nameKo: '문서 구성원', degree: DEG.ug, cvPdf: 'assets/cv/fixture.pdf' }, 1);
     });
-    const link = page.locator('#undergrad a.person__cv');
-    assert.equal(await link.count(), 1);
+    const link = page.locator('#undergrad a.person__cv').first();
+    assert.equal(await page.locator('#undergrad a.person__cv').count(), 2);
     assert.equal(await link.getAttribute('href'), 'members.html?cv-fixture=1');
     assert.equal(await link.getAttribute('target'), '_blank');
     assert.equal(await link.getAttribute('rel'), 'noopener');
+    assert.equal(await link.locator('.person__cv-mark').count(), 1);
+    assert.equal(await link.locator('svg.person__cv-icon').count(), 0);
+    const pdfLink = page.locator('#undergrad a.person__cv').nth(1);
+    assert.equal(await pdfLink.getAttribute('href'), 'assets/cv/fixture.pdf');
+    assert.equal(await pdfLink.getAttribute('rel'), 'noopener');
+    assert.equal(await pdfLink.locator('svg.person__cv-icon').count(), 1);
+    assert.equal(await pdfLink.locator('svg.person__cv-icon').getAttribute('aria-hidden'), 'true');
+    assert.equal(await pdfLink.locator('.person__cv-mark').count(), 0);
+    // The icon must not stretch the compact control.
+    const pdfHeight = await pdfLink.evaluate(node => node.getBoundingClientRect().height);
+    assert.ok(pdfHeight >= 24 && pdfHeight <= 30, `Compact PDF CV height: ${pdfHeight}`);
     await link.evaluate(node => node.focus());
     assert.equal(await link.evaluate(node => document.activeElement === node), true);
     const popupPromise = page.waitForEvent('popup');

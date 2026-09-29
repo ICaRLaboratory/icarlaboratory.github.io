@@ -1,7 +1,9 @@
 /* ---------------------------------------------------------------
    Lab members.
 
-   `cv` is optional: a PDF path or URL enables the CV link; omit it for a disabled button.
+   CV controls are optional: `cvPdf` (a PDF committed in this repo, e.g. assets/cv/)
+   shows a document icon; `cvUrl` (an external page) shows the site-wide ↗.
+   Omit both for a disabled button.
    `photo` is optional -- leave it out and the card shows a
    generated monogram instead. Drop files in assets/img/.
    `nameEn` / `nameKo` follow the selected language; a missing Korean name falls back to English.
@@ -29,7 +31,7 @@ const GRAD_STUDENTS = [
     scholar: "https://scholar.google.com/citations?user=CdS5ZDsAAAAJ",
     orcid: "0009-0008-5503-241X",
     photo: "assets/img/jinwoong-lee.jpg",
-    cv: "https://woongpigy.github.io/jinwoong-lee/index.html",
+    cvUrl: "https://woongpigy.github.io/jinwoong-lee/index.html",
     degree: DEG.phd,
     role: { en: "Lab Manager", ko: "연구실 매니저" },
     email: "jinwoonggg at sju.ac.kr",
@@ -69,7 +71,7 @@ const ALUMNI = [
   {
     nameEn: "Dong Hee Seo",
     nameKo: "서동희",
-    cv: "https://dhseo0608.github.io/",
+    cvUrl: "https://dhseo0608.github.io/",
     orcid: "0009-0002-3701-7431",
     scholar: "https://scholar.google.com/citations?user=sm2n5yoAAAAJ",
     degree: DEG.msDone,

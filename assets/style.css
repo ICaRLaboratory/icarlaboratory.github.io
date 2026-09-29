@@ -838,6 +838,17 @@ main:focus { outline: none; }
 }
 .person__cv[href]:hover { opacity: 0.86; }
 .person__cv[href]:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+/* Destination marks: document icon = hosted PDF, ↗ = external page (site convention). */
+.person__cv-icon {
+  width: 11px; height: 11px;
+  margin-left: 0.3rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.person__cv-mark { margin-left: 0.25rem; font-size: 0.7rem; line-height: 1; }
 
 .person__heading { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.5rem; }
 .person__heading .badge { max-width: 100%; }

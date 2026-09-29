@@ -800,6 +800,24 @@ function personAlt(p) {
   return `alt="${esc(LANG === "ko" ? p.nameKo || p.nameEn : p.nameEn)}" data-alt-en="${esc(p.nameEn)}" data-alt-ko="${esc(p.nameKo || p.nameEn)}"`;
 }
 
+/* CV control: `cvPdf` (repo PDF, document icon) beats `cvUrl` (external page, ↗);
+   neither supplied renders the disabled placeholder. sr-only text carries its own
+   data-en/data-ko binding: a nested localized() span is not width-clipped by the
+   1px sr-only box and can overflow the card at enlarged fonts. */
+function cvSrOnly(value) {
+  return `<span class="sr-only" data-en="${esc(value.en)}" data-ko="${esc(value.ko)}"${LANG === "ko" ? ' lang="ko"' : ""}>${esc(t(value))}</span>`;
+}
+
+function cvControl(p) {
+  if (p.cvPdf) {
+    return `<a class="person__cv" href="${esc(p.cvPdf)}" target="_blank" rel="noopener">CV<svg class="person__cv-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M13.5 3v5h5"/></svg>${cvSrOnly({ en: " (PDF)", ko: " (PDF 파일)" })}</a>`;
+  }
+  if (p.cvUrl) {
+    return `<a class="person__cv" href="${esc(p.cvUrl)}" target="_blank" rel="noopener">CV<span class="person__cv-mark" aria-hidden="true">↗</span>${cvSrOnly({ en: " (external page)", ko: " (외부 페이지)" })}</a>`;
+  }
+  return `<button class="person__cv" type="button" disabled>CV${cvSrOnly({ en: " unavailable", ko: " 미등록" })}</button>`;
+}
+
 function personCard(p, i, opts = {}) {
   const avatar = p.photo
     ? `<img src="${esc(p.photo)}" ${personAlt(p)} loading="lazy">`
@@ -820,9 +838,7 @@ function personCard(p, i, opts = {}) {
     <div class="person" data-reveal style="--d:${i * 60}ms">
       <div class="person__media">
         <div class="avatar">${avatar}</div>
-        ${p.cv
-          ? `<a class="person__cv" href="${esc(p.cv)}" target="_blank" rel="noopener">CV</a>`
-          : `<button class="person__cv" type="button" disabled>CV<span class="sr-only">${localized({ en: " unavailable", ko: " 미등록" })}</span></button>`}
+        ${cvControl(p)}
       </div>
       <div>
         <div class="person__heading">
