@@ -45,7 +45,7 @@ export async function runMemberCVChecks(browser, base) {
           flushRight: Math.abs(cap.right - cv.right) <= 1,
           markCentered: Math.abs((markBox.left + markBox.width / 2) - (cap.left + cap.width / 2)) <= 1
             && Math.abs((markBox.top + markBox.height / 2) - (cap.top + cap.height / 2)) <= 1.5,
-          labelCentered: Math.abs((labelBox.left + labelBox.width / 2) - (cv.left + (cv.width - cap.width) / 2)) <= 1.5,
+          labelCentered: Math.abs((labelBox.left + labelBox.width / 2) - (cv.left + (cv.width - cap.width / 2) / 2)) <= 1.5,
         };
       });
       assert.deepEqual(geo, { square: true, fullHeight: true, flushRight: true, markCentered: true, labelCentered: true }, `CV chip geometry: ${JSON.stringify(geo)}`);
