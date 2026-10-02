@@ -5,7 +5,6 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
-import { runSiteImprovementChecks } from '../tests/site-improvements-interactions.mjs';
 import { runChipConsistencyChecks } from '../tests/chip-consistency-interactions.mjs';
 import { runLinkArrowChecks } from '../tests/link-arrow-interactions.mjs';
 import { runContactMapLinkChecks } from '../tests/contact-map-links-interactions.mjs';
@@ -105,7 +104,6 @@ async function run() {
   await page.waitForFunction(() => window.testsDone === true, { }, { timeout: 60_000 });
   const results = await page.evaluate(() => window.testResults);
   if (!Array.isArray(results) || results.length === 0) throw new Error('Harness returned no test results');
-  results.push(...await runSiteImprovementChecks(browser, base));
   results.push(...await runKoreanLabelChecks(browser, base));
   results.push(...await runMemberCardLayoutChecks(browser, base));
   results.push(...await runMemberCVChecks(browser, base));

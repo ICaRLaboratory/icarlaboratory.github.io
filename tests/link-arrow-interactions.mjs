@@ -23,11 +23,7 @@ export async function runLinkArrowChecks(browser, base) {
             assert.equal(arrow.direction, internal ? 'internal' : 'external', `${file}/${lang}: ${arrow.href}`);
           }
           if (file === 'index') {
-            const recruit = page.locator('.recruit__link[href^="mailto:"]');
-            assert.equal(await recruit.count(), 1, 'Recruitment retains one direct email link');
-            const guide = page.locator('.recruit__guide');
-            assert.equal(await guide.count(), 1, 'Recruitment offers one application guide');
-            assert.equal(await guide.getAttribute('href'), 'members.html#application-guide');
+            const recruit = page.locator('.recruit__link');
             assert.equal(await recruit.getAttribute('href'), await page.evaluate(() => `mailto:${SITE.contact.email}`));
             assert.equal(await recruit.locator('svg').getAttribute('aria-hidden'), 'true');
             assert.equal(await recruit.locator('path').getAttribute('d'), 'M7 17 17 7M7 7h10v10');

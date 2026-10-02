@@ -38,10 +38,7 @@ export async function runKoreanLabelChecks(browser, base) {
         assert.deepEqual(await openings.locator('.person__role').allTextContents(), lang === 'ko'
           ? ['대학원생 모집', '학부연구생 모집'] : ['Graduate students', 'Undergraduate researchers']);
         const email = await page.evaluate(() => SITE.contact.email);
-        assert.deepEqual(await openings.locator('a').evaluateAll(nodes => nodes.map(n => n.getAttribute('href'))), ['#application-guide', `mailto:${email}`, '#application-guide', `mailto:${email}`]);
-        assert.deepEqual(await openings.locator('a[href="#application-guide"]').evaluateAll(nodes => nodes.map(n => n.getAttribute('href'))), ['#application-guide', '#application-guide']);
-        assert.equal(await openings.locator('a').count(), 4, 'Each opening retains direct email and adds one native guide link');
-        assert.deepEqual(await openings.locator('a[href="#application-guide"] [data-en]').allTextContents(), lang === 'ko' ? ['지원 안내', '지원 안내'] : ['Application guide', 'Application guide']);
+        assert.deepEqual(await openings.locator('a').evaluateAll(nodes => nodes.map(n => n.getAttribute('href'))), [`mailto:${email}`, `mailto:${email}`]);
         assert.deepEqual(await page.locator('main .eyebrow').evaluateAll(nodes => nodes.map(el => {
           const s = getComputedStyle(el); return [s.fontSize, s.fontWeight, s.letterSpacing];
         })), Array(await page.locator('main .eyebrow').count()).fill(['16px', '600', 'normal']));

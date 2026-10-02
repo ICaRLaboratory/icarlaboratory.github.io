@@ -52,29 +52,14 @@ announcement contrast covered after real news expires. The same pages are checke
 in print media for a removed navigation slot and restored screen navigation.
 Axe is injected only by the test runner, never loaded by the published pages.
 Automated contrast checks do not replace manual accessibility review.
-`site-improvements-interactions.mjs` checks localized home actions and the native
-recruitment-to-guide route in KO/EN at 320, 390 and 1280px, fragment focus and
-next-Tab email access, reload/language changes, clipping, and advisor/guide
-readability with JavaScript disabled. `test_seo.py` checks Korean identity
-metadata and generated static advisor freshness; `test_application_guide.py`
-checks the nonmandatory inquiry guidance and preserved home destinations.
-`node scripts/build-static-advisor.mjs --check` detects profile drift without
-writing files.
 `contact-members-language-interactions.mjs` checks single-language names/address,
 Contact labels/office/lab/department, advisor affiliation, degrees, role and thesis
 labels, portrait alternatives, both toggle directions, default/stored/query language,
 reload, cross-page navigation and native Back/Forward. Links, map iframe, focused
 links and visible member reveal nodes retain their identity. Research interests,
 dates and original English facts are preserved. The old always-Korean extra address
-assertion now checks the selected address’s effective language. Shared navigation
-labels now follow the selected language in stable header/footer leaf spans;
-technical terms, research keywords and the hero figure remain English.
-`visitor-paths.test.mjs` separately checks DOI-backed research-card routes,
-existing public research imagery, recruiting guide/email paths, responsive guide
-styles and native mobile navigation focus in KO/EN. Run it with
-`PLAYWRIGHT_MODULE=<playwright/index.mjs> node --test tests/visitor-paths.test.mjs`;
-optionally set `CHROMIUM_PATH` for an installed Chromium executable. It uses an
-OS-assigned preview port and closes its own server/browser.
+assertion now checks the selected address’s effective language. Shared footer and
+navigation language policy remains unchanged.
 `korean-label-interactions.mjs` checks shared 13px Pretendard semibold contact, degree and manager labels in both languages (including untranslated ORCID/Scholar labels), compact spacing, original capitalization, non-overlapping values, viewport fit and stable typography after language switching. It also checks 16px semibold Members section headings and the graduate/undergraduate Open position cards, their order, bilingual roles and email destinations. Recruitment cards remain separate from actual member records and counts.
 `chip-consistency-interactions.mjs` checks shared Research/Members outlines without arrows, Contact single-row layout at roomy widths, matching chip heights and identical email-based hover motion with provider colors preserved. Narrow screens wrap.
 `link-arrow-interactions.mjs` checks existing link arrows across all pages in KO/EN at mobile/desktop widths: internal destinations use →, external destinations (including mailto) use ↗. Links without arrows and directional controls are left unchanged; the Join us email remains keyboard-focusable with a decorative SVG.
