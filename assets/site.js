@@ -144,6 +144,7 @@ function fillFields(root = document) {
     email: SITE.contact.email,
     studentOffice: SITE.contact.studentOffice,
     office: SITE.contact.office,
+    facultyOffice: { en: `Faculty office · ${SITE.contact.office.en}`, ko: `교수 연구실 · ${SITE.contact.office.ko}` },
     address: SITE.contact.address,
     mapUrl: SITE.contact.mapUrl,
     homeNote: SITE.homeNote,
