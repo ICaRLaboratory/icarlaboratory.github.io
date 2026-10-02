@@ -340,6 +340,78 @@ main:focus { outline: none; }
   .recruit__inner { grid-template-columns: 1fr; gap: 0.7rem; align-items: start; }
 }
 
+/* ---------- visitor next steps (scoped; preserve the shared card layout) ---------- */
+.area-publication,
+.area-example {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  width: fit-content;
+  max-width: 100%;
+  min-height: 44px;
+  margin-top: .75rem;
+  padding-block: .35rem;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: .22em;
+  text-decoration-color: var(--line);
+}
+.area-example { margin-top: 0; }
+.area-publication:hover,
+.area-example:hover { text-decoration-color: currentColor; }
+.area-publication:focus-visible,
+.area-example:focus-visible,
+.recruit__guide:focus-visible,
+.hero__faculty a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+.recruit__guide {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  min-height: 44px;
+  margin-inline: .35rem;
+  font-weight: 600;
+}
+.hero__faculty { margin-block: 1rem; }
+.hero__faculty a {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  max-width: 100%;
+  min-height: 44px;
+  color: var(--text);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: .22em;
+}
+.hero__faculty a:hover { text-decoration-color: currentColor; }
+.application-guide__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.75rem;
+  margin-block: 1.5rem;
+}
+.application-guide h3 {
+  margin: 0 0 .65rem;
+  font-size: 1.125rem;
+  line-height: 1.5;
+  font-weight: 600;
+}
+.application-guide p {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text);
+  max-width: 75ch;
+}
+.application-guide__grid p { margin: 0; }
+@media (max-width: 640px) {
+  .application-guide__grid { grid-template-columns: minmax(0, 1fr); }
+}
+
 /* ---------- news ---------- */
 
 /* A short-lived band under the hero. renderNews() sets [hidden] when

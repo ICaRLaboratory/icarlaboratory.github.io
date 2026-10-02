@@ -38,6 +38,8 @@
 - 논문 수와 연도별 목록은 자동 갱신됩니다. Publications의 기본값과 필터 초기화 상태는 **All**입니다.
 - 검색은 제목·저자·학술지·학술대회명·DOI를 대상으로 합니다. 여러 단어는 모두 일치해야 하며, 직접 선택한 유형·연도는 검색 중에도 유지됩니다.
 - Research 시뮬레이터에서 인용할 논문은 `data/site.js`의 해당 모드에 `ref: "DOI"`로 연결합니다. 인용문 자체를 중복 작성하지 않습니다.
+- Home·Research 공통 연구 카드의 대표 논문도 `SITE.areas[].ref`에 실제 DOI를 지정합니다. 링크는 `publications.html?q=...`에서 해당 논문을 검색하며, 제목은 `data/publications.js`에서 가져옵니다. Robotics의 연구 이미지 링크는 기존 공개 이미지로 연결하며 논문 결과나 실험 영상으로 표시하지 않습니다.
+- 홈 모집 배너와 구성원 모집 카드는 Members의 `#application-guide`로 안내합니다. 직접 문의용 이메일 링크는 유지하며, 지원 안내의 제안 사항을 필수 제출 서류나 입학·지원 보장으로 바꾸지 않습니다.
 
 ### 구성원 갱신
 
@@ -45,7 +47,7 @@
 - 학위·연구 주제는 파일 상단의 `DEG`, `TOPIC` 상수를 사용합니다.
 - Contact와 Members 본문은 선택한 언어의 이름·주소·위치·소속·직함·학위만 표시합니다. `nameEn`/`nameKo`를 함께 관리하되 화면에 병기하지 않으며, 한국어 이름이 없으면 영문 이름을 사용합니다. 학위·직함·이력은 `{ en, ko }` 형식으로 관리하고 연구 키워드·학위논문 제목·이메일·링크·날짜는 보존합니다.
 - 학과 공식 명칭은 **지능정보융합학과 / Department of Artificial Intelligence and Information Technology**입니다. [학과 소개](https://dept.sejong.ac.kr/aiitdpt/intro/department-introduction.do)를 기준으로 하며, 영어 명칭을 임의 번역하지 않습니다.
-- 공통 메뉴·푸터의 언어 정책은 그대로 유지합니다. 공유 연락처의 `{ en, ko }` 값을 문자열처럼 출력하지 않도록 주의합니다.
+- 공통 메뉴와 푸터의 탐색 링크는 선택한 언어만 표시합니다. `assets/site.js`의 `NAV_ITEMS.label`을 `{ en, ko }`로 관리하며, 언어 전환 시 링크 노드를 교체하지 않습니다. 기술 용어·연구 키워드·hero 그림의 영문 표기는 유지합니다. 공유 연락처의 `{ en, ko }` 값을 문자열처럼 출력하지 않도록 주의합니다.
 - 사진은 `assets/img/`에 넣고 `photo`에 경로를 지정합니다. 사진이 없으면 이니셜이 표시됩니다.
 - 졸업 시 해당 구성원을 `ALUMNI`로 옮기고 학위 완료 구분, `graduated`, 필요한 경우 `now`를 갱신합니다.
 
@@ -96,6 +98,23 @@ python3 -m unittest discover -s tests -p test_publish.py -v
 ```
 
 폰트 변경 시에는 [assets/fonts/README.md](assets/fonts/README.md)의 출처·라이선스를 유지하고, `tests/README.md`의 한글 커버리지·체크섬 검사를 실행합니다.
+
+## 검색 노출과 정적 교수 소개
+
+- 홈의 `<title>`, description과 Open Graph 제목·설명에는 세종대학교·이석영·ICaR Lab을 명시합니다. 영문 연구실 이름은 유지하며, JSON-LD의 한국어 별칭은 기존 공식 이름에 연결합니다. 실제 소속·직함·연락처와 다른 정보를 추가하지 않습니다.
+- `index.html`과 `members.html`의 초기 언어는 `ko`입니다. JavaScript 실행 후에는 저장된 선택 또는 `?lang=en`/`?lang=ko`에 따라 문서 언어와 본문이 바뀝니다.
+- Members의 교수 소개는 JavaScript가 없어도 읽을 수 있도록 초기 HTML에 포함합니다. 원본은 `data/site.js`의 `ADVISOR`이며, `assets/site.js`의 실제 `renderMembers()`를 사용해 생성합니다. `members.html`의 `static-advisor` 주석 사이를 직접 수정하지 않습니다.
+- 교수 정보나 교수 렌더러를 바꾸면 다음 명령으로 재생성하고 검수합니다. 런타임에서는 동일한 `#advisor` 내용을 교체하므로 프로필이 중복되지 않습니다.
+
+```bash
+node scripts/build-static-advisor.mjs
+node scripts/build-static-advisor.mjs --check
+python3 -m unittest discover -s tests -p test_seo.py -v
+```
+
+`--check`는 파일을 수정하지 않고 정적 소개가 최신 데이터·렌더러와 같은지 확인합니다. 초기 프로필에서는 JavaScript에 의존하는 등장 애니메이션 속성을 제거합니다. 홈페이지의 교수 링크는 `members.html#advisor-section`으로 연결합니다. 지원 안내는 `members.html#application-guide`에서 관리하며, 상담에 도움이 되는 정보를 안내할 뿐 필수 제출 서류·모집 기한·재정 지원 조건을 정하지 않습니다.
+
+검색 결과의 반영 시점과 표시 문구는 검색 서비스가 결정합니다. 로컬 검사 통과를 색인 완료나 순위 상승으로 보고하지 않습니다.
 
 ## 커밋·푸시·배포 확인
 

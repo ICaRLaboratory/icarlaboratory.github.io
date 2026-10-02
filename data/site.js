@@ -3,8 +3,9 @@
    research areas.
 
    Descriptive prose and Contact/Members profile fields carry { en, ko }
-   pairs and follow the language toggle. Shared navigation, technical terms,
-   research keywords and the hero figure stay English. Plain strings are
+   pairs and follow the language toggle. Shared navigation also follows the
+   selected language; technical terms, research keywords and the hero figure
+   stay English. Plain strings are
    shown as-is in both languages.
    --------------------------------------------------------------- */
 
@@ -123,10 +124,14 @@ const SITE = {
     mapEmbed: "https://www.google.com/maps?q=37.551049,127.075719&z=17&output=embed",
   },
 
-  /* Three areas, matching the three blocks of the hero figure. */
+  /* Three areas, matching the three blocks of the hero figure.
+     `ref` points to data/publications.js; do not duplicate citation titles.
+     The embedded example concerns sensor signal processing, not a claim
+     that the cited study was deployed on an embedded device. */
   areas: [
     {
       key: "control",
+      ref: "10.1016/j.matcom.2025.11.031",
       image: "assets/img/area-control.svg",
       label: "Control Algorithms",
       blurb: {
@@ -144,7 +149,9 @@ const SITE = {
     },
     {
       key: "robotics",
+      ref: "10.3390/math14132323",
       image: "assets/img/area-robotics.jpg",
+      example: { en: "View research image", ko: "연구 이미지 보기" },
       label: "Robotics",
       blurb: {
         en: "We study motion, environmental interaction and coordination in robot manipulators and mobile robots. Topics include trajectory tracking under uncertainty, admittance-based force tracking for contact tasks, and reinforcement-learning-based navigation. We investigate adaptive sliding mode control and neural-network-assisted time-delay estimation, as well as multi-robot coordination under unreliable communication.",
@@ -161,6 +168,7 @@ const SITE = {
     },
     {
       key: "embedded",
+      ref: "10.3390/electronics15173864",
       image: "assets/img/area-embedded.svg",
       label: "Embedded Systems",
       blurb: {

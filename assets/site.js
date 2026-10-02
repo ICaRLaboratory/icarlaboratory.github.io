@@ -28,8 +28,9 @@ const initials = (name) =>
 /* text bound through data-site="field" */
 /* ---------- language ----------
    Descriptive prose and Contact/Members profile fields are translated.
-   Shared navigation, technical terms, keywords and the hero figure stay
-   English on both sides, so the page is mixed-language in Korean mode.
+   Shared navigation follows the selected language through stable leaf spans.
+   Technical terms, keywords and the hero figure stay English on both sides,
+   so the page is mixed-language in Korean mode.
    The <html lang> follows the selected language: machine translators and
    search engines take the document declaration at face value, and a fixed
    "en" over mostly-Korean text made them mis-detect the source language.
@@ -128,6 +129,9 @@ function localized(value) {
 }
 
 function fillFields(root = document) {
+  $$("[data-aria-en][data-aria-ko]", root).forEach(el => {
+    el.setAttribute("aria-label", LANG === "ko" ? el.dataset.ariaKo : el.dataset.ariaEn);
+  });
   $$("[data-alt-en][data-alt-ko]", root).forEach(el => {
     el.alt = LANG === "ko" ? el.dataset.altKo : el.dataset.altEn;
   });
@@ -159,13 +163,13 @@ function fillFields(root = document) {
 /* ---------- nav + footer ---------- */
 
 const NAV_ITEMS = [
-  { href: "index.html",        label: "Home" },
-  { href: "research.html",     label: "Research" },
-  { href: "members.html",      label: "Members" },
-  { href: "publications.html", label: "Publications" },
-  { href: "lecture.html",      label: "Lecture" },
-  { href: "gallery.html",      label: "Gallery" },
-  { href: "contact.html",      label: "Contact" },
+  { href: "index.html",        label: { en: "Home", ko: "홈" } },
+  { href: "research.html",     label: { en: "Research", ko: "연구" } },
+  { href: "members.html",      label: { en: "Members", ko: "구성원" } },
+  { href: "publications.html", label: { en: "Publications", ko: "논문" } },
+  { href: "lecture.html",      label: { en: "Lecture", ko: "강의" } },
+  { href: "gallery.html",      label: { en: "Gallery", ko: "갤러리" } },
+  { href: "contact.html",      label: { en: "Contact", ko: "연락처" } },
 ];
 
 const ICON = {
@@ -180,7 +184,7 @@ function renderNav(current) {
   host.dataset.done = "1";
 
   const links = NAV_ITEMS.map(
-    (i) => `<a href="${i.href}"${i.href === current ? ' aria-current="page"' : ""}>${i.label}</a>`
+    (i) => `<a href="${i.href}"${i.href === current ? ' aria-current="page"' : ""}>${localized(i.label)}</a>`
   ).join("");
 
   host.innerHTML = `
@@ -194,14 +198,14 @@ function renderNav(current) {
           </span>
         </a>
         <div class="nav__links" id="navlinks">${links}</div>
-        <div class="lang" role="group" aria-label="Description language">
+        <div class="lang" role="group" data-aria-en="Language" data-aria-ko="언어 선택" aria-label="${LANG === "ko" ? "언어 선택" : "Language"}">
           <button type="button" data-lang="ko" class="${LANG === "ko" ? "on" : ""}"
                   aria-pressed="${LANG === "ko"}" lang="ko">한국어</button>
           <button type="button" data-lang="en" class="${LANG === "en" ? "on" : ""}"
                   aria-pressed="${LANG === "en"}">EN</button>
         </div>
         <button class="icon-btn nav__toggle" id="menuBtn" type="button"
-                aria-label="Menu" aria-expanded="false" aria-controls="navlinks">${ICON.menu}</button>
+                data-aria-en="Menu" data-aria-ko="메뉴" aria-label="${LANG === "ko" ? "메뉴" : "Menu"}" aria-expanded="false" aria-controls="navlinks">${ICON.menu}</button>
       </div>
     </nav>`;
 
@@ -279,8 +283,8 @@ function renderFooter() {
 
         </div>
         <div>
-          <h2>Navigate</h2>
-          <ul>${NAV_ITEMS.map((i) => `<li><a href="${i.href}">${i.label}</a></li>`).join("")}</ul>
+          <h2>${localized({ en: "Navigate", ko: "둘러보기" })}</h2>
+          <ul>${NAV_ITEMS.map((i) => `<li><a href="${i.href}">${localized(i.label)}</a></li>`).join("")}</ul>
         </div>
         <div>
           <h2>Find us</h2>
@@ -628,6 +632,8 @@ function renderPublications() {
 
 function areaCard(a, i) {
   const total = SITE.areas.length;
+  const publication = (typeof JOURNAL_PAPERS === "undefined" ? [] : JOURNAL_PAPERS)
+    .find(p => p.doi === a.ref);
   return `
     <article class="card ${a.image ? "card--media" : ""}" data-reveal style="--d:${i * 90}ms">
       ${a.image ? `<div class="card__media"><img src="${esc(a.image)}" alt="" loading="lazy">
@@ -638,6 +644,8 @@ function areaCard(a, i) {
       <h3 class="card__title">${esc(t(a.label))}</h3>
       <p${LANG === "ko" && a.blurb.ko ? ' lang="ko"' : ""}>${esc(t(a.blurb))}</p>
       <div class="tags">${a.keywords.map((k) => `<span class="tag">${esc(k)}</span>`).join("")}</div>
+      ${publication ? `<a class="area-publication" href="publications.html?q=${encodeURIComponent(publication.doi)}" title="${esc(publication.title)}">${localized({ en: "Representative publication", ko: "대표 논문" })} <span aria-hidden="true">→</span></a>` : ""}
+      ${a.example && a.image ? `<a class="area-example" href="${esc(a.image)}">${localized(a.example)} <span aria-hidden="true">→</span></a>` : ""}
     </article>`;
 }
 
@@ -686,7 +694,7 @@ function renderRecruiting() {
   const ko = LANG === "ko" && isPair(r.title) && r.title.ko ? ' lang="ko"' : "";
   const mail = SITE.contact.email;
   $("#recruittext", band).innerHTML =
-    `<span${ko}>${esc(t(r.title))}</span> <a class="recruit__link" href="mailto:${esc(mail)}">${esc(mail)}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>`;
+    `<span${ko}>${esc(t(r.title))}</span> <a class="recruit__link recruit__guide" href="members.html#application-guide">${localized({ en: "Application guide", ko: "지원 안내" })} <span aria-hidden="true">→</span></a> <a class="recruit__link" href="mailto:${esc(mail)}">${esc(mail)}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></a>`;
 }
 
 function renderNews() {
@@ -869,7 +877,7 @@ function openPositionCard(level, i) {
         <div class="person__name" lang="en">Open position</div>
         <div class="person__role">${localized(level)}</div>
         <div class="person__meta">${localized({ en: "Contact us to discuss research opportunities.", ko: "연구 참여 및 진학 문의를 기다립니다." })}</div>
-        <div class="person__links"><a href="mailto:${esc(SITE.contact.email)}">${localized({ en: "Contact us", ko: "지원 문의" })}</a></div>
+        <div class="person__links"><a href="#application-guide">${localized({ en: "Application guide", ko: "지원 안내" })} <span aria-hidden="true">→</span></a><a href="mailto:${esc(SITE.contact.email)}">${localized({ en: "Contact us", ko: "지원 문의" })}</a></div>
       </div>
     </div>`;
 }

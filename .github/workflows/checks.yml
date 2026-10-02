@@ -44,6 +44,12 @@ jobs:
       - name: Run news unit tests
         run: node --test tests/news.test.cjs
 
+      - name: Verify search-visible content and application guide
+        run: |
+          node scripts/build-static-advisor.mjs --check
+          python3 -m unittest discover -s tests -p test_seo.py -v
+          python3 -m unittest discover -s tests -p test_application_guide.py -v
+
       - name: Run publishing integration tests (disposable local remotes only)
         run: python3 -m unittest discover -s tests -p test_publish.py -v
 
@@ -60,6 +66,11 @@ jobs:
         run: |
           npm install --prefix "$RUNNER_TEMP/icar-browser" --no-save --package-lock=false --ignore-scripts --no-audit --no-fund playwright@1.63.0 axe-core@4.13.0
           node "$RUNNER_TEMP/icar-browser/node_modules/playwright/cli.js" install --with-deps chromium
+
+      - name: Verify visitor paths in Chromium
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/icar-browser/node_modules/playwright/index.mjs
+        run: node --test tests/visitor-paths.test.mjs
 
       - name: Run the real browser harness (runner manages local HTTP server)
         env:
