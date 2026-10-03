@@ -61,21 +61,21 @@ const SITE = {
       modes: {
         pd: {
           note: {
-            en: "A two-link arm tracing a circle under sampled PD feedback, with fifteen kilogrammes landing on it at five seconds and five more at eight: proportional and derivative on each joint, nothing done about the coupling or the load, and the payload costs it centimetres.",
+            en: "A two-link robot arm tracks a circular trajectory under sampled-data PD control. Payloads of 15 kg and 5 kg are added at 5 s and 8 s, respectively, to evaluate tracking performance without compensation for joint coupling or payload changes.",
             ko: "샘플드데이터 PD 제어를 적용한 2관절 로봇 팔의 원 궤적 추종을 보여줍니다. 시작 5초 후 15 kg, 8초 후 5 kg의 하중을 추가하여, 관절 간 결합과 하중 변화에 대한 보상이 없는 조건에서 추종 성능을 확인합니다.",
           },
           foot: {
-            en: "End-effector error is the distance from the point at the end of the arm to the point the reference asks for, root-mean-squared over the last second, and the verdict reads it against a tenth of the circle being traced. The joint errors are the panels' own and are not in this number.",
+            en: "End-effector error is the RMS distance between the end-effector and its reference position over the most recent second. The performance indicator compares this value with one tenth of the circular trajectory radius. Joint errors are shown separately and are not included in this metric.",
             ko: "End-effector error는 최근 1초간 엔드이펙터와 목표 위치 사이 거리의 RMS 값입니다. 판정은 이 값을 원 궤적 반지름의 1/10과 비교하며, 관절별 오차는 이 값에 포함되지 않고 각 패널에 표시됩니다.",
           },
         },
         smc: {
           note: {
-            en: "The same arm and the same twenty kilogrammes in the same two steps, driven onto the surface s = e′ + λe instead of towards a point: sliding mode shrugs the load off, and pays for it by straddling that surface in a band that opens as the sampling period grows.",
+            en: "Sliding mode control is applied to the same two-link robot arm with successive payload additions of 15 kg and 5 kg. The simulation compares oscillations around the sliding surface s = e′ + λe = 0 as the sampling period varies.",
             ko: "동일한 로봇 팔에 15 kg과 5 kg의 하중을 두 번에 걸쳐 추가하는 조건에서 슬라이딩 모드 제어를 적용합니다. 샘플링 주기에 따른 슬라이딩 면 s = e′ + λe = 0 부근의 진동 특성을 비교합니다.",
           },
           foot: {
-            en: "The band is the largest |s| once the surface has been reached.",
+            en: "The oscillation magnitude is the maximum |s| after the sliding surface has been reached.",
             ko: "진동 폭은 슬라이딩 면 도달 이후 |s|의 최댓값입니다.",
           },
         },
@@ -94,11 +94,11 @@ const SITE = {
     contact: {
       tab: "Interaction control",
       note: {
-        en: "One machine reaching for a wall and then pressing on it, wired both ways round: admittance measures the force and commands a motion, impedance measures the motion and commands a force. The same wall, the same clock and the same demand either way, so what each settles at can be read straight against the other: a stiffer virtual spring holds less of the force it was asked for, and stiffer still on a coarse clock it rings and then lets go.",
+        en: "Admittance and impedance control are compared during wall approach and contact-force regulation. Admittance control uses measured force to command motion; impedance control uses measured motion to command force. Both use identical wall properties, sampling periods and force references. In this model, increasing virtual stiffness reduces the steady-state contact force below its reference. High virtual stiffness combined with a long sampling period can cause oscillations and loss of contact.",
         ko: "벽면 접근과 접촉력 유지 과정을 어드미턴스 제어와 임피던스 제어로 비교합니다. 어드미턴스 제어는 측정한 힘을 바탕으로 위치를 제어하고, 임피던스 제어는 측정한 위치를 바탕으로 힘을 제어합니다. 벽면 특성, 샘플링 주기, 목표 힘을 동일하게 설정하여 정상상태 응답을 비교합니다. 이 모델에서는 가상 강성이 높아질수록 정상상태 접촉력이 목표값보다 낮아지며, 긴 샘플링 주기와 높은 가상 강성 조건에서는 진동이 발생하고 접촉이 해제될 수 있습니다.",
       },
       foot: {
-        en: "The tool reaches the surface over the first second and is asked for no force until it is touching: with a zero demand both laws reduce to position control, so the reach needs no separate controller. What is read off the run is the force the loop settles at over the last second and the width it is swinging through; the stiffness that matters is not the wall's own but that of the sensor and the tool in series with it.",
+        en: "Before contact, the force reference is zero and both control laws use position control to approach the wall over the first second; no separate approach controller is used. Contact-force metrics report the mean and oscillation magnitude over the most recent second. Effective contact stiffness accounts for the compliance of the force sensor and tool in series with the wall.",
         ko: "접촉 전에는 목표 힘을 0으로 설정하고, 두 제어법 모두 위치 제어로 첫 1초 동안 벽면에 접근합니다. 별도의 접근 제어기는 사용하지 않습니다. 접촉력 지표는 최근 1초간의 평균과 진동 폭이며, 유효 접촉 강성은 벽면과 직렬로 연결된 힘센서 및 툴의 유연성을 고려하여 산출합니다.",
       },
     },

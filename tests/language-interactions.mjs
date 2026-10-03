@@ -19,7 +19,7 @@ export async function runLanguageChecks(browser, base) {
     }
   }
   for (const width of [320, 1280]) {
-    await check(`Lecture course names follow selected language at ${width}px`, async page => {
+    await check(`Teaching labels and course names follow the language policy at ${width}px`, async page => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(`${base}/lecture.html?lang=en`);
       async function courses(expected) {
@@ -32,6 +32,10 @@ export async function runLanguageChecks(browser, base) {
         }
         assert.deepEqual(await page.locator('#past .tag').allTextContents(), names.past);
         assert.equal(await page.locator('h1').textContent(), 'Courses taught.');
+        assert.equal(await page.title(), 'Teaching · ICaR Lab');
+        assert.equal(await page.locator('meta[property="og:title"]').getAttribute('content'), 'Teaching · ICaR Lab');
+        assert.equal(await page.locator('.pagehead .eyebrow').textContent(), 'Teaching');
+        assert.deepEqual(await page.locator('#navlinks a[href="lecture.html"], #footer a[href="lecture.html"]').allTextContents(), ['Teaching', 'Teaching']);
         await language(page, expected);
       }
       await courses('en');

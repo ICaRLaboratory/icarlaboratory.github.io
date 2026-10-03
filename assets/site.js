@@ -164,7 +164,7 @@ const NAV_ITEMS = [
   { href: "research.html",     label: "Research" },
   { href: "members.html",      label: "Members" },
   { href: "publications.html", label: "Publications" },
-  { href: "lecture.html",      label: "Lecture" },
+  { href: "lecture.html",      label: "Teaching" },
   { href: "gallery.html",      label: "Gallery" },
   { href: "contact.html",      label: "Contact" },
 ];
