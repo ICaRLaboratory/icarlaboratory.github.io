@@ -15,6 +15,7 @@ import { runKoreanLabelChecks } from '../tests/korean-label-interactions.mjs';
 import { runNewsLinksChecks } from '../tests/news-links-interactions.mjs';
 import { runLightboxChecks } from '../tests/lightbox-interactions.mjs';
 import { runLanguageChecks } from '../tests/language-interactions.mjs';
+import { runInfoTypographyChecks } from '../tests/info-typography-interactions.mjs';
 import { runMenuChecks } from '../tests/menu-interactions.mjs';
 import { runSimKeyboardChecks } from '../tests/sim-keyboard-interactions.mjs';
 import { runSimStateChecks } from '../tests/sim-state-interactions.mjs';
@@ -114,6 +115,7 @@ async function run() {
   results.push(...await runNewsLinksChecks(browser, base));
   results.push(...await runLightboxChecks(browser, base));
   results.push(...await runLanguageChecks(browser, base));
+  results.push(...await runInfoTypographyChecks(browser, base));
   results.push(...await runMenuChecks(browser, base));
   results.push(...await runSimKeyboardChecks(browser, base));
   results.push(...await runSimStateChecks(browser, base));

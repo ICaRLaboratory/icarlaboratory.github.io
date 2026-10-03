@@ -1,5 +1,12 @@
 # Automated checks
 
+The site-specific visual rules are documented in [the design guide](../docs/design-guide.md).
+`info-typography-interactions.mjs` checks course years and project status badges against
+the shared .85rem/500 sans-serif information style, normal letter spacing, unchanged
+values and status colors, KO/EN switching, 320/390/768/1280px viewports, and CSS
+root-font enlargement (16/24/32px and restoration). This is separate from the native
+browser font-preference checks below; neither is physical mobile OS zoom.
+
 `.github/workflows/checks.yml` runs on pushes and pull requests with read-only
 repository permissions and no persisted checkout credentials, deployment step,
 or repository secrets. Publishing integration tests create their own temporary
