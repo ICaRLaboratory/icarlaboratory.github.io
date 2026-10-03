@@ -956,8 +956,9 @@ function renderCourses() {
     <div class="course">
       <span>
         <span class="course__name">${localized({ en: c.nameEn, ko: c.nameKo })}</span>
+        <span class="course__level">${localized({ en: c.level, ko: c.level === LEVEL.grad ? "대학원" : "학부" })}</span>
       </span>
-      <span class="course__years">${esc(c.years || c.level)}</span>
+      <span class="course__years">${esc(c.years || "")}</span>
     </div>`;
 
   const fill = (id, list) => { const h = $(id); if (h) h.innerHTML = list.map(row).join(""); };

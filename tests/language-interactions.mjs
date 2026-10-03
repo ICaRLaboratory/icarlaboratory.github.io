@@ -28,6 +28,12 @@ export async function runLanguageChecks(browser, base) {
         ), expected);
         for (const semester of ['spring', 'fall']) {
           assert.deepEqual(await page.locator(`#${semester} .course__name`).allTextContents(), names[semester]);
+          const details = await page.evaluate(({ semester, lang }) => COURSES[semester].map(c => ({
+            level: lang === 'ko' ? (c.level === LEVEL.grad ? '대학원' : '학부') : c.level,
+            years: c.years || '',
+          })), { semester, lang: expected });
+          assert.deepEqual(await page.locator(`#${semester} .course__level`).allTextContents(), details.map(c => c.level));
+          assert.deepEqual(await page.locator(`#${semester} .course__years`).allTextContents(), details.map(c => c.years));
           assert.equal(await page.locator(`#${semester} .course__ko`).count(), 0, 'No second-language subtitle');
         }
         assert.deepEqual(await page.locator('#past .tag').allTextContents(), names.past);

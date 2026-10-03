@@ -1136,6 +1136,7 @@ main:focus { outline: none; }
 .course:last-child { border-bottom: none; }
 .course > span:first-child { flex: 1 1 16rem; min-width: 0; overflow-wrap: anywhere; }
 .course__name { font-weight: 540; font-size: 0.97rem; }
+.course__level { display: block; margin-top: .2rem; font-size: .9rem; line-height: 1.5; color: var(--dim); }
 .course__ko { color: var(--faint); font-size: 0.85rem; margin-left: 0.45rem; word-break: keep-all; }
 .course__years { margin-left: auto; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; color: var(--faint); white-space: nowrap; }
 
