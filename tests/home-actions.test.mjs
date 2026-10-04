@@ -32,6 +32,7 @@ test('Home actions localize without replacing links or duplicating the founding 
         const expected = lang === 'ko' ? ['연구 분야 보기', '연구실 구성원', '전체 논문 보기'] : ['Explore the research', 'Meet the lab', 'See all'];
         assert.deepEqual((await page.locator('main a.btn').allTextContents()).map(s => s.trim()), expected);
         assert.deepEqual(await page.locator('main a.btn').evaluateAll(nodes => nodes.map(n => n.getAttribute('href'))), ['research.html', 'members.html', 'publications.html']);
+        assert.deepEqual(await page.locator('.cta-row a.btn').evaluateAll(nodes => nodes.map(n => n.querySelector('svg path')?.getAttribute('d'))), ['M5 12h14M13 6l6 6-6 6', 'M5 12h14M13 6l6 6-6 6'], 'Both hero navigation buttons show the same right arrow');
         assert.equal(await page.evaluate(() => homeLinks.every((n, i) => n === document.querySelectorAll('main a.btn')[i])), true);
         assert.match(await page.locator('.hero__meta').innerText(), lang === 'ko' ? /교수 연구실.*대양 AI센터 526호/ : /Faculty office.*Room 526, Daeyang AI Center/i);
         assert.doesNotMatch(await page.locator('.hero__meta').innerText(), /2019/);
