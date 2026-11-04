@@ -13,7 +13,7 @@
 |---|---|
 | 연구실 소개, 연구 분야, 교수 소개·이력, 연락처, 모집 안내 | `data/site.js` |
 | 대학원생·학부연구생·졸업생 | `data/members.js` |
-| 학술지·학술대회 논문 | `data/publications.js` |
+| 학술지·학술대회 논문 | 비공개 `advisor-cv/data/publications.json`에서 편집 → `data/publications.js` 자동 생성 |
 | 연구 과제 | `data/projects.js` |
 | 강의 | `data/courses.js` |
 | 사진 앨범 | `data/gallery.js` |
@@ -28,16 +28,30 @@
 
 ## 자주 하는 갱신
 
-### 논문 추가
+### 논문·교수 CV 동시 갱신
 
-- `data/publications.js`의 해당 학술지·학술대회 목록에 기존 항목 형식으로 추가합니다.
-- 제목, 저자, 학술지·학술대회명, 연도, 권·호·쪽 또는 논문 번호, DOI를 확인합니다.
-- 목록은 연도와 `detail`의 영문 월 표기(`Jul. 2026` 등)로 정렬됩니다. 월이 없으면 해당 연도 뒤쪽에 배치됩니다.
-- 교신저자는 기존 형식대로 `*`를 붙입니다. `S. Y. Lee`는 자동으로 굵게 표시됩니다.
-- 국내 학술지·학술대회는 `domestic: true`를 지정합니다. Domestic은 Journal·Conference와 겹칠 수 있습니다.
-- 논문 수와 연도별 목록은 자동 갱신됩니다. Publications의 기본값과 필터 초기화 상태는 **All**입니다.
-- 검색은 제목·저자·학술지·학술대회명·DOI를 대상으로 합니다. 여러 단어는 모두 일치해야 하며, 직접 선택한 유형·연도는 검색 중에도 유지됩니다.
-- Research 시뮬레이터에서 인용할 논문은 `data/site.js`의 해당 모드에 `ref: "DOI"`로 연결합니다. 인용문 자체를 중복 작성하지 않습니다.
+논문은 비공개 `advisor-cv` 저장소의 `data/publications.json`에서 한 번만 편집합니다. 이 사이트의 `data/publications.js`는 생성 결과이며 직접 수정하지 않습니다. 같은 데이터에서 CV 논문 부분과 PDF를 생성해 기존 `assets/cv/CV_Seok_Young_Lee.pdf`도 함께 갱신합니다.
+
+```bash
+# ORCID 변경 후보 조회: 데이터를 덮어쓰거나 삭제하지 않음
+python3 /home/lsy/advisor-cv/tools/publications.py audit
+
+# 공통 데이터를 검증·편집한 뒤 웹·CV 동시 생성
+python3 /home/lsy/advisor-cv/tools/publications.py sync --site "$PWD"
+
+# 파일 수정 없이 생성 결과와 PDF 최신 여부 확인
+python3 /home/lsy/advisor-cv/tools/publications.py check --site "$PWD"
+```
+
+위 명령은 이 홈페이지 저장소 루트에서 실행합니다. 비공개 저장소의 README에 데이터 필드, 저자 전체·약식 표기, CV 수록·SCIE/ESCI·JCR 기준, PDF 빌드·검수 방법을 정리해 두었습니다.
+
+- 제목·저자 순서·교신저자·게재 정보·DOI는 출판사/Crossref 기준으로 확인합니다. In Press 상태와 온라인 공개일을 정식 권·호 정보로 오인하지 않습니다.
+- 월 표기(`Oct. 2026` 등)는 최신순 정렬에 사용됩니다. 데이터가 같으면 생성 파일을 다시 쓰거나 PDF를 불필요하게 재빌드하지 않습니다.
+- 홈페이지와 CV의 수록 기준은 다릅니다. 국내 논문·학술대회 또는 CV 전용 기록의 수록 여부를 임의로 통일하지 않습니다.
+- `S. Y. Lee` 강조, 논문 수·연도별 목록, Home 최근 논문은 생성된 데이터로 자동 갱신됩니다.
+- Publications의 기본값과 필터 초기화 상태는 **All**입니다. 검색은 제목·저자·학술지·학술대회명·DOI를 대상으로 하며, 직접 선택한 유형·연도는 검색 중에도 유지됩니다.
+- Research 시뮬레이터의 대표 논문은 `data/site.js`의 `ref: "DOI"`로 연결합니다. 논문 추가만으로 대표 논문을 교체하지 않습니다.
+- 커밋 전 두 저장소의 변경사항을 확인하고 웹·CV를 함께 검수합니다. 홈페이지에는 생성된 JavaScript와 PDF만 공개하며, 비공개 TeX·공통 JSON·조회 기록은 복사하지 않습니다.
 
 ### 구성원 갱신
 
