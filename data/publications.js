@@ -3,6 +3,14 @@
 const JOURNAL_PAPERS = [
   {
     "year": 2026,
+    "authors": "C. Park, S. Y. Lee*, and N. K. Kwon*",
+    "title": "Improved H∞ control for singular Markovian jump systems via dynamic output-feedback",
+    "venue": "ISA Transactions",
+    "detail": "In Press, Oct. 2026",
+    "doi": "10.1016/j.isatra.2026.10.033"
+  },
+  {
+    "year": 2026,
     "authors": "H. Jo, D. Park, S. Y. Lee*, and N. K. Kwon*",
     "title": "Feasibility and Evaluation of Effective Morphological Feature Representation for Contactless Blood Pressure Estimation Using Remote Photoplethysmography",
     "venue": "Electronics",
@@ -32,6 +40,14 @@ const JOURNAL_PAPERS = [
     "venue": "Mathematics and Computers in Simulation",
     "detail": "vol. 243, pp. 221-236, May 2026",
     "doi": "10.1016/j.matcom.2025.11.031"
+  },
+  {
+    "year": 2025,
+    "authors": "S. Y. Lee and J. Park*",
+    "title": "Stabilization of Neutral Time-Delay Systems With Actuator Saturation via a Sampled-Data Control Approach",
+    "venue": "IEEE Access",
+    "detail": "vol. 13, pp. 178293-178301, Oct. 2025",
+    "doi": "10.1109/access.2025.3620850"
   },
   {
     "year": 2025,
@@ -66,12 +82,12 @@ const JOURNAL_PAPERS = [
     "doi": "10.1002/rnc.7658"
   },
   {
-    "year": 2025,
-    "authors": "S. Y. Lee and J. Park*",
-    "title": "Stabilization of Neutral Time-Delay Systems With Actuator Saturation via a Sampled-Data Control Approach",
+    "year": 2024,
+    "authors": "H. M. An, J. W. Lee, D. H. Seo, and S. Y. Lee*",
+    "title": "An Adaptive Sliding Mode Control With Novel Sliding Variable-Based Adaptive Law for Disturbed Robot Manipulators",
     "venue": "IEEE Access",
-    "detail": "vol. 13, pp. 178293-178301, 2025",
-    "doi": "10.1109/access.2025.3620850"
+    "detail": "vol. 12, pp. 165227-165235, Nov. 2024",
+    "doi": "10.1109/access.2024.3493882"
   },
   {
     "year": 2024,
@@ -98,14 +114,6 @@ const JOURNAL_PAPERS = [
     "doi": "10.1016/j.cnsns.2024.107817"
   },
   {
-    "year": 2024,
-    "authors": "H. M. An, J. W. Lee, D. H. Seo, and S. Y. Lee*",
-    "title": "An Adaptive Sliding Mode Control With Novel Sliding Variable-Based Adaptive Law for Disturbed Robot Manipulators",
-    "venue": "IEEE Access",
-    "detail": "vol. 12, pp. 165227-165235, 2024",
-    "doi": "10.1109/access.2024.3493882"
-  },
-  {
     "year": 2023,
     "authors": "J. Park, N. K. Kwon, and S. Y. Lee*",
     "title": "Extended affine Bessel summation inequalities: Applications to stability analysis of linear discrete-time systems with time-varying delays",
@@ -126,7 +134,7 @@ const JOURNAL_PAPERS = [
     "authors": "N. K. Kwon and S. Y. Lee*",
     "title": "An Affine Integral Inequality of an Arbitrary Degree for Stability Analysis of Linear Systems With Time-Varying Delays",
     "venue": "IEEE Access",
-    "detail": "vol. 9, pp. 51958-51969, 2021",
+    "detail": "vol. 9, pp. 51958-51969, Mar. 2021",
     "doi": "10.1109/access.2021.3070149"
   },
   {
@@ -134,7 +142,7 @@ const JOURNAL_PAPERS = [
     "authors": "N. K. Kwon and S. Y. Lee*",
     "title": "Novel Equalities for Stability Analysis of Asynchronous Sampled-Data Systems",
     "venue": "IEEE Access",
-    "detail": "vol. 8, pp. 177195-177205, 2020",
+    "detail": "vol. 8, pp. 177195-177205, Sep. 2020",
     "doi": "10.1109/access.2020.3026736"
   },
   {
@@ -142,7 +150,7 @@ const JOURNAL_PAPERS = [
     "authors": "S. Y. Lee and N. K. Kwon*",
     "title": "Proportional-Derivative State-Feedback Control for Singular Systems With Input Quantization",
     "venue": "IEEE Access",
-    "detail": "vol. 8, pp. 160065-160069, 2020",
+    "detail": "vol. 8, pp. 160065-160069, Aug. 2020",
     "doi": "10.1109/access.2020.3020069"
   },
   {
@@ -219,7 +227,7 @@ const JOURNAL_PAPERS = [
   },
   {
     "year": 2017,
-    "authors": "S. Y. Lee, W. I. Lee, and P. Park",
+    "authors": "S. Y. Lee, W. I. Lee, and P. Park*",
     "title": "Improved stability criteria for linear systems with interval time-varying delays: Generalized zero equalities approach",
     "venue": "Applied Mathematics and Computation",
     "detail": "vol. 292, pp. 336-348, Jan. 2017",

@@ -298,7 +298,10 @@ export async function runPublicationChecks(browser, base) {
   });
   await check('Publication author highlights cross bold boundaries without changing text', async page => {
     await page.locator('#pubsearch').fill('Lee*,');
-    assert.equal(await page.locator('#publist .pub').count(), 2);
+    // Derive the expected rows from data: every paper whose author string crosses the bold boundary.
+    const expected = await page.evaluate(() => [...JOURNAL_PAPERS, ...CONFERENCE_PAPERS].filter(p => p.authors.includes('Lee*,')).length);
+    assert.ok(expected >= 2, 'fixture needs at least two papers matching across the bold boundary');
+    assert.equal(await page.locator('#publist .pub').count(), expected);
     for (const row of await page.locator('#publist .pub__authors').all()) {
       assert.equal((await row.locator('mark').allTextContents()).join(''), 'Lee*,');
       assert.equal(await row.locator('b').innerText(), 'S. Y. Lee*');
