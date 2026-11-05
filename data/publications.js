@@ -311,6 +311,13 @@ const JOURNAL_PAPERS = [
 
 const CONFERENCE_PAPERS = [
   {
+    "year": 2022,
+    "authors": "S. Y. Lee*",
+    "title": "Improved stability criteria for sampled data systems via a novel looped-functional",
+    "venue": "2022 13th Asian Control Conference (ASCC)",
+    "detail": "Jeju, Korea, May 2022"
+  },
+  {
     "year": 2017,
     "authors": "S. Y. Lee, M. S. Kim, C. Park, and P. Park*",
     "title": "Analysis on stability for generalized neural networks with time-varying delays via second-order orthogonal polynomials-based integral inequality",
