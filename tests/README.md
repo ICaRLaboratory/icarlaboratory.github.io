@@ -85,7 +85,14 @@ narrow layouts to wrap; actual text bounds are checked as well as element bounds
 The suite checks normal 16px
 text and launches Chromium with actual defaultFontSize=24/32 preferences; these
 are browser default-font checks, not page zoom or physical mobile OS settings.
-The browser suite has a 180-second overall deadline for its expanded native checks.
+The browser suite has a 600-second overall deadline for its expanded native and
+actual WebGL checks. It reports major phases before the final assertion list.
+Chromium uses software WebGL for deterministic GPU availability, with accelerated
+2D canvas disabled so synchronous legacy graph tests do not flood its GPU queue.
+Set `CHROMIUM_PATH` only when selecting a locally installed browser executable.
+`research-three-state.cjs` verifies frozen snapshots and unchanged numerical
+trajectories; `research-three-browser.mjs` is included in the main harness and
+checks both real 3D views, camera-only controls, layout, language, print and fallback.
 
 Failed assertions, empty results, uncaught page errors, console errors
 from this site's own files, and local HTTP errors fail the browser step. Console
@@ -94,8 +101,10 @@ service having a bad day is not a fault in this repository. The runner binds Pyt
 HTTP server to loopback on an OS-assigned port, verifies HTTP readiness, applies
 timeouts, and closes the server/browser on completion, failure, or interruption.
 
-The site still has no runtime package dependencies or build step. Playwright is
-installed outside the checkout for testing only. To reproduce browser CI on Linux
+The site needs no runtime npm install or build step. Research self-hosts a pinned
+Three.js module under `assets/vendor/`; its source, license and regeneration
+instructions live in that directory. Playwright is installed outside the checkout
+for testing only. To reproduce browser CI on Linux
 with Node.js 22+ and Python 3:
 
 ```bash

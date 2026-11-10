@@ -22,6 +22,7 @@
 | 공통 디자인 / Publications 디자인 | `assets/style.css` / `assets/publications.css` |
 | 메뉴·언어 전환·페이지 렌더링·검색·갤러리 | `assets/site.js` |
 | 홈 화면 애니메이션 / Research 시뮬레이터 | `assets/hero.js` / `assets/sim*.js` |
+| Research 장치의 Three.js 시각화 | `assets/research-three.js`, `assets/three/`, `assets/vendor/` |
 | 사진·그림 | `assets/img/` |
 
 일반적인 내용 갱신은 `data/`에서 합니다. 연구 소개를 수정할 때는 제어 알고리즘·로보틱스·임베디드 시스템을 각각 독립된 연구 분야로 다룹니다.
@@ -85,6 +86,7 @@ http://127.0.0.1:8000/ 에서 확인하고, 종료할 때는 `Ctrl+C`를 누릅�
 - 모바일 너비에서도 줄바꿈, 버튼, 이미지 잘림을 확인합니다.
 - 화면이 비거나 기능이 멈추면 브라우저 개발자 도구의 Console에서 오류를 확인합니다.
 - 모션 감소 설정에서는 애니메이션이 정지할 수 있습니다. 콘텐츠 오류와 구분해서 확인합니다.
+- Research의 장치 화면은 자체 호스팅한 Three.js를 사용합니다. 동역학·제어기·응답 그래프는 기존 코드가 담당하며, 카메라 조작은 계산 상태를 바꾸지 않습니다. WebGL2를 사용할 수 없으면 기존 2D 화면으로 돌아갑니다. 버전·라이선스·재생성 절차는 `assets/vendor/README.md`에 있습니다.
 
 ## 검수
 

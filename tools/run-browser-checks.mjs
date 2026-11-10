@@ -22,6 +22,7 @@ import { runSimStateChecks } from '../tests/sim-state-interactions.mjs';
 import { runPublicationChecks } from '../tests/publication-interactions.mjs';
 import { runPublicationLayoutChecks } from '../tests/publication-layout-interactions.mjs';
 import { runResearchChecks } from '../tests/research-interactions.mjs';
+import { runResearchThreeChecks, runResearchThreeFontChecks } from '../tests/research-three-browser.mjs';
 import { runAccessibilityChecks } from '../tests/accessibility-interactions.mjs';
 import { runContactMembersLanguageChecks } from '../tests/contact-members-language-interactions.mjs';
 import { runContactLayoutChecks } from '../tests/contact-layout-interactions.mjs';
@@ -39,7 +40,7 @@ const { signal } = controller;
 const interrupt = () => controller.abort(new Error('Browser checks interrupted'));
 process.once('SIGINT', interrupt);
 process.once('SIGTERM', interrupt);
-const deadline = setTimeout(() => controller.abort(new Error('Browser checks exceeded 300 seconds')), 300_000);
+const deadline = setTimeout(() => controller.abort(new Error('Browser checks exceeded 600 seconds')), 600_000);
 let browser;
 let server;
 let serverLog = '';
@@ -78,7 +79,9 @@ async function run() {
     }
   }
   console.log(`Serving browser harness at ${base}/tests/browser-checks.html`);
-  browser = await chromium.launch({ headless: true, timeout: 20_000 });
+  browser = await chromium.launch({ headless: true, timeout: 20_000,
+    executablePath: process.env.CHROMIUM_PATH,
+    args: ['--enable-webgl', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-accelerated-2d-canvas'] });
   signal.throwIfAborted();
   const page = await browser.newPage({ viewport: { width: 1280, height: 960 } });
   const errors = [];
@@ -105,6 +108,7 @@ async function run() {
   await page.waitForFunction(() => window.testsDone === true, { }, { timeout: 60_000 });
   const results = await page.evaluate(() => window.testResults);
   if (!Array.isArray(results) || results.length === 0) throw new Error('Harness returned no test results');
+  console.log(`Core harness: ${results.length} results; running native interaction checks`);
   results.push(...await runKoreanLabelChecks(browser, base));
   results.push(...await runMemberCardLayoutChecks(browser, base));
   results.push(...await runMemberCVChecks(browser, base));
@@ -119,13 +123,20 @@ async function run() {
   results.push(...await runMenuChecks(browser, base));
   results.push(...await runSimKeyboardChecks(browser, base));
   results.push(...await runSimStateChecks(browser, base));
+  console.log('Running publication and Research interaction checks');
   results.push(...await runPublicationChecks(browser, base));
   results.push(...await runPublicationLayoutChecks(browser, base));
   results.push(...await runResearchChecks(browser, base));
+  console.time('Research WebGL checks');
+  results.push(...await runResearchThreeChecks(browser, base));
+  results.push(...await runResearchThreeFontChecks(chromium, base));
+  console.timeEnd('Research WebGL checks');
+  console.log('Running accessibility and text-enlargement checks');
   results.push(...await runAccessibilityChecks(browser, base, axeSource));
   results.push(...await runContactMembersLanguageChecks(browser, base));
   results.push(...await runContactLayoutChecks(browser, base));
   results.push(...await runEnlargedLayoutChecks(browser, base, { fontSizes: [16] }));
+  console.log('Running final native 24px/32px font-preference checks');
   results.push(...await runNativeEnlargedLayoutChecks(chromium, base));
   for (const result of results) {
     console.log(`${result?.pass === true ? 'PASS' : 'FAIL'} ${result?.name}${result?.error ? ': ' + result.error : ''}`);

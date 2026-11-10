@@ -123,7 +123,8 @@ async function runFontChecks(browser, base, fontSize) {
 export async function runNativeEnlargedLayoutChecks(chromium, base, fontSizes = [24, 32]) {
   const results = [];
   for (const fontSize of fontSizes) {
-    const browser = await chromium.launch({ args: [`--blink-settings=defaultFontSize=${fontSize}`] });
+    const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH,
+      args: [`--blink-settings=defaultFontSize=${fontSize}`] });
     try { results.push(...await runFontChecks(browser, base, fontSize)); }
     finally { await browser.close(); }
   }

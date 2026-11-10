@@ -745,6 +745,22 @@ SIM.register((function () {
       };
     },
 
+    /* Read-only 3D projection. */
+    visualState(P) {
+      return Object.freeze({
+        time: simT, position: x, velocity: v,
+        force: force(x, v, P.ke), targetForce: demand(simT),
+        wall: WALL.x, reference: xc(simT) + e,
+        command: held[0], mode: P.mode,
+      });
+    },
+    visualBox(D) {
+      const r = boxes(D).loop;
+      return { x: r.x + r.w * 0.40, y: r.y + r.h * 0.03,
+        w: r.w * 0.585, h: r.h * 0.94 };
+    },
+    /* End 3D projection. */
+
     draw(g, P, D) {
       const b = boxes(D);
       drawLoop(g, P, b.loop);

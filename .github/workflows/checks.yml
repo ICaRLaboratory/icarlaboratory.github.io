@@ -41,8 +41,8 @@ jobs:
           done < <(git ls-files -z)
           git diff --check
 
-      - name: Run news unit tests
-        run: node --test tests/news.test.cjs
+      - name: Run news and simulator state unit tests
+        run: node --test tests/news.test.cjs tests/research-three-state.cjs
 
       - name: Run publishing integration tests (disposable local remotes only)
         run: python3 -m unittest discover -s tests -p test_publish.py -v

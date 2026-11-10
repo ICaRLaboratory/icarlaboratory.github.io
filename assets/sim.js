@@ -296,6 +296,7 @@ const SIM = (function () {
     let live = false;
     let playing = true;       /* playback intent survives temporary suspension */
     let invited = false;      /* the reader has asked to watch it run */
+    let apparatus = null, visual = null, visualAttempted = false;
 
     /* --- the panel: sliders, readouts, footnote --- */
 
@@ -427,6 +428,7 @@ const SIM = (function () {
        under SITE.sims[id].modes; a simulation with one mode just uses the
        block itself. */
     function words() {
+      if (visual) visual.setLanguage(document.documentElement.lang);
       const all = (typeof SITE !== "undefined" && SITE.sims && SITE.sims[def.id]) || {};
       const key = def.words ? def.words(P) : null;
       const w = (key && all.modes && all.modes[key]) || all;
@@ -461,6 +463,53 @@ const SIM = (function () {
 
     /* --- drawing --- */
 
+    /* An optional GPU viewport covers ONLY the apparatus rectangle. The
+       original composite canvas keeps drawing every diagram and graph, and
+       remains the complete fallback if importing or creating WebGL fails. */
+    function fallbackVisual() {
+      const previous = visual;
+      visual = null;
+      if (previous) previous.dispose();
+      if (apparatus) apparatus.remove();
+      apparatus = null;
+    }
+
+    function drawVisual(rect, D, scale) {
+      if (!def.visualState || !def.visualBox) return;
+      if (!visualAttempted) {
+        visualAttempted = true;
+        apparatus = document.createElement("div");
+        apparatus.className = "research-three";
+        apparatus.style.visibility = "hidden";
+        canvas.parentElement.append(apparatus);
+        import("./research-three.js").then(({ mountResearchView }) => {
+          if (!apparatus || !apparatus.isConnected) return;
+          visual = mountResearchView(apparatus, def.id, {
+            lang: document.documentElement.lang,
+            onContextLost: fallbackVisual,
+          });
+          if (!visual) { fallbackVisual(); return; }
+          apparatus.style.visibility = "visible";
+          draw();
+        }).catch(fallbackVisual);
+      }
+      if (!apparatus) return;
+      const b = def.visualBox(D), figure = canvas.parentElement;
+      const outer = figure.getBoundingClientRect();
+      Object.assign(apparatus.style, {
+        left: (rect.left - outer.left - figure.clientLeft +
+          (rect.width - D.w * scale) / 2 + b.x * scale) + "px",
+        top: (rect.top - outer.top - figure.clientTop +
+          (rect.height - D.h * scale) / 2 + b.y * scale) + "px",
+        width: b.w * scale + "px", height: b.h * scale + "px",
+      });
+      apparatus.style.setProperty("--research-info-height", Math.max(40, b.h * scale - 65) + "px");
+      if (visual) {
+        try { visual.update(def.visualState(P), P); }
+        catch { fallbackVisual(); }
+      }
+    }
+
     function draw() {
       const rect = canvas.getBoundingClientRect();
       /* nothing has been laid out yet; the observer below calls back when
@@ -481,6 +530,7 @@ const SIM = (function () {
       ctx.scale(scale, scale);
       ctx.textBaseline = "alphabetic";
       def.draw(g, P, D);
+      drawVisual(rect, D, scale);
     }
 
     /* --- the run loop, which retires itself when the run is over --- */

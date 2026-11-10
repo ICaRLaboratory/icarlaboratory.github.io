@@ -1099,6 +1099,28 @@ SIM.register((function () {
       };
     },
 
+    /* Read-only 3D projection. */
+    visualState() {
+      return Object.freeze({
+        time: S.simT,
+        q: Object.freeze(S.q.slice()),
+        lengths: Object.freeze([A.ARM.l1, A.ARM.l2]),
+        target: Object.freeze(A.ref(S.simT)),
+        circle: Object.freeze({ ...A.CIRCLE }),
+        payload: A.carried(S.simT),
+        unloadedTrail: Object.freeze(S.hist.filter((row) => row[0] >= 0 && row[0] <= T_LOAD).map((row) =>
+          Object.freeze(A.fk([row[1], row[2]])))),
+        trail: Object.freeze(S.hist.slice(-A.TRAIL).filter((row) => row[0] >= T_LOAD).map((row) =>
+          Object.freeze(A.fk([row[1], row[2]])))),
+      });
+    },
+    visualBox(D) {
+      const r = A.boxes(D).loop;
+      return { x: r.x + r.w * 0.40, y: r.y + r.h * 0.03,
+        w: r.w * 0.585, h: r.h * 0.94 };
+    },
+    /* End 3D projection. */
+
     draw(g, P, D) {
       const b = A.boxes(D);
       if (pd(P)) {
