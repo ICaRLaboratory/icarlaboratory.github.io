@@ -9,7 +9,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { runSimStateChecks } from './sim-state-interactions.mjs';
 import { runSimKeyboardChecks } from './sim-keyboard-interactions.mjs';
 
-export async function runResearchThreeChecks(browser, base, screenshotDir) {
+export async function runResearchThreeChecks(browser, base, screenshotDir, { cameraOnly = false } = {}) {
   const results = [], errors = [];
   const originalCanvas = new Map();
   const page = await browser.newPage({ viewport: { width: 1280, height: 960 }, reducedMotion: 'reduce' });
@@ -71,11 +71,268 @@ export async function runResearchThreeChecks(browser, base, screenshotDir) {
       return view;`) });
   });
   async function check(name, fn) {
-    try { await fn(); results.push({ name, pass: true }); }
+    try { const evidence = await fn(); results.push({ name, pass: true, evidence }); }
     catch (error) { results.push({ name, pass: false, error: error.stack }); }
+  }
+  async function cameraEnvelope(id, history = false, setting = null) {
+    return page.evaluate(async ({ id, history, setting }) => {
+      const T = await import('./assets/vendor/three.js');
+      const { createResearchModel } = await import('./assets/research-three.js');
+      const { createApparatusCamera } = await import('./assets/three/camera.js');
+      const model = createResearchModel(id), def = window.__researchDefs[id];
+      const snapshot = def.visualState(window.__researchParams[id]);
+      let states = history ? window.__researchTrackingState.hist.filter((_, i) => i % 10 === 0)
+        .map(row => Object.freeze({ ...snapshot, time: row[0], q: Object.freeze(row.slice(1, 3)), payload: ARMPLANT.carried(row[0]) }))
+        : [snapshot];
+      states.push(snapshot);
+      if (setting) {
+        const P = { ...window.__researchCameraDefaults, ...setting };
+        def.reset(P);
+        states = [def.visualState(P)];
+        // Actual frozen snapshots, not a final path paired with earlier joints.
+        // Keep every path vertex; the 0.2 s pose samples are supplemented by
+        // the continuous all-angle workspace proof below.
+        for (let step = 1; !def.done(P) && step <= Math.ceil(ARMPLANT.WINDOW * 60) + 1; step++) {
+          def.advance(P, 1 / 60);
+          if (step % 12 === 0 || [299, 300, 301, 479, 480, 481].includes(step) || def.done(P)) {
+            states.push(def.visualState(P));
+          }
+        }
+        const reviewTime = setting.law === 'pd' && setting.kp === 10 && setting.h === undefined ? 7.4
+          : setting.law === 'smc' && setting.lam === undefined && setting.h === 0.100 ? 1.2 : null;
+        if (reviewTime !== null) {
+          window.__researchCameraReview ||= [];
+          window.__researchCameraReview.push({ setting: P, state: states.find(s => Math.abs(s.time - reviewTime) < 1e-9) });
+        }
+      }
+      if (id === 'contact') for (const position of [-0.03, -0.02, 0, 0.02, 0.055, 0.075]) {
+        states.push(Object.freeze({ ...snapshot, position }));
+      }
+      const aspects = [{ w: 780, h: 620 }, { w: 380, h: 1010 }].map(D => {
+        const box = def.visualBox(D); return box.w / box.h;
+      });
+      const point = new T.Vector3(), transform = new T.Matrix4(), results = [];
+      for (const aspect of aspects) {
+        // Use the production camera helper, including its aspect adaptation.
+        const camera = createApparatusCamera(model.camera, aspect);
+        const projection = new T.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+        const bounds = [Infinity, Infinity, -Infinity, -Infinity], outside = [];
+        let vertices = 0;
+        for (const state of states) {
+          model.update(state); model.root.updateMatrixWorld(true);
+          model.root.traverseVisible(o => {
+            if (!o.geometry) return;
+            for (let n = o; n; n = n.parent) if (n.userData.environment) return;
+            const position = o.geometry.getAttribute('position');
+            transform.multiplyMatrices(projection, o.matrixWorld);
+            for (let i = 0; i < position.count; i++) {
+              point.fromBufferAttribute(position, i).applyMatrix4(transform); vertices++;
+              bounds[0] = Math.min(bounds[0], point.x); bounds[1] = Math.min(bounds[1], point.y);
+              bounds[2] = Math.max(bounds[2], point.x); bounds[3] = Math.max(bounds[3], point.y);
+              if ((!point.toArray().every(Number.isFinite) || Math.abs(point.x) > 0.98 || Math.abs(point.y) > 0.98 ||
+                Math.abs(point.z) > 1) && outside.length < 5) {
+                outside.push({ name: o.name, time: state.time, position: state.position, x: point.x, y: point.y, z: point.z });
+              }
+            }
+          });
+        }
+        results.push({ aspect, samples: states.length, vertices, bounds, outside,
+          times: setting ? states.map(s => s.time) : undefined });
+      }
+      return results;
+    }, { id, history, setting });
   }
   try {
     await page.goto(`${base}/research.html?lang=en`, { waitUntil: 'load' });
+    await page.locator('#simtab-track').click();
+    await page.waitForFunction(() => window.__researchViews?.track);
+    const settings = await page.evaluate(() => {
+      const def = window.__researchDefs.track;
+      const defaults = Object.fromEntries(def.controls.map(c => [c.id, c.read ? c.read(c.value) : c.value]));
+      window.__researchCameraDefaults = defaults;
+      const settings = [
+        { law: 'pd', kp: 10, kd: 2 }, { law: 'smc', h: 0.100, m: 3 },
+        { law: 'pd', h: 0.075, m: 3 }, { law: 'tdc', h: 0.075, m: 3 },
+        { law: 'pd' }, { law: 'smc' }, { law: 'tdc' },
+        { law: 'asmc', algo: 'quasi' }, { law: 'asmc', algo: 'sigvar' },
+      ];
+      // All corners of the supported sliders, including mixed low/high gains.
+      // ASMC has no adjustable gains and locks its clock/delay in production.
+      for (const [law, ids] of [['pd', ['kp', 'kd', 'h', 'm']],
+        ['smc', ['lam', 'eta', 'h', 'm']], ['tdc', ['l1', 'l2', 'hs', 'h', 'm']]]) {
+        let corners = [{ law }];
+        for (const id of ids) {
+          const c = def.controls.find(c => c.id === id);
+          corners = corners.flatMap(P => [c.min, c.max].map(v => ({ ...P, [id]: c.read ? c.read(v) : v })));
+        }
+        settings.push(...corners);
+      }
+      return settings;
+    });
+    for (const setting of settings) {
+      await check(`track camera: real history ${JSON.stringify(setting)} fits hardware and complete path buffers`, async () => {
+        const envelope = await cameraEnvelope('track', false, setting);
+        for (const result of envelope) {
+          assert(result.samples > 1 && result.vertices > 1000, 'include the real reset and pre-termination states');
+          if (setting.law === 'pd' && setting.kp === 10 && setting.h === undefined) {
+            assert(result.times.some(t => Math.abs(t - 7.4) < 1e-9), 'include the reviewed loaded spindle pose');
+          }
+          if (setting.law === 'smc' && setting.lam === undefined && setting.h === 0.100) {
+            assert(result.times.some(t => Math.abs(t - 1.2) < 1e-9), 'include the reviewed pre-termination unloaded path');
+          }
+          assert.deepEqual(result.outside, [], JSON.stringify({ setting, ...result, times: undefined }));
+        }
+      });
+    }
+    await check('track camera: continuous horizontal 2R workspace fits with the same 0.98 NDC margin', async () => {
+      const report = await page.evaluate(async () => {
+        const T = await import('./assets/vendor/three.js');
+        const { createResearchModel } = await import('./assets/research-three.js');
+        const { createApparatusCamera } = await import('./assets/three/camera.js');
+        const def = window.__researchDefs.track, model = createResearchModel('track');
+        const snapshot = def.visualState(window.__researchCameraDefaults);
+        // Zero angles expose each actual vertex's radius about its joint.
+        // Every height is invariant under the two world-Y rotations.
+        model.update(Object.freeze({ ...snapshot, q: Object.freeze([0, 0]), payload: ARMPLANT.PAYLOAD }));
+        model.root.updateMatrixWorld(true);
+        const shoulder = model.root.getObjectByName('shoulder'), elbow = model.root.getObjectByName('elbow');
+        const target = model.root.getObjectByName('target'), point = new T.Vector3();
+        const circles = [], fixed = [];
+        model.root.traverseVisible(o => {
+          if (!o.geometry) return;
+          let rotating = false, downstream = false, movingTarget = false;
+          for (let n = o; n; n = n.parent) {
+            if (n.userData.environment) return;
+            rotating ||= n === shoulder; downstream ||= n === elbow; movingTarget ||= n === target;
+          }
+          const position = o.geometry.getAttribute('position');
+          for (let i = 0; i < position.count; i++) {
+            point.fromBufferAttribute(position, i).applyMatrix4(o.matrixWorld);
+            if (rotating) {
+              const radius = downstream ? snapshot.lengths[0] + Math.hypot(point.x - snapshot.lengths[0], point.z)
+                : Math.hypot(point.x, point.z);
+              circles.push({ name: o.name, centre: new T.Vector3(0, point.y, 0), radius });
+            } else if (movingTarget) {
+              circles.push({ name: o.name, centre: new T.Vector3(snapshot.circle.x + point.x - target.position.x,
+                point.y, snapshot.circle.y + point.z - target.position.z), radius: snapshot.circle.r });
+            } else fixed.push({ name: o.name, point: point.clone() });
+          }
+        });
+        // Entire possible measured histories, not just sampled poses or the
+        // rolling tail: FK lives in the disk of radius L1 + L2 at path height.
+        for (const name of ['unloaded-trajectory', 'measured-trajectory']) {
+          circles.push({ name, centre: new T.Vector3(0, 0.06, 0),
+            radius: snapshot.lengths[0] + snapshot.lengths[1] + 1e-6 });
+        }
+        return [{ w: 780, h: 620 }, { w: 380, h: 1010 }].map(D => {
+          const box = def.visualBox(D), aspect = box.w / box.h;
+          const camera = createApparatusCamera(model.camera, aspect);
+          const projection = new T.Matrix4().makeScale(1 / 0.98, 1 / 0.98, 1)
+            .multiply(camera.projectionMatrix).multiply(camera.matrixWorldInverse);
+          const planes = new T.Frustum().setFromProjectionMatrix(projection).planes;
+          let minimum = Infinity, worst;
+          const measure = (distance, name, plane) => {
+            if (distance < minimum) { minimum = distance; worst = { name, plane }; }
+          };
+          planes.forEach((plane, i) => {
+            for (const { name, centre, radius } of circles) {
+              // Exact support of a horizontal circle against a frustum plane;
+              // covers intermediate angles without a finite-angle grid gap.
+              measure(plane.distanceToPoint(centre) - radius * Math.hypot(plane.normal.x, plane.normal.z), name, i);
+            }
+            for (const { name, point } of fixed) measure(plane.distanceToPoint(point), name, i);
+          });
+          return { aspect, minimum, worst, circles: circles.length, fixed: fixed.length };
+        });
+      });
+      for (const result of report) {
+        assert(result.circles > 1000 && result.fixed > 1000);
+        assert(Number.isFinite(result.minimum) && result.minimum >= 0, JSON.stringify(result));
+      }
+      return report;
+    });
+    // Restore the actual default run and its retained comparison paths before
+    // the existing interaction checks; the UI parameter values are untouched.
+    await page.evaluate(() => {
+      const def = window.__researchDefs.track, P = window.__researchCameraDefaults;
+      def.reset(P);
+      while (!def.done(P)) def.advance(P, 1 / 60);
+      const state = def.visualState(P);
+      window.__researchViews.track.view.update(state, P);
+      window.__researchCameraReview.unshift({ setting: P, state });
+    });
+    await check('track camera: default completed apparatus retains useful framing at both layout aspects', async () => {
+      const envelope = await cameraEnvelope('track');
+      for (const result of envelope) {
+        assert.deepEqual(result.outside, [], JSON.stringify(result));
+        assert(result.bounds[2] - result.bounds[0] > 0.85, 'retain the existing useful horizontal framing requirement');
+      }
+      return envelope;
+    });
+    for (const width of [1280, 390]) {
+      await check(`track camera: ${width}px live GPU default and reviewed off-default poses use the production camera`, async () => {
+        await page.setViewportSize({ width, height: 960 });
+        const canvas = page.locator('#simpanel-track .research-three canvas');
+        await canvas.scrollIntoViewIfNeeded();
+        await page.waitForFunction(() => {
+          const { renderer } = window.__researchViews.track;
+          const c = renderer.domElement, r = c.getBoundingClientRect(), dpr = Math.min(devicePixelRatio || 1, 2);
+          return r.width > 100 && r.height > 120 && c.width === Math.floor(r.width * dpr) && c.height === Math.floor(r.height * dpr);
+        });
+        const reports = [];
+        for (const [index, name] of ['default', 'pd-low-gains-7.4', 'smc-delay-1.2'].entries()) {
+          const report = await page.evaluate(async index => {
+            const T = await import('./assets/vendor/three.js');
+            const { createApparatusCamera } = await import('./assets/three/camera.js');
+            const { model, view, camera, renderer } = window.__researchViews.track;
+            const { state, setting } = window.__researchCameraReview[index], saved = JSON.stringify(state);
+            const cameraBefore = JSON.stringify(model.camera);
+            view.update(state, setting); model.root.updateMatrixWorld(true);
+            const rect = renderer.domElement.getBoundingClientRect();
+            const production = createApparatusCamera(model.camera, rect.width / rect.height);
+            const matches = ['projectionMatrix', 'matrixWorldInverse'].every(property =>
+              camera[property].elements.every((n, i) => Math.abs(n - production[property].elements[i]) < 1e-10));
+            const point = new T.Vector3(), bounds = [Infinity, Infinity, -Infinity, -Infinity], outside = [];
+            let vertices = 0;
+            model.root.traverseVisible(o => {
+              if (!o.geometry) return;
+              for (let n = o; n; n = n.parent) if (n.userData.environment) return;
+              const position = o.geometry.getAttribute('position');
+              for (let i = 0; i < position.count; i++) {
+                point.fromBufferAttribute(position, i).applyMatrix4(o.matrixWorld).project(camera); vertices++;
+                bounds[0] = Math.min(bounds[0], point.x); bounds[1] = Math.min(bounds[1], point.y);
+                bounds[2] = Math.max(bounds[2], point.x); bounds[3] = Math.max(bounds[3], point.y);
+                if ((!point.toArray().every(Number.isFinite) || Math.abs(point.x) > 0.98 || Math.abs(point.y) > 0.98 ||
+                  Math.abs(point.z) > 1) && outside.length < 5) outside.push({ name: o.name, point: point.toArray() });
+              }
+            });
+            return { time: state.time, matches, vertices, bounds, outside, width: rect.width, height: rect.height,
+              gpu: renderer.getContext() instanceof WebGL2RenderingContext,
+              frozen: Object.isFrozen(state) && Object.isFrozen(state.q) && Object.isFrozen(state.trail),
+              unchanged: JSON.stringify(state) === saved && JSON.stringify(model.camera) === cameraBefore,
+              retainLabel: model.readouts().find(r => r.id === 'payload').retainLabel };
+          }, index);
+          reports.push({ name, ...report });
+          if (screenshotDir) {
+            await mkdir(screenshotDir, { recursive: true });
+            await page.locator('#simpanel-track .research-three').screenshot({ path: resolve(screenshotDir, `camera-${name}-${width}.png`) });
+          }
+          assert(report.gpu && report.matches && report.frozen && report.unchanged && report.retainLabel, JSON.stringify(report));
+          assert(report.vertices > 1000);
+          assert.deepEqual(report.outside, [], JSON.stringify({ name, ...report }));
+        }
+        return reports;
+      });
+    }
+    await page.setViewportSize({ width: 1280, height: 960 });
+    await page.evaluate(() => {
+      const { state, setting } = window.__researchCameraReview[0];
+      window.__researchViews.track.view.update(state, setting);
+    });
+    if (cameraOnly) {
+      await check('track camera: no uncaught page errors', async () => assert.deepEqual(errors, []));
+      return results;
+    }
     for (const id of ['track', 'contact']) {
       await check(`${id}: genuine WebGL2 apparatus with the original graph canvas retained`, async () => {
         await page.locator(`#simtab-${id}`).click();
@@ -103,6 +360,129 @@ export async function runResearchThreeChecks(browser, base, screenshotDir) {
         }
       });
     }
+    await check('track: machined horizontal 2R hardware carries discrete inertial mass plates and true stable readouts', async () => {
+      const report = await page.evaluate(async () => {
+        const { createResearchModel } = await import('./assets/research-three.js');
+        const model = createResearchModel('track'), def = window.__researchDefs.track;
+        const P = window.__researchParams.track, saved = def.visualState(P);
+        const get = name => model.root.getObjectByName(name);
+        const parts = ['shoulder-bearing', 'shoulder-servo', 'elbow-bearing', 'upper-link-web',
+          'forearm-link-web', 'shoulder-cable-loom', 'tool-mass-fixture', 'payload-plate-1', 'payload-plate-4'];
+        const structure = parts.map(name => ({ name, exists: !!get(name),
+          geometry: get(name)?.geometry?.type, finish: get(name)?.material?.userData.finish }));
+        const readings = model.readouts?.(), entries = readings?.map(r => [r, r.anchor]), values = [];
+        const identities = new Map();
+        model.root.traverse(o => identities.set(o, [o.geometry, o.material]));
+        let stable = !!readings, finite = true, pose = [];
+        const hist = window.__researchTrackingState.hist;
+        for (const time of [0, 4.98, 5.02, 7.98, 8.02]) {
+          const row = hist.find(row => row[0] >= time);
+          const state = Object.freeze({ ...saved, time: row[0], q: Object.freeze(row.slice(1, 3)), payload: ARMPLANT.carried(row[0]) });
+          const before = JSON.stringify(state);
+          model.update(state); model.root.updateMatrixWorld(true);
+          const payload = get('payload'), tip = get('tool-tip');
+          values.push({ time: state.time, kg: state.payload,
+            readout: model.readouts?.().find(r => r.id === 'payload')?.value,
+            visible: payload.visible, scale: payload.scale.toArray(),
+            plates: payload.children.filter(o => /^payload-plate-/.test(o.name) && o.visible).length });
+          stable &&= model.readouts?.() === readings && entries.every(([entry, anchor], i) => readings[i] === entry && entry.anchor === anchor);
+          stable &&= JSON.stringify(state) === before;
+          model.root.traverse(o => {
+            stable &&= identities.has(o) && identities.get(o)[0] === o.geometry && identities.get(o)[1] === o.material;
+            finite &&= o.matrixWorld.elements.every(Number.isFinite);
+            if (o.geometry) finite &&= o.geometry.getAttribute('position').array.every(Number.isFinite);
+          });
+          pose.push({ x: tip.matrixWorld.elements[12], y: tip.matrixWorld.elements[13], z: tip.matrixWorld.elements[14],
+            q: state.q, lengths: state.lengths });
+        }
+        const anchors = readings?.map(r => ({ id: r.id, object: r.anchor?.isObject3D,
+          named: r.anchor?.name, label: r.label, side: r.side }));
+        const materials = ['shoulder-servo', 'shoulder-bearing', 'upper-link-web', 'shoulder-cable-loom']
+          .map(name => { const m = get(name)?.material; return m ? [m.metalness, m.roughness] : null; });
+        // The live renderer still receives its original frozen snapshot.
+        window.__researchViews.track.view.update(saved, P);
+        return { structure, values, stable, finite, pose, anchors, materials, legend: model.legend };
+      });
+      assert(report.structure.every(p => p.exists), `meaningful robot assembly: ${JSON.stringify(report.structure)}`);
+      assert.equal(report.structure.find(p => p.name === 'shoulder-bearing').geometry, 'ExtrudeGeometry', 'a bored bearing flange, not another solid puck');
+      assert.equal(report.structure.find(p => p.name === 'shoulder-cable-loom').geometry, 'TubeGeometry');
+      assert(new Set(report.materials.map(JSON.stringify)).size >= 3, 'metal, painted servo and rubber have different optical finishes');
+      assert.equal(report.stable, true, 'readouts, hardware and materials are retained across read-only updates');
+      assert.equal(report.finite, true);
+      assert.equal(report.anchors.length, 2);
+      assert(report.anchors.every(r => r.object && r.label.en && r.label.ko && ['left', 'right'].includes(r.side)));
+      assert.deepEqual(report.values.map(v => v.kg), [0, 0, 15, 15, 20]);
+      assert.deepEqual(report.values.map(v => v.plates), [0, 0, 3, 3, 4]);
+      for (const v of report.values) {
+        assert.equal(v.readout, `${v.kg.toFixed(0)} kg`);
+        assert.equal(v.visible, v.kg > 0);
+        assert.deepEqual(v.scale, [1, 1, 1], 'mass steps attach fixed geometry; no inflation or falling animation');
+      }
+      for (const p of report.pose) {
+        assert(Math.abs(p.x - (p.lengths[0] * Math.cos(p.q[0]) + p.lengths[1] * Math.cos(p.q[0] + p.q[1]))) < 1e-12);
+        assert(Math.abs(p.z - (p.lengths[0] * Math.sin(p.q[0]) + p.lengths[1] * Math.sin(p.q[0] + p.q[1]))) < 1e-12);
+        assert.equal(p.y, report.pose[0].y, 'the tip remains in the horizontal plane');
+      }
+      assert.match(report.legend.en, /horizontal plane/i);
+      assert.match(report.legend.en, /inertial payload/i);
+      assert.match(report.legend.ko, /수평면/);
+    });
+    await check('contact: a fixed support carries a single linear carriage with actual force and travel readouts', async () => {
+      const report = await page.evaluate(async () => {
+        const { createResearchModel } = await import('./assets/research-three.js');
+        const model = createResearchModel('contact'), saved = window.__researchDefs.contact.visualState(window.__researchParams.contact);
+        const get = name => model.root.getObjectByName(name);
+        const parts = ['linear-rail-bed', 'carriage-bearing-block', 'force-sensor', 'sensor-connector',
+          'sensor-cable-loom', 'support-link-web-1', 'wall-guide-rod', 'wall-damper-body'];
+        const structure = parts.map(name => ({ name, exists: !!get(name), finish: get(name)?.material?.userData.finish }));
+        const readouts = model.readouts?.(), states = [saved,
+          Object.freeze({ ...saved, position: -0.02, force: 0 }),
+          Object.freeze({ ...saved, position: 0.012, force: 17.625 }),
+          Object.freeze({ ...saved, position: 0.075, force: 125, mode: 'impedance' })];
+        const support = get('fixed-articulated-support');
+        model.root.updateMatrixWorld(true);
+        const supportMatrices = new Map();
+        support.traverse(o => supportMatrices.set(o, JSON.stringify(o.matrixWorld.toArray())));
+        const identities = new Map();
+        model.root.traverse(o => identities.set(o, [o.geometry, o.material]));
+        const samples = states.map(state => {
+          const frozenBefore = JSON.stringify(state); model.update(state); model.root.updateMatrixWorld(true);
+          const readings = model.readouts?.();
+          return { position: state.position, force: state.force,
+            tip: get('tool-tip').matrixWorld.elements.slice(12, 15), wall: get('contact-wall').position.x,
+            forceText: readings?.find(r => r.id === 'force')?.value,
+            travelText: readings?.find(r => r.id === 'position')?.value,
+            stable: readings === readouts, supportFixed: [...supportMatrices].every(([o, matrix]) => matrix === JSON.stringify(o.matrixWorld.toArray())),
+            readonly: JSON.stringify(state) === frozenBefore };
+        });
+        let stableGeometry = true, finite = true;
+        model.root.traverse(o => {
+          stableGeometry &&= identities.has(o) && identities.get(o)[0] === o.geometry && identities.get(o)[1] === o.material;
+          finite &&= o.matrixWorld.elements.every(Number.isFinite);
+          if (o.geometry) finite &&= o.geometry.getAttribute('position').array.every(Number.isFinite);
+        });
+        return { structure, samples, stableGeometry, finite, legend: model.legend,
+          anchors: readouts?.map(r => ({ object: r.anchor?.isObject3D, name: r.anchor?.name, label: r.label })) };
+      });
+      assert(report.structure.every(p => p.exists), `linear force-test hardware: ${JSON.stringify(report.structure)}`);
+      assert(new Set(report.structure.map(p => p.finish)).size >= 3, 'rail/sensor, painted support and rubber cable are distinct');
+      assert.equal(report.anchors.length, 2);
+      assert(report.anchors.every(r => r.object && r.label.en && r.label.ko));
+      assert(report.anchors.some(r => r.name === 'force-sensor'), 'force leader anchors at the sensor itself');
+      for (const s of report.samples) {
+        assert.equal(s.forceText, `${s.force.toFixed(2)} N`);
+        assert.equal(s.travelText, `${(s.position * 1000).toFixed(2)} mm`, 'readout is physical travel, never the 12x drawing coordinate');
+        const shown = 0.65 + 12 * Math.max(-0.03, Math.min(0.055, s.position));
+        assert(Math.abs(s.tip[0] - shown) < 1e-12);
+        assert.equal(s.tip[1], 0.67); assert.equal(s.tip[2], 0);
+        assert(Math.abs(s.wall - (0.65 + 12 * Math.max(0, Math.min(0.055, s.position)))) < 1e-12);
+        assert(s.stable && s.supportFixed && s.readonly);
+      }
+      assert(report.stableGeometry && report.finite, 'updates retain finite hardware and material identity');
+      assert.match(report.legend.en, /single.axis/i);
+      assert.match(report.legend.en, /support stays fixed/i);
+      assert.match(report.legend.en, /12 times/);
+    });
     for (const id of ['track', 'contact']) {
       await check(`${id}: actual frozen snapshot drives the articulated scene pose`, async () => {
         await page.locator(`#simtab-${id}`).click();
@@ -116,6 +496,8 @@ export async function runResearchThreeChecks(browser, base, screenshotDir) {
             shoulder: model.root.getObjectByName('shoulder')?.rotation.y,
             elbow: model.root.getObjectByName('elbow')?.rotation.y,
             scene: model.root.parent.isScene,
+            primaryValue: window.__researchViews[id].view.element.querySelector('.three-readout__value')?.textContent,
+            primaryLabel: model.readouts()[0].label,
             meshes: (() => { let n = 0; model.root.traverse(o => { if (o.isMesh) n++; }); return n; })() };
         }, id);
         assert.equal(report.frozen, true);
@@ -125,19 +507,31 @@ export async function runResearchThreeChecks(browser, base, screenshotDir) {
           const s = report.state;
           assert.equal(report.shoulder, -s.q[0]);
           assert.equal(report.elbow, -s.q[1]);
+          assert.equal(report.primaryValue, `${s.payload.toFixed(0)} kg`, 'the live DOM shows the actual scheduled payload');
+          assert.match(report.primaryLabel.en, /horizontal plane/i);
+          assert.match(report.primaryLabel.ko, /수평면/);
           assert(Math.abs(report.tip[0] - (s.lengths[0] * Math.cos(s.q[0]) + s.lengths[1] * Math.cos(s.q[0] + s.q[1]))) < 1e-12);
           assert(Math.abs(report.tip[2] - (s.lengths[0] * Math.sin(s.q[0]) + s.lengths[1] * Math.sin(s.q[0] + s.q[1]))) < 1e-12);
         } else {
+          assert.equal(report.primaryValue, `${report.state.force.toFixed(2)} N`, 'the live DOM shows actual contact force, not its target');
           assert(Math.abs(report.tip[0] - (0.65 + 12 * Math.max(-0.03, Math.min(0.055, report.state.position)))) < 1e-12);
         }
       });
       await check(`${id}: default camera contains the whole robot and contact surface`, async () => {
         const outside = await page.evaluate(async id => {
           const T = await import('./assets/vendor/three.js');
-          const { model, camera } = window.__researchViews[id];
+          const { createApparatusCamera } = await import('./assets/three/camera.js');
+          const { model, camera, renderer } = window.__researchViews[id];
+          const rect = renderer.domElement.getBoundingClientRect();
+          const production = createApparatusCamera(model.camera, rect.width / rect.height);
           const names = id === 'track' ? ['robot-base', 'shoulder'] : ['robot-base', 'fixed-articulated-support', 'contact-wall', 'wall-backplate'];
           model.root.updateMatrixWorld(true);
           const outside = [];
+          for (const property of ['projectionMatrix', 'matrixWorldInverse']) {
+            if (camera[property].elements.some((n, i) => Math.abs(n - production[property].elements[i]) > 1e-10)) {
+              outside.push({ projectionMismatch: property });
+            }
+          }
           for (const name of names) {
             const b = new T.Box3().setFromObject(model.root.getObjectByName(name));
             for (const x of [b.min.x, b.max.x]) for (const y of [b.min.y, b.max.y]) for (const z of [b.min.z, b.max.z]) {
@@ -149,6 +543,14 @@ export async function runResearchThreeChecks(browser, base, screenshotDir) {
         }, id);
         assert.deepEqual(outside, []);
       });
+      await check(`${id}: production camera fits actual hardware vertices and paths at both layout aspects`, async () => {
+        const envelope = await cameraEnvelope(id);
+        for (const result of envelope) {
+          assert(result.vertices > 1000);
+          assert.deepEqual(result.outside, [], JSON.stringify(result));
+          assert(result.bounds[2] - result.bounds[0] > 0.85, 'apparatus must occupy a useful horizontal fraction of its compact viewport');
+        }
+      });
     }
     for (const [law, algo] of [['pd'], ['smc'], ['tdc'], ['asmc', 'quasi'], ['asmc', 'sigvar']]) {
       await check(`track ${law}${algo ? '/' + algo : ''}: completed GPU scene retains the exact unloaded comparison path and clears it on reset`, async () => {
@@ -156,6 +558,13 @@ export async function runResearchThreeChecks(browser, base, screenshotDir) {
         await page.locator(`#sim-track-law [data-value=${law}]`).click();
         if (algo) await page.locator(`#sim-track-algo [data-value=${algo}]`).click();
         assert.equal(await page.locator('#sim-track-play').textContent(), 'Replay');
+        await check(`track ${law}${algo ? '/' + algo : ''}: recorded transient and payload poses stay within the fixed production camera`, async () => {
+          const envelope = await cameraEnvelope('track', true);
+          for (const result of envelope) {
+            assert(result.samples > 100, 'replay the actual controller history rather than only its final pose');
+            assert.deepEqual(result.outside, [], JSON.stringify(result));
+          }
+        });
         const report = await page.evaluate(() => {
           const def = window.__researchDefs.track, P = window.__researchParams.track;
           const { view, model } = window.__researchViews.track;
@@ -290,7 +699,9 @@ export async function runResearchThreeChecks(browser, base, screenshotDir) {
         assert.deepEqual(await snapshot(id), before);
         assert.equal(await page.locator(`#simpanel-${id} .sim__fig > canvas`).evaluate(c => c.toDataURL()), graph);
         await page.locator(`#simpanel-${id} .three-reset`).click();
-        assert.deepEqual(await camera(), initial);
+        const reset = await camera();
+        assert(reset.every((n, i) => Math.abs(n - initial[i]) < 1e-12),
+          'OrbitControls restores the camera up to spherical-coordinate roundoff');
         assert.deepEqual(await snapshot(id), before);
       });
     }
@@ -329,6 +740,31 @@ export async function runResearchThreeChecks(browser, base, screenshotDir) {
           assert(measured.canvasHeight > 120, 'compact toolbar must not consume the scene');
           assert(measured.resetHeight >= 44);
           assert.equal(measured.lang, lang);
+          const readoutReport = await page.locator(`#simpanel-${id} .research-three`).evaluate(async (host, { id, lang }) => {
+            const T = await import('./assets/vendor/three.js');
+            const viewport = host.querySelector('.three-viewport'), box = viewport.getBoundingClientRect();
+            const { model, camera } = window.__researchViews[id], readings = model.readouts();
+            const nodes = [...viewport.querySelectorAll('.three-readout')], leaders = [...viewport.querySelectorAll('.three-leader')];
+            return readings.map(r => {
+              const index = nodes.findIndex(n => n.dataset.readout === r.id), node = nodes[index];
+              if (!node?.checkVisibility()) return { id: r.id, visible: false };
+              const label = node.querySelector('.three-readout__label'), value = node.querySelector('.three-readout__value');
+              const text = label.checkVisibility() ? [label, value] : [value];
+              const point = r.anchor.getWorldPosition(new T.Vector3()).project(camera), leader = leaders[index];
+              return { id: r.id, visible: true, labelVisible:label.checkVisibility(), actual: value.textContent, expected: r.value,
+                localized: label.textContent === r.label[lang],
+                anchored: Math.abs(Number(leader.getAttribute('x1')) - (point.x + 1) * box.width / 2) < 0.06 &&
+                  Math.abs(Number(leader.getAttribute('y1')) - (1 - point.y) * box.height / 2) < 0.06,
+                inside: text.every(n => { const b = n.getBoundingClientRect();
+                  return b.left >= box.left - 1 && b.right <= box.right + 1 && b.top >= box.top - 1 && b.bottom <= box.bottom + 1;
+                }), font: Math.min(...text.map(n => parseFloat(getComputedStyle(n).fontSize))) };
+            });
+          }, { id, lang });
+          assert(readoutReport[0].visible, `the primary actual measurement is visible: ${JSON.stringify(readoutReport)}`);
+          if(id==='track')assert(readoutReport[0].labelVisible,'the horizontal-plane assumption stays visible on mobile');
+          assert(readoutReport.filter(r => r.visible).every(r => r.actual === r.expected && r.localized && r.anchored),
+            `leaders terminate at their current true 3D anchors: ${JSON.stringify(readoutReport)}`);
+          assert(readoutReport.filter(r => r.visible).every(r => r.inside && r.font >= 12), 'anchored values stay readable inside the apparatus, not over its graphs');
           assert.equal(await page.locator(`#simpanel-${id} .three-reset`).getAttribute('aria-label'), lang === 'en' ? 'Reset view' : '시점 초기화');
           assert.equal(await page.locator(`#simpanel-${id} .three-reset svg`).isVisible(), true);
           const summary = page.locator(`#simpanel-${id} .research-three__info > summary`);
@@ -558,8 +994,9 @@ async function main() {
       // Keep genuine WebGL2 enabled; do not enqueue thousands of legacy 2D
       // graph paints in SwiftShader during the synchronous fixed-step tests.
       args: ['--enable-webgl', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--disable-accelerated-2d-canvas'] });
-    const results = await runResearchThreeChecks(browser, base, process.env.SCREENSHOT_DIR);
-    results.push(...await runResearchThreeFontChecks(chromium, base));
+    const cameraOnly = process.argv.includes('--camera-only');
+    const results = await runResearchThreeChecks(browser, base, process.env.SCREENSHOT_DIR, { cameraOnly });
+    if (!cameraOnly) results.push(...await runResearchThreeFontChecks(chromium, base));
     if (process.argv.includes('--regression')) {
       results.push(...await runSimStateChecks(browser, base));
       results.push(...await runSimKeyboardChecks(browser, base));

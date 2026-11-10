@@ -65,7 +65,16 @@ export async function runSimStateChecks(browser, base) {
     await page.locator('#sim-track-play').waitFor();
   };
   const state = id => page.evaluate(id => ({ ...window.__simStates[id] }), id);
-  const tick = (count = 1, gap) => page.evaluate(([count, gap]) => window.__simClock.tick(count, gap), [count, gap]);
+  // Preserve every simulated step/render without flooding the software GPU queue.
+  const tick = (count = 1, gap) => page.evaluate(async ([count, gap]) => {
+    for (let i = 0; i < count; i++) {
+      window.__simClock.tick(1, gap);
+      if ((i + 1) % 8 === 0 && window.__simClock.pending()) {
+        await new Promise(resolve => requestAnimationFrame(resolve));
+      }
+    }
+    await new Promise(resolve => requestAnimationFrame(resolve));
+  }, [count, gap]);
   const pending = () => page.evaluate(() => window.__simClock.pending());
   const visibility = hidden => page.evaluate(hidden => window.__simClock.visibility(hidden), hidden);
   const tab = id => page.locator(`#simtab-${id}`).click();
@@ -268,8 +277,12 @@ export async function runSimStateChecks(browser, base) {
       await open();
       for (const [id, other] of [['track', 'contact'], ['contact', 'track']]) {
         await tab(id);
-        await page.evaluate(id => {
-          for (let i = 0; i < 6000 && !window.__simStates[id].done; i++) window.__simClock.tick();
+        await page.evaluate(async id => {
+          for (let i = 0; i < 6000 && !window.__simStates[id].done; i++) {
+            window.__simClock.tick();
+            if ((i + 1) % 8 === 0) await new Promise(resolve => requestAnimationFrame(resolve));
+          }
+          await new Promise(resolve => requestAnimationFrame(resolve));
         }, id);
         const completed = await state(id);
         assert.equal(completed.done, true, `${id} reaches its real model endpoint`);

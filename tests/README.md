@@ -93,6 +93,10 @@ Set `CHROMIUM_PATH` only when selecting a locally installed browser executable.
 `research-three-state.cjs` verifies frozen snapshots and unchanged numerical
 trajectories; `research-three-browser.mjs` is included in the main harness and
 checks both real 3D views, camera-only controls, layout, language, print and fallback.
+`engineering-renderer.test.mjs` checks the shared camera projection, material
+properties and machined-part dimensions. The device scenes use procedural studio
+reflections and anchored readouts from real model snapshots; no external image
+assets or additional simulation clock are introduced.
 
 Failed assertions, empty results, uncaught page errors, console errors
 from this site's own files, and local HTTP errors fail the browser step. Console
