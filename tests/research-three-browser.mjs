@@ -99,7 +99,8 @@ export async function runResearchThreeChecks(browser, base, screenshotDir, { cam
           }
         }
         const reviewTime = setting.law === 'pd' && setting.kp === 10 && setting.h === undefined ? 7.4
-          : setting.law === 'smc' && setting.lam === undefined && setting.h === 0.100 ? 1.2 : null;
+          : setting.law === 'smc' && setting.lam === undefined && setting.h === 0.100 ? 1.2
+          : setting.law === 'pd' && setting.kp === 10 && setting.kd === 20 && setting.h === .1 && setting.m === 3 ? 1.2 : null;
         if (reviewTime !== null) {
           window.__researchCameraReview ||= [];
           window.__researchCameraReview.push({ setting: P, state: states.find(s => Math.abs(s.time - reviewTime) < 1e-9) });
@@ -269,7 +270,7 @@ export async function runResearchThreeChecks(browser, base, screenshotDir, { cam
       }
       return envelope;
     });
-    for (const width of [1280, 390]) {
+    for (const width of [1440, 390]) {
       await check(`track camera: ${width}px live GPU default and reviewed off-default poses use the production camera`, async () => {
         await page.setViewportSize({ width, height: 960 });
         const canvas = page.locator('#simpanel-track .research-three canvas');
@@ -280,7 +281,7 @@ export async function runResearchThreeChecks(browser, base, screenshotDir, { cam
           return r.width > 100 && r.height > 120 && c.width === Math.floor(r.width * dpr) && c.height === Math.floor(r.height * dpr);
         });
         const reports = [];
-        for (const [index, name] of ['default', 'pd-low-gains-7.4', 'smc-delay-1.2'].entries()) {
+        for (const [index, name] of ['default', 'pd-low-gains-7.4', 'smc-delay-1.2', 'pd-mixed-gains-delay-1.2'].entries()) {
           const report = await page.evaluate(async index => {
             const T = await import('./assets/vendor/three.js');
             const { createApparatusCamera } = await import('./assets/three/camera.js');
@@ -306,7 +307,24 @@ export async function runResearchThreeChecks(browser, base, screenshotDir, { cam
                   Math.abs(point.z) > 1) && outside.length < 5) outside.push({ name: o.name, point: point.toArray() });
               }
             });
+            const get = name => model.root.getObjectByName(name), distal = [], upstream = [];
+            get('tool-tip').traverse(o => { if (o.isMesh) distal.push(o); });
+            for (const name of ['shoulder', 'robot-base']) get(name).traverse(o => {
+              if (!o.isMesh) return;
+              for (let n = o; n; n = n.parent) if (n === get('elbow')) return;
+              upstream.push(o);
+            });
+            const upstreamTop = Math.max(...upstream.map(o => new T.Box3().setFromObject(o).max.y));
+            const guide = get('tool-projection-guide'), marker = get('tool-planar-marker');
+            const endpoints = [0, 1].map(i => guide.localToWorld(new T.Vector3()
+              .fromBufferAttribute(guide.geometry.getAttribute('position'), i))).sort((a, b) => a.y - b.y);
+            const expected = new T.Vector3(state.lengths[0] * Math.cos(state.q[0]) + state.lengths[1] * Math.cos(state.q[0] + state.q[1]),
+              .06, state.lengths[0] * Math.sin(state.q[0]) + state.lengths[1] * Math.sin(state.q[0] + state.q[1]));
             return { time: state.time, matches, vertices, bounds, outside, width: rect.width, height: rect.height,
+              distalSolids: distal.map(o => o.name),
+              toolClearance: Math.min(...distal.map(o => new T.Box3().setFromObject(o).min.y - upstreamTop)),
+              projectionExact: endpoints[0].distanceTo(expected) < 1e-12 && marker.getWorldPosition(new T.Vector3()).distanceTo(expected) < 1e-12,
+              projectionIsLine: guide.isLine && guide.material.isLineDashedMaterial && marker.isLine && !marker.isMesh,
               gpu: renderer.getContext() instanceof WebGL2RenderingContext,
               frozen: Object.isFrozen(state) && Object.isFrozen(state.q) && Object.isFrozen(state.trail),
               unchanged: JSON.stringify(state) === saved && JSON.stringify(model.camera) === cameraBefore,
@@ -320,6 +338,10 @@ export async function runResearchThreeChecks(browser, base, screenshotDir, { cam
           assert(report.gpu && report.matches && report.frozen && report.unchanged && report.retainLabel, JSON.stringify(report));
           assert(report.vertices > 1000);
           assert.deepEqual(report.outside, [], JSON.stringify({ name, ...report }));
+          assert(report.toolClearance >= .02 && report.projectionExact && report.projectionIsLine, JSON.stringify(report));
+          for (const solid of ['tool-stylus', 'tool-collet', 'wrist', 'tool-mass-fixture', 'tool-mass-spindle',
+            'payload-plate-1', 'payload-plate-2', 'payload-plate-3', 'payload-plate-4']) assert(report.distalSolids.includes(solid));
+          if (name === 'pd-mixed-gains-delay-1.2') assert(Math.abs(report.time - 1.2) < 1e-12, 'actual reviewed legal controller snapshot');
         }
         return reports;
       });
@@ -360,14 +382,14 @@ export async function runResearchThreeChecks(browser, base, screenshotDir, { cam
         }
       });
     }
-    await check('track: machined horizontal 2R hardware carries discrete inertial mass plates and true stable readouts', async () => {
+    await check('track: layered cast SCARA hardware carries discrete inertial mass plates and true stable readouts', async () => {
       const report = await page.evaluate(async () => {
         const { createResearchModel } = await import('./assets/research-three.js');
         const model = createResearchModel('track'), def = window.__researchDefs.track;
         const P = window.__researchParams.track, saved = def.visualState(P);
         const get = name => model.root.getObjectByName(name);
-        const parts = ['shoulder-bearing', 'shoulder-servo', 'elbow-bearing', 'upper-link-web',
-          'forearm-link-web', 'shoulder-cable-loom', 'tool-mass-fixture', 'payload-plate-1', 'payload-plate-4'];
+        const parts = ['shoulder-bearing', 'shoulder-servo', 'elbow-bearing', 'upper-link-shell',
+          'forearm-link-shell', 'elbow-shaft', 'tool-mass-fixture', 'payload-plate-1', 'payload-plate-4'];
         const structure = parts.map(name => ({ name, exists: !!get(name),
           geometry: get(name)?.geometry?.type, finish: get(name)?.material?.userData.finish }));
         const readings = model.readouts?.(), entries = readings?.map(r => [r, r.anchor]), values = [];
@@ -397,7 +419,7 @@ export async function runResearchThreeChecks(browser, base, screenshotDir, { cam
         }
         const anchors = readings?.map(r => ({ id: r.id, object: r.anchor?.isObject3D,
           named: r.anchor?.name, label: r.label, side: r.side }));
-        const materials = ['shoulder-servo', 'shoulder-bearing', 'upper-link-web', 'shoulder-cable-loom']
+        const materials = ['shoulder-servo', 'shoulder-bearing', 'upper-link-shell', 'base-power-cable']
           .map(name => { const m = get(name)?.material; return m ? [m.metalness, m.roughness] : null; });
         // The live renderer still receives its original frozen snapshot.
         window.__researchViews.track.view.update(saved, P);
@@ -405,7 +427,8 @@ export async function runResearchThreeChecks(browser, base, screenshotDir, { cam
       });
       assert(report.structure.every(p => p.exists), `meaningful robot assembly: ${JSON.stringify(report.structure)}`);
       assert.equal(report.structure.find(p => p.name === 'shoulder-bearing').geometry, 'ExtrudeGeometry', 'a bored bearing flange, not another solid puck');
-      assert.equal(report.structure.find(p => p.name === 'shoulder-cable-loom').geometry, 'TubeGeometry');
+      assert.equal(report.structure.find(p => p.name === 'upper-link-shell').geometry, 'BufferGeometry');
+      assert.equal(report.structure.find(p => p.name === 'forearm-link-shell').geometry, 'BufferGeometry');
       assert(new Set(report.materials.map(JSON.stringify)).size >= 3, 'metal, painted servo and rubber have different optical finishes');
       assert.equal(report.stable, true, 'readouts, hardware and materials are retained across read-only updates');
       assert.equal(report.finite, true);
@@ -432,8 +455,8 @@ export async function runResearchThreeChecks(browser, base, screenshotDir, { cam
         const { createResearchModel } = await import('./assets/research-three.js');
         const model = createResearchModel('contact'), saved = window.__researchDefs.contact.visualState(window.__researchParams.contact);
         const get = name => model.root.getObjectByName(name);
-        const parts = ['linear-rail-bed', 'carriage-bearing-block', 'force-sensor', 'sensor-connector',
-          'sensor-cable-loom', 'support-link-web-1', 'wall-guide-rod', 'wall-damper-body'];
+        const parts = ['linear-rail-bed', 'linear-carrier-shell', 'linear-drive-housing', 'carriage-bearing-block', 'force-sensor', 'sensor-connector',
+          'sensor-cable-loom', 'support-link-shell-1', 'support-link-shell-2', 'wall-guide-rod', 'wall-damper-body'];
         const structure = parts.map(name => ({ name, exists: !!get(name), finish: get(name)?.material?.userData.finish }));
         const readouts = model.readouts?.(), states = [saved,
           Object.freeze({ ...saved, position: -0.02, force: 0 }),
@@ -772,6 +795,11 @@ export async function runResearchThreeChecks(browser, base, screenshotDir, { cam
           if (await summary.evaluate(s => s.parentElement.open)) await summary.click();
           await summary.click();
           assert.equal(await page.locator(`#simpanel-${id} .three-legend`).isVisible(), true);
+          if (id === 'track') {
+            const legend = await page.locator('#simpanel-track .three-legend').textContent();
+            assert.match(legend, lang === 'en' ? /nonphysical projection/i : /비물리적 투영/);
+            assert.match(legend, lang === 'en' ? /no collision physics/i : /충돌 동역학/);
+          }
           const info = await page.locator(`#simpanel-${id} .research-three__info-body`).boundingBox();
           // A native click may scroll a mobile apparatus into view. Compare
           // both boxes after the click rather than mixing viewport origins.

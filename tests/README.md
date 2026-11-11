@@ -97,6 +97,15 @@ checks both real 3D views, camera-only controls, layout, language, print and fal
 properties and machined-part dimensions. The device scenes use procedural studio
 reflections and anchored readouts from real model snapshots; no external image
 assets or additional simulation clock are introduced.
+`robot-hardware.test.mjs` checks the shared closed, sculpted link casings: outward
+surface winding, solid front faces, finite dimensions and length changes that
+retain joint radii, materials and GPU buffers. These geometry checks are separate
+from visual review at the actual apparatus viewport size.
+`research-robot-assembly.test.mjs` covers the SCARA link/joint assembly and the
+contact rig's fixed-support and prismatic-tool relationships. Changes to casing
+geometry must not be implemented by altering the plant or its state snapshots.
+`engineering-camera.test.mjs` also verifies optional independent horizontal
+framing for narrow viewports without changing camera pose or legacy projections.
 
 Failed assertions, empty results, uncaught page errors, console errors
 from this site's own files, and local HTTP errors fail the browser step. Console

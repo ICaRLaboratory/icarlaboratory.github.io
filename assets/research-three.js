@@ -2,6 +2,7 @@ import * as T from './vendor/three.js';
 import { createView } from './three/view.js';
 import { C, group, cylinder, rod, setRod, line, updateLine, floor, targetMarker } from './three/primitives.js';
 import { finish, housing, turned, flange, fasteners, cable } from './three/engineering.js';
+import { sculptedLink, resizeSculptedLink } from './three/robot-hardware.js';
 
 // Presentation only: snapshots are copied by the existing controllers. No clock,
 // integration or control law lives here, including when the camera is moved.
@@ -20,27 +21,12 @@ function pedestal(root, x = 0, z = 0) {
   return base;
 }
 
-function rotaryJoint(parent, name, radius, accent) {
-  turned(parent, `${name}-servo`, [[0, -0.105], [radius * 0.85, -0.105], [radius, -0.09],
-    [radius, 0.035], [radius * 0.88, 0.055], [0, 0.055]], [0, 0, 0], 'paint');
-  for (const y of [-0.065, -0.035]) flange(parent, `${name}-cooling-ring`, radius + 0.007, 0.012, [0, y, 0], 'dark-metal', radius * 0.8);
-  flange(parent, `${name}-bearing`, radius + 0.012, 0.030, [0, 0.07, 0], 'steel', radius * 0.48);
-  cylinder(parent, `${name}-shaft`, radius * 0.48, 0.08, [0, 0.075, 0], finish('dark-metal'));
-  flange(parent, `${name}-encoder-ring`, radius * 0.8, 0.018, [0, 0.113, 0], finish('paint', { color: accent }), radius * 0.5);
-  fasteners(parent, `${name}-cover-bolts`, radius * 0.76, [0, 0.095, 0], 6, 0.011);
-}
-
-function horizontalLink(parent, name) {
-  const link = group(name);
-  parent.add(link);
-  // A closed box section, with separate flanges and a recessed service cover.
-  housing(link, `${name}-web`, [0.78, 0.10, 0.16], [0.5, 0, 0], 'aluminium');
-  for (const y of [-0.062, 0.062]) housing(link, `${name}-flange`, [0.81, 0.024, 0.23], [0.5, y, 0], 'aluminium');
-  housing(link, `${name}-service-cover`, [0.52, 0.014, 0.105], [0.5, 0.081, 0], 'dark-metal');
-  for (const x of [0.26, 0.74]) fasteners(link, `${name}-cover-bolts`, 0.032, [x, 0.095, 0], 2, 0.008);
-  cable(link, `${name}-cable`, [[0.10, 0.02, -0.10], [0.20, 0.10, -0.13], [0.66, 0.11, -0.13], [0.91, 0.02, -0.09]], 0.013);
-  for (const x of [0.31, 0.65]) housing(link, `${name}-loom-clamp`, [0.025, 0.035, 0.045], [x, 0.105, -0.13], 'dark-metal');
-  return link;
+function horizontalLink(parent, name, length, rootRadius, tipRadius, depth) {
+  const shell = sculptedLink(parent, `${name}-shell`, length,
+    { rootRadius, tipRadius, depth, material: finish('paint', { color: 0xe5e3d9 }) });
+  // The shared shell's local Z thickness becomes world Y. No extra joint.
+  shell.rotation.x = Math.PI / 2;
+  return shell;
 }
 
 function trackingModel() {
@@ -50,37 +36,54 @@ function trackingModel() {
   stage.userData.environment = true;
   pedestal(root);
   const shoulder = group('shoulder');
-  shoulder.position.y = 0.57;
+  // Two horizontal castings at constant heights, separated by a real shaft.
+  // Presentation heights are not vertical plant coordinates or a third axis.
+  shoulder.position.y = 0.65;
   root.add(shoulder);
-  rotaryJoint(shoulder, 'shoulder', 0.15, C.teal);
-  cable(shoulder, 'shoulder-cable-loom', [[-0.10, -0.07, -0.12], [-0.17, 0.02, -0.15],
-    [-0.11, 0.18, -0.12], [0.11, 0.18, -0.12], [0.22, 0.10, -0.13]], 0.017);
-  const upper = horizontalLink(shoulder, 'upper-link');
+  flange(shoulder, 'shoulder-bearing', 0.17, 0.055, [0, -0.145, 0], 'steel', 0.065);
+  cylinder(shoulder, 'shoulder-shaft', 0.064, 0.16, [0, -0.11, 0], finish('steel'));
+  const upper = horizontalLink(shoulder, 'upper-link', 1, 0.21, 0.15, 0.24);
+  turned(shoulder, 'shoulder-servo', [[0, 0.06], [0.16, 0.06], [0.17, 0.09],
+    [0.165, 0.11], [0.13, 0.13], [0, 0.13]], [0, 0, 0], 'dark-metal');
+  cylinder(shoulder, 'shoulder-encoder', 0.10, 0.012, [0, 0.131, 0], finish('paint', { color: C.teal }));
   const elbow = group('elbow');
   shoulder.add(elbow);
-  rotaryJoint(elbow, 'elbow', 0.12, C.amber);
-  cable(elbow, 'elbow-service-loop', [[-0.09, 0.04, -0.1], [-0.12, 0.20, -0.12],
-    [0.05, 0.22, -0.12], [0.20, 0.10, -0.13]], 0.014);
-  const lower = horizontalLink(elbow, 'forearm-link');
+  flange(elbow, 'elbow-bearing', 0.14, 0.13, [0, -0.155, 0], 'steel', 0.063);
+  cylinder(elbow, 'elbow-shaft', 0.062, 0.38, [0, -0.14, 0], finish('dark-metal'));
+  const lower = horizontalLink(elbow, 'forearm-link', 0.85, 0.18, 0.105, 0.20);
+  turned(elbow, 'elbow-servo', [[0, 0.065], [0.135, 0.065], [0.14, 0.10],
+    [0.13, 0.15], [0.095, 0.17], [0, 0.17]], [0, 0, 0], 'dark-metal');
+  cylinder(elbow, 'elbow-encoder', 0.083, 0.012, [0, 0.171, 0], finish('paint', { color: C.amber }));
   const tool = group('tool-tip');
   elbow.add(tool);
-  turned(tool, 'wrist', [[0, -0.13], [0.06, -0.13], [0.06, -0.08], [0.088, -0.06],
-    [0.088, 0.055], [0, 0.055]], [0, 0, 0], 'dark-metal');
-  flange(tool, 'tool-mass-fixture', 0.15, 0.027, [0, 0.075, 0], 'aluminium', 0.026);
-  turned(tool, 'tool-stylus', [[0, -0.57], [0.014, -0.55], [0.014, -0.19], [0.025, -0.17],
-    [0.025, -0.13], [0, -0.13]], [0, 0, 0], 'steel');
-  cylinder(tool, 'tool-collet', 0.035, 0.06, [0, -0.17, 0], finish('aluminium'));
-  cylinder(tool, 'tool-mass-spindle', 0.025, 0.18, [0, 0.17, 0], finish('steel'));
-  fasteners(tool, 'fixture-bolts', 0.132, [0, 0.093, 0], 4, 0.009);
+  turned(tool, 'wrist', [[0, -0.09], [0.045, -0.09], [0.065, -0.06],
+    [0.08, 0.06], [0.065, 0.12], [0, 0.12]], [0, 0, 0], 'dark-metal');
+  flange(tool, 'tool-mass-fixture', 0.14, 0.028, [0, 0.135, 0], 'aluminium', 0.025);
+  // The connected short tool clears the entire upstream casting/servo layer
+  // at every joint angle. Constant heights are presentation, not a third axis.
+  turned(tool, 'tool-stylus', [[0, -0.15], [0.012, -0.138], [0.012, -0.11],
+    [0.024, -0.10], [0.024, -0.075], [0, -0.075]], [0, 0, 0], 'steel');
+  cylinder(tool, 'tool-collet', 0.035, 0.05, [0, -0.105, 0], finish('aluminium'));
+  // Lines only: the short tool's planar projection is not a physical shaft.
+  // Inherit exact FK X/Z; Y=.06 is the unchanged measured-trajectory plane.
+  const projection = group('tool-planar-projection');
+  projection.position.y = 0.06 - 0.96;
+  projection.userData.annotation = true;
+  tool.add(projection);
+  const guide = line(projection, 'tool-projection-guide', [[0, 0.75, 0], [0, 0, 0]], C.teal, true);
+  guide.material.dashSize = 0.035; guide.material.gapSize = 0.025;
+  // Chevron apex is the exact FK point; its wings stay inside the existing
+  // swept workspace, unlike a ring that would expand the camera budget.
+  line(projection, 'tool-planar-marker', [[-0.04, 0, -0.02], [0, 0, 0], [-0.04, 0, 0.02]], C.teal);
+  cylinder(tool, 'tool-mass-spindle', 0.024, 0.19, [0, 0.225, 0], finish('steel'));
   const payload = group('payload');
   tool.add(payload);
-  // Four bolted 5 kg plates represent the existing 15 kg + 5 kg mass steps.
-  // Their dimensions and height never interpolate: there is no falling load.
+  // Four mounted 5 kg elements attach discretely, with no falling animation.
   const massPlates = Array.from({ length: 4 }, (_, i) =>
-    flange(payload, `payload-plate-${i + 1}`, 0.12, 0.024, [0, 0.11 + i * 0.027, 0],
-      i % 2 ? 'steel' : 'dark-metal', 0.026));
+    flange(payload, `payload-plate-${i + 1}`, 0.115, 0.028, [0, 0.164 + i * 0.032, 0],
+      i % 2 ? 'steel' : 'dark-metal', 0.025));
   const massAnchor = group('inertial-payload-anchor');
-  massAnchor.position.set(0, 0.20, 0); tool.add(massAnchor);
+  massAnchor.position.set(0, 0.27, 0); tool.add(massAnchor);
   const readouts = [
     { id: 'payload', anchor: massAnchor, label: { en: 'Horizontal plane · payload', ko: '수평면 · 말단 질량' }, retainLabel: true, value: '0 kg', side: 'right' },
     { id: 'shoulder', anchor: shoulder, label: { en: 'Joint 1', ko: '관절 1' }, value: '0.00 rad', side: 'left' },
@@ -94,20 +97,20 @@ function trackingModel() {
     root,
     // Frame the full horizontal 2R workspace, not only the nominal circle.
     // A mild perspective keeps the default assembly readable in the same view.
-    camera: { projection: 'perspective', fov: 20, position: [3.9, 2.2, -4.6], target: [0, 0.4, 0], span: 4.3 },
+    camera: { projection: 'perspective', fov: 30, position: [2.29, 2.35, -3.97], target: [0, 0.35, 0], span: 4.65 },
     readouts: () => readouts,
     legend: {
-      en: 'Horizontal plane, two rotary joints; inertial payload. Gravity does not produce in-plane joint torque in this model. Mass plates attach at 5 s (15 kg) and 8 s (+5 kg), without impact. Gray: unloaded measured path; teal: recent loaded path; dashed: reference; amber ring: target. Joint colors match the graphs.',
-      ko: '수평면의 회전 2관절 모델에 관성 부하를 적용합니다. 중력은 이 모델에서 평면 내 관절 토크를 만들지 않습니다. 질량판은 5초에 15 kg, 8초에 5 kg이 충격 없이 추가됩니다. 회색: 무부하 실제 궤적, 청록: 최근 부하 궤적, 점선: 기준 궤적, 주황 고리: 목표점. 관절색은 그래프와 같습니다.',
+      en: 'Horizontal plane, two rotary joints; inertial payload. Gravity does not produce in-plane joint torque in this model. Mass plates attach at 5 s (15 kg) and 8 s (+5 kg), without impact. Teal vertical dashes and small planar chevron: nonphysical projection of the short tool onto the measured-path plane (Y=0.06), with no vertical degree of freedom. Mesh clearance is presentation only; the plant has no collision physics. Gray: unloaded measured path; teal: recent loaded path; dark dashed: reference; amber ring: target. Joint colors match the graphs.',
+      ko: '수평면의 회전 2관절 모델에 관성 부하를 적용합니다. 중력은 이 모델에서 평면 내 관절 토크를 만들지 않습니다. 질량판은 5초에 15 kg, 8초에 5 kg이 충격 없이 추가됩니다. 청록 수직 점선과 작은 평면 표식은 짧은 공구를 실제 궤적 평면(Y=0.06)에 나타내는 비물리적 투영 표시입니다. 수직 자유도는 없으며 형상 간격은 표시용으로, 충돌 동역학은 모델에 포함되지 않습니다. 회색: 무부하 실제 궤적, 청록: 최근 부하 궤적, 검은 점선: 기준 궤적, 주황 고리: 목표점. 관절색은 그래프와 같습니다.',
     },
     update(state) {
       if (!state || !state.q.every(Number.isFinite)) return;
       const [l1, l2] = state.lengths;
       shoulder.rotation.y = -state.q[0];
-      upper.scale.x = l1;
-      elbow.position.set(l1, 0.06, 0);
+      resizeSculptedLink(upper, l1);
+      elbow.position.set(l1, 0.31, 0);
       elbow.rotation.y = -state.q[1];
-      lower.scale.x = l2;
+      resizeSculptedLink(lower, l2);
       tool.position.set(l2, 0, 0);
       payload.visible = state.payload > 0;
       massPlates.forEach((plate, i) => { plate.visible = state.payload >= (i + 1) * 5; });
@@ -136,45 +139,48 @@ function contactModel() {
   stage.userData.environment = true;
   housing(root, 'test-bed', [3.12, 0.065, 0.92], [0.05, -0.0325, 0], 'aluminium');
   for (const z of [-0.31, 0.31]) housing(root, 'bed-t-slot', [2.96, 0.007, 0.018], [0.05, 0.004, z], 'dark-metal');
-  pedestal(root, -1.2);
-  // The articulated support is FIXED. Only the existing plant's single
-  // prismatic coordinate moves; there is no invented multi-joint dynamics.
-  const support = group('fixed-articulated-support');
-  root.add(support);
-  const joints = [[-1.2, 0.57, 0], [-0.90, 1.12, 0], [-0.32, 0.67, 0]];
+  const base = group('robot-base'); root.add(base);
+  housing(base, 'base-plate', [0.52, 0.055, 0.50], [-1.16, 0.0275, -0.12], 'dark-metal');
+  turned(base, 'base-column', [[0, 0], [0.21, 0], [0.21, 0.035], [0.16, 0.075],
+    [0.14, 0.26], [0.12, 0.32], [0, 0.32]], [-1.16, 0.055, -0.12],
+    finish('paint', { color: 0xe5e3d9 }));
+  // A locked casting carries the drive manifold itself. The two apparent
+  // rotary joints are fixed setup clamps, never extra plant coordinates.
+  const support = group('fixed-articulated-support'); root.add(support);
+  const joints = [[-1.16, 0.33, -0.12], [-0.88, 0.91, -0.12], [-0.29, 0.50, -0.12]];
   for (let i = 0; i < joints.length; i++) {
-    const joint = cylinder(support, `support-joint-${i}`, 0.115, 0.22, joints[i], finish('dark-metal'));
-    joint.rotation.x = Math.PI / 2;
-    for (const sign of [-1, 1]) {
-      const plate = flange(support, `support-locking-plate-${i}`, 0.13, 0.025,
-        [joints[i][0], joints[i][1], sign * 0.125], 'aluminium', 0.043);
-      plate.rotation.x = Math.PI / 2;
-      const bolts = fasteners(support, `support-clamp-bolts-${i}`, 0.092,
-        [joints[i][0], joints[i][1], sign * 0.142], 6, 0.012);
-      bolts.rotation.x = sign * Math.PI / 2;
-    }
     if (i) {
       const a = new T.Vector3().fromArray(joints[i - 1]), b = new T.Vector3().fromArray(joints[i]);
-      const mid = a.clone().add(b).multiplyScalar(0.5), length = a.distanceTo(b);
-      for (const z of [-0.085, 0.085]) {
-        const beam = housing(support, `support-link-web-${i}`, [length - 0.10, 0.115, 0.05],
-          [mid.x, mid.y, z], 'paint');
-        beam.rotation.z = Math.atan2(b.y - a.y, b.x - a.x);
-      }
-      const spine = housing(support, `support-link-spine-${i}`, [length - 0.18, 0.06, 0.15], mid.toArray(), 'aluminium');
-      spine.rotation.z = Math.atan2(b.y - a.y, b.x - a.x);
+      const shell = sculptedLink(support, `support-link-shell-${i}`, a.distanceTo(b), {
+        rootRadius: i === 1 ? 0.18 : 0.145, tipRadius: i === 1 ? 0.145 : 0.13,
+        depth: 0.30, material: finish('paint', { color: 0xe5e3d9 }),
+      });
+      shell.position.copy(a); shell.rotation.z = Math.atan2(b.y - a.y, b.x - a.x);
     }
+    const joint = cylinder(support, `support-joint-${i}`, i ? 0.112 : 0.14, 0.055,
+      [joints[i][0], joints[i][1], 0.045], finish('dark-metal'));
+    joint.rotation.x = Math.PI / 2;
+    const face = flange(support, `support-locking-plate-${i}`, i ? 0.082 : 0.103, 0.015,
+      [joints[i][0], joints[i][1], 0.08], 'aluminium', 0.025);
+    face.rotation.x = Math.PI / 2;
   }
-  cable(support, 'fixed-support-loom', [[-1.30, 0.29, -0.15], [-1.29, 0.61, -0.16],
-    [-0.96, 1.16, -0.16], [-0.80, 1.16, -0.16], [-0.32, 0.68, -0.20]], 0.018);
-  housing(root, 'linear-axis-mount', [0.22, 0.33, 0.40], [-0.34, 0.55, 0], 'dark-metal');
-  housing(root, 'linear-rail-bed', [1.56, 0.09, 0.39], [0.42, 0.36, 0], 'aluminium');
+  const carrier = horizontalLink(support, 'linear-carrier', 1.53, 0.15, 0.12, 0.18);
+  carrier.position.set(-0.34, 0.28, 0);
+  // A single rail bed seats on the cast carrier; guide blocks travel above it.
+  housing(support, 'linear-rail-bed', [1.48, 0.035, 0.31], [0.46, 0.3775, 0], 'aluminium');
+  const drive = sculptedLink(support, 'linear-drive-housing', 0.28, {
+    rootRadius: 0.13, tipRadius: 0.13, depth: 0.25,
+    material: finish('paint', { color: 0xe5e3d9 }),
+  });
+  drive.rotation.x = Math.PI / 2; drive.position.set(-0.61, 0.43, -0.02);
+  const driveCap = cylinder(support, 'linear-drive-cap', 0.095, 0.025, [-0.72, 0.43, -0.02], finish('dark-metal'));
+  driveCap.rotation.z = Math.PI / 2;
   for (const z of [-0.13, 0.13]) {
-    rod(root, 'linear-guide', [-0.25, 0.47, z], [1.16, 0.47, z], 0.024, finish('steel'));
-    for (const x of [-0.26, 1.17]) housing(root, 'rail-end-support', [0.08, 0.14, 0.10], [x, 0.47, z], 'dark-metal');
+    rod(support, 'linear-guide', [-0.25, 0.47, z], [1.16, 0.47, z], 0.024, finish('steel'));
+    for (const x of [-0.26, 1.17]) housing(support, 'rail-end-support', [0.08, 0.14, 0.10], [x, 0.44, z], 'dark-metal');
   }
-  // A static drive housing is not a second animated screw/rotor state.
-  housing(root, 'linear-drive-housing', [0.28, 0.15, 0.18], [-0.37, 0.43, 0], 'paint');
+  housing(support, 'carrier-end-foot', [0.21, 0.23, 0.32], [1.16, 0.115, 0],
+    finish('paint', { color: 0xe5e3d9 }));
   const tool = group('tool-tip');
   root.add(tool);
   housing(tool, 'carriage', [0.27, 0.19, 0.36], [-0.32, -0.04, 0], 'aluminium');
