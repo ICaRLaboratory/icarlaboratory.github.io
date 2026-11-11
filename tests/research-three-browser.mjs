@@ -450,19 +450,19 @@ export async function runResearchThreeChecks(browser, base, screenshotDir, { cam
       assert.match(report.legend.en, /inertial payload/i);
       assert.match(report.legend.ko, /수평면/);
     });
-    await check('contact: a fixed support carries a single linear carriage with actual force and travel readouts', async () => {
+    await check('contact: a bench-mounted direct-drive stage carries one linear carriage with actual force and travel readouts', async () => {
       const report = await page.evaluate(async () => {
         const { createResearchModel } = await import('./assets/research-three.js');
         const model = createResearchModel('contact'), saved = window.__researchDefs.contact.visualState(window.__researchParams.contact);
         const get = name => model.root.getObjectByName(name);
-        const parts = ['linear-rail-bed', 'linear-carrier-shell', 'linear-drive-housing', 'carriage-bearing-block', 'force-sensor', 'sensor-connector',
-          'sensor-cable-loom', 'support-link-shell-1', 'support-link-shell-2', 'wall-guide-rod', 'wall-damper-body'];
+        const parts = ['linear-rail-bed', 'direct-drive-stator', 'direct-drive-forcer', 'carriage-saddle', 'carriage-bearing-front', 'force-sensor', 'sensor-connector',
+          'sensor-cable-loom', 'stage-left-foot', 'stage-right-foot', 'wall-guide-rod', 'wall-damper-body'];
         const structure = parts.map(name => ({ name, exists: !!get(name), finish: get(name)?.material?.userData.finish }));
         const readouts = model.readouts?.(), states = [saved,
           Object.freeze({ ...saved, position: -0.02, force: 0 }),
           Object.freeze({ ...saved, position: 0.012, force: 17.625 }),
           Object.freeze({ ...saved, position: 0.075, force: 125, mode: 'impedance' })];
-        const support = get('fixed-articulated-support');
+        const support = get('fixed-linear-stage');
         model.root.updateMatrixWorld(true);
         const supportMatrices = new Map();
         support.traverse(o => supportMatrices.set(o, JSON.stringify(o.matrixWorld.toArray())));
@@ -503,7 +503,8 @@ export async function runResearchThreeChecks(browser, base, screenshotDir, { cam
       }
       assert(report.stableGeometry && report.finite, 'updates retain finite hardware and material identity');
       assert.match(report.legend.en, /single.axis/i);
-      assert.match(report.legend.en, /support stays fixed/i);
+      assert.match(report.legend.en, /direct.drive.*fixed guides/i);
+      assert.match(report.legend.en, /admittance.*feedback.*impedance.*measurement only/i);
       assert.match(report.legend.en, /12 times/);
     });
     for (const id of ['track', 'contact']) {
@@ -547,7 +548,7 @@ export async function runResearchThreeChecks(browser, base, screenshotDir, { cam
           const { model, camera, renderer } = window.__researchViews[id];
           const rect = renderer.domElement.getBoundingClientRect();
           const production = createApparatusCamera(model.camera, rect.width / rect.height);
-          const names = id === 'track' ? ['robot-base', 'shoulder'] : ['robot-base', 'fixed-articulated-support', 'contact-wall', 'wall-backplate'];
+          const names = id === 'track' ? ['robot-base', 'shoulder'] : ['test-bed', 'fixed-linear-stage', 'contact-wall', 'wall-backplate'];
           model.root.updateMatrixWorld(true);
           const outside = [];
           for (const property of ['projectionMatrix', 'matrixWorldInverse']) {

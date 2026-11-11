@@ -17,35 +17,47 @@ function controller(id) {
   def.reset(P); def.tune?.(P);
   return { def, P };
 }
-test('contact: smooth fixed castings connect the base directly to the integrated linear carrier', () => {
+test('contact: a bench-mounted direct-drive stage has a continuous load path and no rotary-arm silhouette', () => {
   const { def, P } = controller('contact'), model = createResearchModel('contact');
   model.update(def.visualState(P)); model.root.updateMatrixWorld(true);
-  const first = part(model, 'support-link-shell-1'), second = part(model, 'support-link-shell-2');
-  const carrier = part(model, 'linear-carrier-shell'), drive = part(model, 'linear-drive-housing');
-  for (const mesh of [first, second, carrier, drive]) {
-    assert(mesh.geometry.index?.count > 6000, `${mesh.name}: smooth closed volume rather than two plate webs`);
-    assert.equal(mesh.material.userData.finish, 'paint');
+  model.root.traverse(o => assert(!/articulated|support-link|support-joint|locking-plate|linear-carrier-shell|base-column/.test(o.name),
+    `${o.name}: a scalar contact plant must not look like a locked rotary robot`));
+  const fixed = model.root.getObjectByName('fixed-linear-stage');
+  assert(fixed?.isGroup, 'one fixed bench stage, not articulated links');
+  // Actual triangle crossings at mounting faces, not overlapping AABBs.
+  const seated = (lower, upper, x, z) => {
+    const a = intervals(part(model, lower), x, z), b = intervals(part(model, upper), x, z);
+    assert(a.some(([lo, hi]) => b.some(([bottom, top]) =>
+      Math.min(hi, top) >= Math.max(lo, bottom) - 1e-6)), `${lower}/${upper}: solid mounting contact`);
+  };
+  for (const [foundation, foot, x] of [['test-bed', 'stage-left-foot', -.24], ['wall-foot', 'stage-right-foot', 1.14]]) {
+    for (const dx of [-.025, .025]) for (const z of [-.08, .08]) {
+      seated(foundation, foot, x + dx, z);
+      seated(foot, 'linear-rail-bed', x + dx, z);
+    }
   }
-  assert(bounds(first).intersectsBox(bounds(part(model, 'base-column'))), 'support load path starts in the base');
-  assert(bounds(first).intersectsBox(bounds(second)), 'fixed links share the locked elbow');
-  assert(bounds(second).intersectsBox(bounds(drive)), 'distal support ends in the drive manifold');
-  assert(bounds(drive).intersectsBox(bounds(carrier)), 'drive and rail form one carrier, not separate apparatus');
-  // Shared solid mounting regions prove a load path through the actual skins.
-  for (const [a, b, x, y, z] of [
-    [part(model, 'base-column'), first, -1.16, .27, -.12],
-    [first, second, -.88, .91, -.12],
-    [second, drive, -.32, .47, -.10],
-    [drive, carrier, -.39, .35, -.02],
-  ]) for (const mesh of [a, b]) {
-    assert(intervals(mesh, x, z).some(([lo, hi]) => y > lo && y < hi), `${mesh.name}: actual mounted skin at ${x},${y},${z}`);
+  for (const z of [-.13, .13]) for (const x of [-.26, 1.17]) {
+    const suffix = `${x < 0 ? 'left' : 'right'}-${z < 0 ? 'rear' : 'front'}`;
+    seated('linear-rail-bed', `rail-end-support-${suffix}`, x + .009, z + .008);
+    seated(`rail-end-support-${suffix}`, `linear-guide-${z < 0 ? 'rear' : 'front'}`, x + .009, z + .008);
   }
-  const fixed = model.root.getObjectByName('fixed-articulated-support');
+  for (const x of [-.1, .5, 1.05]) seated('linear-rail-bed', 'direct-drive-stator', x, .013);
+  const initial = def.visualState(P);
+  for (const position of [-.03, -.02, 0, .02, .055]) {
+    model.update(Object.freeze({ ...initial, position })); model.root.updateMatrixWorld(true);
+    assertContactLoadPath(model);
+  }
   const transforms = new Map(); fixed.traverse(o => transforms.set(o, o.matrixWorld.clone()));
   for (let step = 0; step < 361; step++) {
     model.update(def.visualState(P)); model.root.updateMatrixWorld(true);
-    for (const [o, matrix] of transforms) assert.deepEqual(o.matrixWorld.elements, matrix.elements, 'articulated support never animates');
+    for (const [o, matrix] of transforms) assert.deepEqual(o.matrixWorld.elements, matrix.elements, 'linear stage foundation never animates');
     if (!def.done(P)) def.advance(P, 1 / 60);
   }
+  assert.match(model.legend.en, /single.axis.*direct.drive/i);
+  assert.match(model.legend.en, /admittance.*feedback.*impedance.*measurement only/i);
+  assert.match(model.legend.en, /12 times/);
+  assert.match(model.legend.ko, /직동/);
+  assert.match(model.legend.ko, /어드미턴스.*피드백.*임피던스.*측정/);
 });
 
 const near = (actual, expected, message, epsilon = 1e-6) => assert(Math.abs(actual - expected) < epsilon, `${message}: ${actual} != ${expected}`);
@@ -107,30 +119,79 @@ test('SCARA: real controller snapshots retain exact FK, path heights, fixed-size
   assert.deepEqual(kg, [0, 0, 15, 15, 20, 20]);
 });
 
-test('contact: real approach and compression expose the force cell and physical probe from the production camera', () => {
+test('contact: the sensor lead terminates on the translating carriage rather than floating above it', () => {
   const { def, P } = controller('contact'), model = createResearchModel('contact');
-  const camera = createApparatusCamera(model.camera, 1.7213671344499772);
-  let firstContact = false, samples = 0;
-  for (let step = 0; step <= 361; step++) {
-    const state = def.visualState(P);
-    if (!step || state.force > 0 && !firstContact || step % 30 === 0) {
-      firstContact ||= state.force > 0; samples++;
-      model.update(state); model.root.updateMatrixWorld(true);
-      const sensor = part(model, 'force-sensor'), pad = part(model, 'contact-pad');
-      assert.equal(firstOpaque(model, camera, sensor.getWorldPosition(new T.Vector3())), sensor, 'unobstructed force cell');
-      for (const y of [-.045, 0, .045]) {
-        const point = pad.localToWorld(new T.Vector3(0, y, .095));
-        assert.equal(firstOpaque(model, camera, point), pad, 'probe silhouette is not covered by fixed support or wall');
+  model.update(def.visualState(P)); model.root.updateMatrixWorld(true);
+  const loom = part(model, 'sensor-cable-loom');
+  const endpoint = loom.localToWorld(loom.geometry.parameters.path.getPoint(1));
+  assert(intervals(part(model, 'carriage'), endpoint.x, endpoint.z).some(([lo, hi]) => endpoint.y > lo && endpoint.y < hi),
+    'the cable return must terminate inside its moving mounting block');
+});
+
+test('contact: the static camera centers the compact bench and frames the full permitted stroke', () => {
+  const { def, P } = controller('contact'), model = createResearchModel('contact');
+  const initial = def.visualState(P), specification = JSON.stringify(model.camera);
+  for (const D of [{ w: 780, h: 620 }, { w: 380, h: 1010 }]) {
+    const box = def.visualBox(D), camera = createApparatusCamera(model.camera, box.w / box.h);
+    model.update(initial); model.root.updateMatrixWorld(true);
+    const vertices = part(model, 'test-bed').geometry.getAttribute('position');
+    const xs = Array.from({ length: vertices.count }, (_, i) => new T.Vector3().fromBufferAttribute(vertices, i)
+      .applyMatrix4(part(model, 'test-bed').matrixWorld).project(camera).x);
+    const mid = (Math.min(...xs) + Math.max(...xs)) / 2;
+    assert(Math.abs(mid) < .08, `center the shorter bench instead of reserving space for a removed arm: ${mid}`);
+    assert(Math.max(...xs) - Math.min(...xs) > .85, 'retain the existing minimum compact-view framing budget');
+    for (const position of [-.03, -.02, 0, .02, .055]) for (const mode of ['admittance', 'impedance']) {
+      for (const command of [-125, 125]) {
+        model.update(Object.freeze({ ...initial, position, mode, reference: position, force: 125, command }));
+        model.root.updateMatrixWorld(true);
+        model.root.traverseVisible(o => {
+          if (!o.geometry) return;
+          for (let n = o; n; n = n.parent) if (n.userData.environment) return;
+          const positions = o.geometry.getAttribute('position');
+          for (let i = 0; i < positions.count; i++) {
+            const p = new T.Vector3().fromBufferAttribute(positions, i).applyMatrix4(o.matrixWorld).project(camera);
+            assert(p.toArray().every(Number.isFinite) && Math.abs(p.x) <= .98 && Math.abs(p.y) <= .98 && Math.abs(p.z) <= 1,
+              `${o.name}: full carriage/wall travel must fit with margins: ${p.toArray()}`);
+          }
+        });
+        assert.equal(JSON.stringify(model.camera), specification, 'no state-dependent camera refit');
       }
-      const tip = model.root.getObjectByName('tool-tip');
-      near(tip.position.x, .65 + 12 * Math.max(-.03, Math.min(.055, state.position)), '12x travel');
-      near(tip.position.y, .67, 'fixed contact height'); near(tip.position.z, 0, 'single motion axis');
-      const wall = model.root.getObjectByName('contact-wall');
-      near(wall.position.x, .65 + 12 * Math.max(-.03, Math.min(.055, Math.max(state.wall, state.position))), 'real wall compression');
     }
-    if (!def.done(P)) def.advance(P, 1 / 60);
   }
-  assert(firstContact && samples > 10);
+});
+
+test('contact: real approach and compression expose the force cell and physical probe from the production camera', () => {
+  const { def, P: defaults } = controller('contact'), model = createResearchModel('contact');
+  const cameras = [{ w: 780, h: 620 }, { w: 380, h: 1010 }].map(D => {
+    const box = def.visualBox(D); return createApparatusCamera(model.camera, box.w / box.h);
+  });
+  for (const mode of ['admittance', 'impedance']) {
+    const P = Object.freeze({ ...defaults, mode }); def.reset(P); def.tune(P);
+    let firstContact = false, samples = 0;
+    for (let step = 0; step <= 361; step++) {
+      const state = def.visualState(P), saved = JSON.stringify(state);
+      if (!step || state.force > 0 && !firstContact || step % 30 === 0) {
+        firstContact ||= state.force > 0; samples++;
+        model.update(state); model.root.updateMatrixWorld(true);
+        const sensor = part(model, 'force-sensor'), pad = part(model, 'contact-pad');
+        for (const camera of cameras) {
+          assert.equal(firstOpaque(model, camera, sensor.getWorldPosition(new T.Vector3())), sensor, 'unobstructed force cell');
+          for (const x of [-.012, 0, .012]) for (const y of [-.05, 0, .05]) {
+            const point = pad.localToWorld(new T.Vector3(x, y, .098));
+            assert.equal(firstOpaque(model, camera, point), pad, 'probe silhouette is not covered by the stage or wall');
+          }
+        }
+        const tip = model.root.getObjectByName('tool-tip');
+        near(tip.position.x, .65 + 12 * Math.max(-.03, Math.min(.055, state.position)), '12x travel');
+        near(tip.position.y, .67, 'fixed contact height'); near(tip.position.z, 0, 'single motion axis');
+        const wall = model.root.getObjectByName('contact-wall');
+        near(wall.position.x, .65 + 12 * Math.max(-.03, Math.min(.055, Math.max(state.wall, state.position))), 'real wall compression');
+        assert.equal(JSON.stringify(state), saved, 'visibility checks do not mutate frozen plant snapshots');
+      }
+      if (!def.done(P)) def.advance(P, 1 / 60);
+    }
+    assert(firstContact && samples > 10, `${mode}: include reset, first contact and representative compression`);
+  }
 });
 const bounds = mesh => new T.Box3().setFromObject(mesh);
 function part(model, name) {
@@ -148,6 +209,63 @@ function intervals(mesh, x, z) {
     .filter((y, i, values) => !i || y - values[i - 1] > 1e-6);
   mesh.material.side = side;
   return hits.flatMap((y, i) => i % 2 ? [] : [[y, hits[i + 1] ?? y]]);
+}
+function axialIntervals(mesh, y, z) {
+  const side = mesh.material.side; mesh.material.side = T.DoubleSide;
+  const hits = new T.Raycaster(new T.Vector3(4, y, z), new T.Vector3(-1, 0, 0))
+    .intersectObject(mesh, false).map(hit => hit.point.x).sort((a, b) => a - b)
+    .filter((x, i, values) => !i || x - values[i - 1] > 1e-6);
+  mesh.material.side = side;
+  return hits.flatMap((x, i) => i % 2 ? [] : [[x, hits[i + 1] ?? x]]);
+}
+function assertContactLoadPath(model) {
+  const tip = model.root.getObjectByName('tool-tip').position;
+  const saddle = part(model, 'carriage-saddle'), carriage = part(model, 'carriage');
+  const stator = part(model, 'direct-drive-stator'), forcer = part(model, 'direct-drive-forcer');
+  const seated = (a, b, x, z) => assert(intervals(a, x, z).some(([lo, hi]) =>
+    intervals(b, x, z).some(([bottom, top]) => Math.min(hi, top) - Math.max(lo, bottom) > .001)),
+  `${a.name}/${b.name}: connected actual solids`);
+  for (const side of ['rear', 'front']) {
+    const rail = part(model, `linear-guide-${side}`), bearing = part(model, `carriage-bearing-${side}`);
+    const centre = bearing.getWorldPosition(new T.Vector3());
+    const r = bounds(rail), b = bounds(bearing);
+    assert(r.min.x < b.min.x - .02 && r.max.x > b.max.x + .02, 'bearing remains on its guide throughout permitted travel');
+    near(centre.y, .255, 'bearing and guide share the fixed centreline');
+    assert.deepEqual(axialIntervals(bearing, centre.y + .005, centre.z + .004), [], 'actual through bore, not a rod buried inside a solid block');
+    assert(axialIntervals(rail, centre.y + .005, centre.z + .004).length, 'guide passes through the bearing bore');
+    assert(axialIntervals(bearing, centre.y + .04, centre.z + .006).length, 'bearing has an actual load-bearing sleeve');
+    // The running fit touches the real triangulated bore within 0.1 mm;
+    // this is visual mounting clearance, not an added contact-physics model.
+    for (const z of [centre.z - .008, centre.z + .008]) {
+      const sleeve = intervals(bearing, centre.x + .013, z), guide = intervals(rail, centre.x + .013, z);
+      assert.equal(sleeve.length, 2); assert.equal(guide.length, 1);
+      near(sleeve[0][1], guide[0][0], 'lower running fit', .0001);
+      near(sleeve[1][0], guide[0][1], 'upper running fit', .0001);
+      seated(bearing, saddle, centre.x + .013, z);
+    }
+  }
+  for (const z of [-.03, .03]) {
+    seated(saddle, carriage, tip.x - .32, z);
+    seated(forcer, saddle, tip.x - .32, z);
+  }
+  const a = bounds(stator), b = bounds(forcer);
+  assert(b.min.y - a.max.y > .01 && b.min.y - a.max.y < .03, 'direct-drive air gap, no screw or rotary motor');
+  assert(a.min.x < b.min.x && a.max.x > b.max.x, 'forcer stays over its stator for the whole stroke');
+  for (const [dy, z] of [[.009, .011], [-.013, -.009]]) {
+    const chain = ['carriage', 'tool-shaft', 'force-sensor', 'contact-pad']
+      .map(name => axialIntervals(part(model, name), tip.y + dy, z));
+    assert(chain.every(spans => spans.length === 1), 'solid carriage/shaft/cell/pad sections');
+    for (let i = 1; i < chain.length; i++) assert(chain[i][0][0] <= chain[i - 1][0][1] + 1e-6,
+      'no floating shaft, force cell or contact pad');
+    near(chain.at(-1)[0][1], tip.x, 'pad contact face remains the exact model-mapped tool X');
+  }
+  for (const fixed of ['linear-rail-bed', 'direct-drive-stator', 'rail-end-support-left-front', 'rail-end-support-right-front',
+    'rail-end-support-left-rear', 'rail-end-support-right-rear']) {
+    for (const moving of ['carriage', 'carriage-saddle', 'direct-drive-forcer', 'force-sensor', 'contact-pad']) {
+      assert.equal(interiorOverlap(part(model, fixed), part(model, moving)), null, `${moving} clears ${fixed}`);
+    }
+    assert.equal(interiorOverlap(part(model, fixed), part(model, 'wall-face')), null, `${fixed} clears the deforming wall`);
+  }
 }
 function interiorOverlap(a, b) {
   const overlap = bounds(a).intersect(bounds(b));
@@ -343,7 +461,7 @@ test('SCARA: reset and analytical fully folded housings do not occupy the same s
   }
 });
 
-test('contact: all supported controller slider corners preserve the single moving assembly and clear fixed castings', () => {
+test('contact: all supported controller slider corners preserve the single moving assembly and clear the fixed stage', () => {
   const { def, P: defaults } = controller('contact'), model = createResearchModel('contact');
   const settings = [];
   for (const mode of ['admittance', 'impedance']) {
@@ -355,7 +473,7 @@ test('contact: all supported controller slider corners preserve the single movin
     settings.push(...corners);
   }
   assert.equal(settings.length, 48);
-  const support = model.root.getObjectByName('fixed-articulated-support');
+  const support = model.root.getObjectByName('fixed-linear-stage');
   model.root.updateMatrixWorld(true);
   const fixed = new Map(); support.traverse(o => fixed.set(o, o.matrixWorld.toArray()));
   let snapshots = 0, clipped = 0;
@@ -371,9 +489,10 @@ test('contact: all supported controller slider corners preserve the single movin
         assert.equal(model.readouts().find(r => r.id === 'position').value, `${(state.position * 1000).toFixed(2)} mm`);
         assert.equal(model.readouts().find(r => r.id === 'force').value, `${state.force.toFixed(2)} N`);
         for (const [o, matrix] of fixed) assert.deepEqual(o.matrixWorld.toArray(), matrix, `${o.name} remains fixed`);
-        for (const name of ['linear-carrier-shell', 'linear-drive-housing', 'support-link-shell-2']) {
-          assert.equal(interiorOverlap(part(model, 'carriage'), part(model, name)), null, 'moving saddle clears fixed castings');
+        for (const name of ['linear-rail-bed', 'direct-drive-stator', 'stage-left-foot', 'stage-right-foot']) {
+          assert.equal(interiorOverlap(part(model, 'carriage'), part(model, name)), null, 'moving saddle clears the fixed stage');
         }
+        assertContactLoadPath(model);
         if (state.position < -.03 || state.position > .055) clipped++;
         assert.equal(JSON.stringify(state), saved);
       }

@@ -135,58 +135,42 @@ function trackingModel() {
 
 function contactModel() {
   const root = group('research-contact-robot');
-  const stage = floor(root, 3.5, 1.45, -0.10);
+  const stage = floor(root, 2.6, 1.45, -0.10);
   stage.userData.environment = true;
-  housing(root, 'test-bed', [3.12, 0.065, 0.92], [0.05, -0.0325, 0], 'aluminium');
-  for (const z of [-0.31, 0.31]) housing(root, 'bed-t-slot', [2.96, 0.007, 0.018], [0.05, 0.004, z], 'dark-metal');
-  const base = group('robot-base'); root.add(base);
-  housing(base, 'base-plate', [0.52, 0.055, 0.50], [-1.16, 0.0275, -0.12], 'dark-metal');
-  turned(base, 'base-column', [[0, 0], [0.21, 0], [0.21, 0.035], [0.16, 0.075],
-    [0.14, 0.26], [0.12, 0.32], [0, 0.32]], [-1.16, 0.055, -0.12],
-    finish('paint', { color: 0xe5e3d9 }));
-  // A locked casting carries the drive manifold itself. The two apparent
-  // rotary joints are fixed setup clamps, never extra plant coordinates.
-  const support = group('fixed-articulated-support'); root.add(support);
-  const joints = [[-1.16, 0.33, -0.12], [-0.88, 0.91, -0.12], [-0.29, 0.50, -0.12]];
-  for (let i = 0; i < joints.length; i++) {
-    if (i) {
-      const a = new T.Vector3().fromArray(joints[i - 1]), b = new T.Vector3().fromArray(joints[i]);
-      const shell = sculptedLink(support, `support-link-shell-${i}`, a.distanceTo(b), {
-        rootRadius: i === 1 ? 0.18 : 0.145, tipRadius: i === 1 ? 0.145 : 0.13,
-        depth: 0.30, material: finish('paint', { color: 0xe5e3d9 }),
-      });
-      shell.position.copy(a); shell.rotation.z = Math.atan2(b.y - a.y, b.x - a.x);
-    }
-    const joint = cylinder(support, `support-joint-${i}`, i ? 0.112 : 0.14, 0.055,
-      [joints[i][0], joints[i][1], 0.045], finish('dark-metal'));
-    joint.rotation.x = Math.PI / 2;
-    const face = flange(support, `support-locking-plate-${i}`, i ? 0.082 : 0.103, 0.015,
-      [joints[i][0], joints[i][1], 0.08], 'aluminium', 0.025);
-    face.rotation.x = Math.PI / 2;
-  }
-  const carrier = horizontalLink(support, 'linear-carrier', 1.53, 0.15, 0.12, 0.18);
-  carrier.position.set(-0.34, 0.28, 0);
-  // A single rail bed seats on the cast carrier; guide blocks travel above it.
-  housing(support, 'linear-rail-bed', [1.48, 0.035, 0.31], [0.46, 0.3775, 0], 'aluminium');
-  const drive = sculptedLink(support, 'linear-drive-housing', 0.28, {
-    rootRadius: 0.13, tipRadius: 0.13, depth: 0.25,
-    material: finish('paint', { color: 0xe5e3d9 }),
-  });
-  drive.rotation.x = Math.PI / 2; drive.position.set(-0.61, 0.43, -0.02);
-  const driveCap = cylinder(support, 'linear-drive-cap', 0.095, 0.025, [-0.72, 0.43, -0.02], finish('dark-metal'));
-  driveCap.rotation.z = Math.PI / 2;
+  housing(root, 'test-bed', [2.20, 0.065, 0.92], [0.51, -0.0325, 0], 'aluminium');
+  for (const z of [-0.31, 0.31]) housing(root, 'bed-t-slot', [2.04, 0.007, 0.018], [0.51, 0.004, z], 'dark-metal');
+  // A bench-mounted linear motor, not a locked manipulator. Its two guide
+  // shafts and stator sit below the passive wall's full deformation envelope.
+  const support = group('fixed-linear-stage'); root.add(support);
+  housing(support, 'stage-left-foot', [0.20, 0.11, 0.38], [-0.24, 0.055, 0], 'dark-metal');
+  // The right mount seats on the wall's fixed foundation, not its moving face.
+  housing(support, 'stage-right-foot', [0.20, 0.05, 0.38], [1.14, 0.085, 0], 'dark-metal');
+  housing(support, 'linear-rail-bed', [1.60, 0.065, 0.40], [0.46, 0.1325, 0], 'aluminium');
+  housing(support, 'direct-drive-stator', [1.30, 0.05, 0.12], [0.47, 0.19, 0], 'dark-metal');
   for (const z of [-0.13, 0.13]) {
-    rod(support, 'linear-guide', [-0.25, 0.47, z], [1.16, 0.47, z], 0.024, finish('steel'));
-    for (const x of [-0.26, 1.17]) housing(support, 'rail-end-support', [0.08, 0.14, 0.10], [x, 0.44, z], 'dark-metal');
+    const side = z < 0 ? 'rear' : 'front';
+    rod(support, `linear-guide-${side}`, [-0.29, 0.255, z], [1.20, 0.255, z], 0.024, finish('steel'));
+    for (const x of [-0.26, 1.17]) {
+      const end = x < 0 ? 'left' : 'right';
+      housing(support, `rail-end-support-${end}-${side}`, [0.06, 0.17, 0.10], [x, 0.235, z], 'paint');
+      fasteners(support, `guide-mount-bolts-${end}-${side}`, 0.018, [x, 0.322, z], 2, 0.009);
+    }
   }
-  housing(support, 'carrier-end-foot', [0.21, 0.23, 0.32], [1.16, 0.115, 0],
-    finish('paint', { color: 0xe5e3d9 }));
   const tool = group('tool-tip');
   root.add(tool);
-  housing(tool, 'carriage', [0.27, 0.19, 0.36], [-0.32, -0.04, 0], 'aluminium');
+  // All moving hardware belongs to the same prismatic frame. The forcer has
+  // an air gap above the stator; bored sleeves carry the saddle on both rails.
+  housing(tool, 'direct-drive-forcer', [0.22, 0.11, 0.11], [-0.32, -0.385, 0], 'paint');
+  housing(tool, 'carriage-saddle', [0.27, 0.08, 0.38], [-0.32, -0.32, 0], 'aluminium');
+  housing(tool, 'carriage', [0.27, 0.34, 0.32], [-0.32, -0.12, 0], 'aluminium');
   for (const z of [-0.13, 0.13]) {
-    housing(tool, 'carriage-bearing-block', [0.22, 0.13, 0.11], [-0.32, -0.20, z], 'dark-metal');
-    housing(tool, 'carriage-bearing-seal', [0.016, 0.12, 0.10], [-0.437, -0.20, z], 'rubber');
+    const side = z < 0 ? 'rear' : 'front';
+    const bearing = flange(tool, `carriage-bearing-${side}`, 0.065, 0.22,
+      [-0.32, -0.415, z], 'dark-metal', 0.024);
+    bearing.rotation.z = Math.PI / 2;
+    const seal = flange(tool, `carriage-bearing-seal-${side}`, 0.060, 0.012,
+      [-0.431, -0.415, z], 'rubber', 0.024);
+    seal.rotation.z = Math.PI / 2;
   }
   fasteners(tool, 'carriage-saddle-bolts', 0.10, [-0.32, 0.05, 0], 4, 0.013).rotation.y = Math.PI / 4;
   rod(tool, 'tool-shaft', [-0.20, 0, 0], [-0.12, 0, 0], 0.048, finish('steel'));
@@ -196,7 +180,7 @@ function contactModel() {
   const connector = cylinder(tool, 'sensor-connector', 0.022, 0.052, [-0.09, -0.10, 0], finish('steel'));
   connector.rotation.z = 0.18;
   cable(tool, 'sensor-cable-loom', [[-0.09, -0.13, 0], [-0.17, -0.20, 0.03],
-    [-0.39, -0.11, 0.12], [-0.48, 0.02, 0.13], [-0.41, 0.09, 0.13]], 0.009);
+    [-0.39, -0.11, 0.12], [-0.48, 0.02, 0.13], [-0.41, -0.02, 0.15]], 0.009);
   housing(tool, 'contact-pad', [0.035, 0.16, 0.20], [-0.0175, 0, 0], 'rubber');
   const wall = group('contact-wall');
   root.add(wall);
@@ -240,11 +224,11 @@ function contactModel() {
   const displayX = x => 0.65 + 12 * Math.max(-0.03, Math.min(0.055, x));
   return {
     root,
-    camera: { projection: 'orthographic', position: [-2.6, 2.2, 4.8], target: [0.04, 0.53, 0], span: 3.4 },
+    camera: { projection: 'orthographic', position: [-2.16, 2.19, 4.8], target: [0.48, 0.52, 0], span: 2.9 },
     readouts: () => readouts,
     legend: {
-      en: 'Single-axis contact model; articulated support stays fixed. Tool travel is enlarged 12 times (clipped on divergence). Teal: contact force; amber: command.',
-      ko: '접촉 1축 모델이며 관절 지지대는 고정됩니다. 공구 변위는 12배 확대하며 발산 시 표시 범위를 제한합니다. 청록: 접촉력, 주황: 명령.',
+      en: 'Single-axis direct-drive contact bench with fixed guides and one translating carriage. The passive wall is a spring and damper. Force cell: admittance feedback; impedance measurement only. Tool travel is enlarged 12 times (clipped on divergence); model metres, newtons and clock are unchanged. Teal: contact force; amber: command.',
+      ko: '직접 구동 직동 1축 접촉 시험대입니다. 고정 가이드를 따라 캐리지가 병진하며 수동 벽은 스프링과 댐퍼로 구성됩니다. 힘 센서는 어드미턴스에서 피드백, 임피던스에서는 측정용입니다. 공구 변위는 12배 확대하며 발산 시 표시 범위를 제한합니다. 모델의 미터·뉴턴 단위와 시간은 바뀌지 않습니다. 청록: 접촉력, 주황: 명령.',
     },
     update(state) {
       if (!state || !Number.isFinite(state.position)) return;

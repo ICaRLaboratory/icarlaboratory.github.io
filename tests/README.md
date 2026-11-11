@@ -102,8 +102,10 @@ surface winding, solid front faces, finite dimensions and length changes that
 retain joint radii, materials and GPU buffers. These geometry checks are separate
 from visual review at the actual apparatus viewport size.
 `research-robot-assembly.test.mjs` covers the SCARA link/joint assembly and the
-contact rig's fixed-support and prismatic-tool relationships. Changes to casing
-geometry must not be implemented by altering the plant or its state snapshots.
+contact bench's fixed linear guides, moving carriage, force cell and compliant
+wall. The single-axis contact model has no decorative rotary-arm support or
+implied joint kinematics. Changes to apparatus geometry must not alter the plant,
+its state snapshots or the actual force/displacement readouts.
 `engineering-camera.test.mjs` also verifies optional independent horizontal
 framing for narrow viewports without changing camera pose or legacy projections.
 
