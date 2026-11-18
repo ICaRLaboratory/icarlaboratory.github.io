@@ -461,6 +461,8 @@ function renderPublications() {
   if (!host) return;
 
   const every = [...JOURNAL_PAPERS, ...CONFERENCE_PAPERS];
+  const advisorNames = [ADVISOR.nameEn, ADVISOR.nameKo, "S. Y. Lee"]
+    .map(name => name.toLowerCase().split(/\s+/));
   /* Journal and Conference split by type; Domestic is a cross-cutting view of
      the Korean-venue papers, which also appear under their own type. */
   const sets = {
@@ -486,11 +488,19 @@ function renderPublications() {
   };
   const draw = () => {
     const query = search.value.toLowerCase().replace(/(^|\s)doi:\s*(?=10\.)/g, "$1");
-    const tokens = (query.match(/\S+/g) || []).map(token =>
+    const words = (query.match(/\S+/g) || []).map(token =>
       token.replace(/^https?:\/\/(?:dx\.)?doi\.org\/(?=10\.)/, ""));
+    const tokens = [];
+    let byAdvisor = false;
+    for (let i = 0; i < words.length;) {
+      const name = advisorNames.find(parts => parts.every((part, j) => part === words[i + j]));
+      if (name) { byAdvisor = true; i += name.length; }
+      else tokens.push(words[i++]);
+    }
     const papers = sets[type].filter((p) => {
       const text = [p.title, p.authors, p.venue, p.doi || ""].join(" ").toLowerCase();
       return (!yearSelect.value || String(p.year) === yearSelect.value) &&
+        (!byAdvisor || /\bS\. Y\. Lee\b/.test(p.authors)) &&
         tokens.every((token) => text.includes(token));
     });
     $("#pubresults").textContent = `${papers.length} ${papers.length === 1 ? "publication" : "publications"}`;
@@ -506,7 +516,7 @@ function renderPublications() {
           <ol class="pub-list">${papers.map(pubRow).join("")}</ol>
         </section>`)
       .join("");
-    highlightPublicationMatches(host, tokens);
+    highlightPublicationMatches(host, byAdvisor ? [...tokens, "S. Y. Lee"] : tokens);
     if (firstDraw) initReveal();
     else $$("[data-reveal]", host).forEach(el => el.removeAttribute("data-reveal"));
     firstDraw = false;

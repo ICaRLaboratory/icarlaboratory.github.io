@@ -8,6 +8,7 @@ class Section(HTMLParser):
     def __init__(self):
         super().__init__(); self.active=False; self.in_row=False; self.depth=0
         self.links=[]; self.heading=False; self.row_children=[]
+        self.in_dashboard_link=False; self.dashboard_text=[]
     def handle_starttag(self, tag, attrs):
         attrs=dict(attrs)
         if tag=='section' and attrs.get('id')=='interactive': self.active=True
@@ -18,8 +19,13 @@ class Section(HTMLParser):
         if self.in_row:
             self.depth+=1
             if self.depth==1: self.row_children.append((tag,attrs))
-        if tag=='a': self.links.append((attrs,self.in_row))
+        if tag=='a':
+            self.links.append((attrs,self.in_row))
+            self.in_dashboard_link=attrs.get('href')=='/simulators/'
+    def handle_data(self,data):
+        if self.in_dashboard_link: self.dashboard_text.append(data)
     def handle_endtag(self,tag):
+        if tag=='a': self.in_dashboard_link=False
         if tag=='section': self.active=False
         if self.in_row:
             if self.depth==0: self.in_row=False
@@ -37,7 +43,8 @@ class SimulatorLinkTest(unittest.TestCase):
         self.assertIn('chip',classes)
         self.assertIn('simulator-more',classes)
         self.assertNotIn('role',link)  # a link, not a tab
-        self.assertEqual(link.get('aria-label'),'See more control simulators')
+        self.assertEqual(''.join(p.dashboard_text).strip(),'More simulators →')
+        self.assertEqual(link.get('aria-label', 'More simulators'),'More simulators')
         # tablist and link are siblings in the row
         kinds=[(t,a.get('id') or a.get('class','')) for t,a in p.row_children]
         self.assertIn(('div','simtabs'),kinds)

@@ -28,6 +28,32 @@ export async function runPublicationChecks(browser, base) {
     assert.equal(await page.locator('[data-set="journal"]').getAttribute('aria-pressed'), 'true');
     assert.equal(await page.locator('#publist .pub').count(), data.journals);
   });
+  await check('Advisor names find the same citations and respect additional filters', async page => {
+    await page.route('**/data/publications.js', async route => {
+      const response = await route.fetch();
+      const fixture = { title: 'Other researcher', authors: 'S. Y. Leeds', venue: 'Test journal', year: 2026, detail: '2026' };
+      await route.fulfill({ response, body: `${await response.text()}\nJOURNAL_PAPERS.push(${JSON.stringify(fixture)});` });
+    });
+    await page.reload();
+    const search = page.locator('#pubsearch');
+    const titles = page.locator('#publist .pub__title');
+    const citations = page.locator('#publist .pub__authors');
+    const expected = await page.evaluate(() => [...JOURNAL_PAPERS, ...CONFERENCE_PAPERS]
+      .filter(p => /\bS\. Y\. Lee\b/.test(p.authors)).map(p => p.title).sort());
+    for (const name of ['Seok Young Lee', '이석영', 'S. Y. Lee']) {
+      await search.fill(name);
+      assert.deepEqual((await titles.allTextContents()).sort(), expected, name);
+      assert.ok((await citations.allTextContents()).every(text => text.includes('S. Y. Lee')));
+      assert.equal(new URL(page.url()).searchParams.get('q'), name);
+    }
+    const paper = await page.evaluate(() => CONFERENCE_PAPERS.find(p => p.authors.includes('S. Y. Lee')));
+    await search.fill(`이석영 ${paper.title}`);
+    await page.locator('[data-set="conference"]').click();
+    await page.locator('#pubyear').selectOption(String(paper.year));
+    await page.reload();
+    assert.deepEqual(await titles.allTextContents(), [paper.title]);
+    assert.equal(await search.inputValue(), `이석영 ${paper.title}`);
+  });
   await check('Publication year intersects type and venue search; empty results and reset retain focus', async page => {
     const paper = await page.evaluate(() => [...JOURNAL_PAPERS, ...CONFERENCE_PAPERS].find(p => p.domestic));
     await page.getByRole('button', { name: 'Domestic', exact: true }).click();
