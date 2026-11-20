@@ -51,7 +51,7 @@ python3 /home/lsy/advisor-cv/tools/publications.py check --site "$PWD"
 - 홈페이지가 전체 논문 목록이고 CV는 그 부분집합입니다. CV에 있는 논문은 반드시 홈페이지에도 있어야 하며(생성기가 검사), 국내 논문·학술대회처럼 홈페이지에만 있는 항목을 CV에 임의로 추가하지 않습니다. DOI가 없는 발표는 링크 없이 표시됩니다.
 - `S. Y. Lee` 강조, 논문 수·연도별 목록, Home 최근 논문은 생성된 데이터로 자동 갱신됩니다.
 - Publications의 기본값과 필터 초기화 상태는 **All**입니다. 검색은 제목·저자·학술지·학술대회명·DOI를 대상으로 하며, 직접 선택한 유형·연도는 검색 중에도 유지됩니다.
-- Research 시뮬레이터의 대표 논문은 `data/site.js`의 `ref: "DOI"`로 연결합니다. 논문 추가만으로 대표 논문을 교체하지 않습니다.
+- Research 시뮬레이터의 논문은 `data/site.js`의 `ref`에 DOI 하나 또는 표시 순서대로 DOI 배열을 지정합니다. 논문 추가만으로 인용을 바꾸지 않으며, 원 방법과 교육용 구현의 차이는 해당 모드의 설명에 적습니다.
 - 커밋 전 두 저장소의 변경사항을 확인하고 웹·CV를 함께 검수합니다. 홈페이지에는 생성된 JavaScript와 PDF만 공개하며, 비공개 TeX·공통 JSON·조회 기록은 복사하지 않습니다.
 
 ### 구성원 갱신
@@ -114,6 +114,8 @@ python3 -m unittest discover -s tests -p test_publish.py -v
 ```
 
 폰트 변경 시에는 [assets/fonts/README.md](assets/fonts/README.md)의 출처·라이선스를 유지하고, `tests/README.md`의 한글 커버리지·체크섬 검사를 실행합니다.
+
+연구실 심벌·로봇 사진을 다른 곳에 게시하거나 기존 폰트 서브셋을 재생성할 때는 [자료별로 남은 확인 사항](docs/research-asset-evidence.md)을 참고합니다.
 
 ## 커밋·푸시·배포 확인
 

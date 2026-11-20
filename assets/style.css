@@ -1832,6 +1832,7 @@ main:focus { outline: none; }
    of the faint fine-print colour so the paper being demonstrated is legible.
    Spans, because this lives inside the caption's <p>. */
 .pub-ref { color: var(--dim); display: grid; gap: 0.1rem; }
+.sim__foot .pub-ref + .pub-ref { margin-top: 0.7rem; }
 .pub-ref > span { display: block; }
 .pub-ref .pub__title { font-size: 0.95rem; color: var(--text); }
 

@@ -44,6 +44,9 @@ jobs:
       - name: Run news and simulator state unit tests
         run: node --test tests/news.test.cjs tests/research-three-state.cjs tests/engineering-renderer.test.mjs tests/robot-hardware.test.mjs tests/research-robot-assembly.test.mjs tests/engineering-camera.test.mjs
 
+      - name: Verify embedded renderer licenses and notice manifest
+        run: node --test tests/vendor-notices.test.mjs
+
       - name: Run publishing integration tests (disposable local remotes only)
         run: python3 -m unittest discover -s tests -p test_publish.py -v
 

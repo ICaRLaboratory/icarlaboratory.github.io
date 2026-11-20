@@ -79,12 +79,13 @@ const SITE = {
             ko: "진동 폭은 슬라이딩 면 도달 이후 |s|의 최댓값입니다.",
           },
         },
-        /* One block per paper the switch can put on the figure. `ref` is a
-           DOI from data/publications.js and prints as that paper's own row
-           from the publication list, so the caption is never a second,
-           drifting copy of the citation. */
+        /* Cite each law's sources by DOI; data/publications.js owns the citations. */
         "asmc-quasi": {
-          ref: "10.3390/electronics13193940",
+          note: {
+            en: "This teaching model uses the quasi-convex gain from Electronics (2024). It corrects the time-delay estimate with a fixed coefficient (α = 0.03) instead of the neural estimator in Sensors (2025). The control parameters were retuned for a 10 ms sampling period. The simulation does not reproduce the experiments or verify the stability theorem.",
+            ko: "이 교육용 모형은 Electronics (2024)의 준볼록 이득을 사용합니다. Sensors (2025)의 신경망 추정기 대신 고정 계수(α = 0.03)로 시간지연 추정 오차를 보정합니다. 제어 파라미터는 10 ms 샘플링 주기에 맞춰 재조정했습니다. 이 모의실험은 논문의 실험을 재현하거나 안정성 정리를 검증한 결과가 아닙니다.",
+          },
+          ref: ["10.3390/electronics13193940", "10.3390/s25144252"],
         },
         "asmc-sigvar": {
           ref: "10.1109/access.2024.3493882",

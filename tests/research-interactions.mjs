@@ -6,6 +6,57 @@ const targets = [
   ['Funded projects', 'funded-projects'],
 ];
 
+export async function checkResearchCitations(page, base, lang) {
+  await page.goto(`${base}/research.html?sim=track&lang=${lang}#interactive`);
+  const panel = page.locator('#simpanel-track');
+  const foot = panel.locator('[data-sim-foot]');
+  const pdFoot = await foot.innerText();
+  assert.ok(pdFoot.length > 0);
+  const law = value => page.locator(`#sim-track-law [data-value="${value}"]`);
+  const algo = value => page.locator(`#sim-track-algo [data-value="${value}"]`);
+  async function expectPapers(dois) {
+    const hrefs = dois.map(doi => `https://doi.org/${doi}`);
+    for (const selector of ['.pub__link', '.pub__doi']) {
+      assert.deepEqual(await foot.locator(`${selector}:visible`).evaluateAll(links => links.map(a => a.href)), hrefs);
+    }
+    for (const [i, doi] of dois.entries()) {
+      const paper = await page.evaluate(doi => JOURNAL_PAPERS.find(p => p.doi === doi), doi);
+      assert.equal(await foot.locator('.pub__link').nth(i).innerText(), paper.title);
+      assert.equal(await foot.locator('.pub__authors:visible').nth(i).innerText(), paper.authors);
+      assert.equal(await foot.locator('.pub__venue:visible').nth(i).innerText(), `${paper.venue} · ${paper.detail} · doi:${doi}`);
+    }
+  }
+  await law('asmc').click();
+  await algo('quasi').click();
+  const smoothPapers = ['10.3390/electronics13193940', '10.3390/s25144252'];
+  const note = panel.locator('[data-sim-note]');
+  async function expectSmooth(language) {
+    assert.equal(await page.locator('html').getAttribute('lang'), language);
+    await expectPapers(smoothPapers);
+    assert.ok(await note.isVisible(), 'Smooth gain modification note is visible');
+    const text = await note.innerText();
+    const terms = language === 'ko' ? [/고정 계수/, /신경망 추정기 대신/, /재조정/] :
+      [/fixed coefficient/i, /instead of the neural estimator/i, /retuned/i];
+    for (const term of [...terms, /α = 0\.03/, /10 ms/]) assert.match(text, term);
+  }
+  await expectSmooth(lang);
+  const other = lang === 'en' ? 'ko' : 'en';
+  await page.locator(`button[data-lang="${other}"]`).click();
+  await expectSmooth(other);
+  await page.locator(`button[data-lang="${lang}"]`).click();
+  await algo('sigvar').click();
+  assert.ok(await note.isHidden(), 'Smooth gain note clears for Novel SV');
+  await expectPapers(['10.1109/access.2024.3493882']);
+  await law('pd').click();
+  assert.equal(await foot.innerText(), pdFoot);
+  assert.equal(await foot.locator('a').count(), 0);
+  await law('tdc').click();
+  assert.ok(await foot.isHidden());
+  await page.locator('#simtab-contact').click();
+  const contactFoot = page.locator('#simpanel-contact [data-sim-foot]');
+  assert.equal(await contactFoot.innerText(), await page.evaluate(lang => SITE.sims.contact.foot[lang], lang));
+}
+
 export async function runResearchChecks(browser, base) {
   const results = [];
   async function check(name, test) {
@@ -15,6 +66,9 @@ export async function runResearchChecks(browser, base) {
     try { await test(page); results.push({ name, pass: true }); }
     catch (error) { results.push({ name, pass: false, error: error.message }); }
     finally { await context.close(); }
+  }
+  for (const lang of ['en', 'ko']) {
+    await check(`Research ${lang}: selected tracking law cites its papers`, page => checkResearchCitations(page, base, lang));
   }
   await check('Research native section navigation transfers keyboard focus', async page => {
     await page.goto(`${base}/research.html`);
